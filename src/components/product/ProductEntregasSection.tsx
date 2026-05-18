@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2, FileText, Mail, MessageSquare, FileUp } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User, Clock, Info, Pencil, Check, Link2, FileText, Mail, MessageSquare, FileUp, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
@@ -195,6 +195,9 @@ function DeliverableRow({
             <span className={`inline-flex items-center gap-1 ${respType === 'cliente' ? 'text-warning' : respType === 'ambos' ? 'text-primary' : 'text-foreground'}`}>
               {respType === 'cliente' ? <User className="h-3 w-3 shrink-0" /> : <Users className="h-3 w-3 shrink-0" />}
               <span className="truncate">{respLabel}</span>
+              {respType === 'equipa' && !template.responsible_role && (
+                <AlertCircle className="h-3 w-3 shrink-0 text-destructive" aria-label="Falta indicar a função responsável" />
+              )}
             </span>
           </span>
           <span className="w-12 shrink-0 flex items-center justify-center">

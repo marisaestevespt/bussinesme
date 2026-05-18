@@ -111,11 +111,10 @@ export function ExpenseDialog({ open, onOpenChange, form, setForm, ivaExempt, pa
                 <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Método Pagamento</Label>
-              <Select value={form.payment_method || '__none__'} onValueChange={v => setForm(f => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+            <div><Label>Método Pagamento *</Label>
+              <Select value={form.payment_method || ''} onValueChange={v => setForm(f => ({ ...f, payment_method: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecionar método" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">—</SelectItem>
                   {paymentMethods.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
