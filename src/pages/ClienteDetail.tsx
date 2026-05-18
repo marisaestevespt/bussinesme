@@ -168,6 +168,9 @@ function ClienteDetailPageInner() {
         const currentProductId = form.current_product
           ? await resolveProductId(form.current_product)
           : null;
+        const { confirmNoClientDuplicates } = await import('@/lib/clientDuplicateCheck');
+        const okDup = await confirmNoClientDuplicates({ nif: form.nif as string | null | undefined, email: form.email as string | null | undefined });
+        if (!okDup) return null;
         const { data, error } = await supabase.from('clients').insert({
           full_name: form.full_name,
           ...form,
