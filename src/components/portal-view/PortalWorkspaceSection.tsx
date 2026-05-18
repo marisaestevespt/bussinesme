@@ -5,7 +5,7 @@ import { Briefcase, FileText, FolderOpen, Download, CheckCircle2, Circle, Layers
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
-import { isPhaseDone, isDeliverableDone, deliverableProgress } from '@/lib/projectProgress';
+import { isPhaseDone, isDeliverableDone } from '@/lib/projectProgress';
 import type { PortalPhase, PortalMaterial } from '@/types/portal';
 
 interface Props {
@@ -36,7 +36,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
   const useUnified = officialProgress === null && !!unifiedProgress && unifiedProgress.total > 0;
   const total = useUnified ? unifiedProgress!.total : allDeliverables.length;
   const done = useUnified ? unifiedProgress!.done : allDeliverables.filter(isDeliverableDone).length;
-  const pct = officialProgress ?? (useUnified ? unifiedProgress!.pct : deliverableProgress(allDeliverables));
+  const pct = officialProgress ?? (useUnified ? unifiedProgress!.pct : 0);
   const progressLabel = useUnified ? 'itens' : 'entregas';
   const activeIdx = (() => {
     const i = phases.findIndex(p => p.status === 'em_curso');

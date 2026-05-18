@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 import {InlineLoader, EmptyHint } from '@/components/ui/loading-skeletons';
-import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, deliverableProgress, computeMonthlyCycleProgress } from '@/lib/projectProgress';
+import { isDeliverableDone, isPhaseDone, isPhaseComplete as allDeliverablesDone, computeMonthlyCycleProgress } from '@/lib/projectProgress';
 import { usePortalBranding } from '@/hooks/usePortalBranding';
 import { resolvePublicPortal, type PublicPortal } from '@/lib/portalAccess';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -504,11 +504,9 @@ export default function PortalViewPage() {
     const explicitProgress = phases
       .map((p) => Number((p as any).project_progress))
       .filter((v) => Number.isFinite(v));
-    if (explicitProgress.length > 0) {
-      const uniqueProgress = Array.from(new Set(explicitProgress));
-      return Math.round(uniqueProgress.reduce((sum, v) => sum + v, 0) / uniqueProgress.length);
-    }
-    return deliverableProgress(allDeliverables);
+    if (explicitProgress.length === 0) return 0;
+    const uniqueProgress = Array.from(new Set(explicitProgress));
+    return Math.round(uniqueProgress.reduce((sum, v) => sum + v, 0) / uniqueProgress.length);
   })();
 
   return (

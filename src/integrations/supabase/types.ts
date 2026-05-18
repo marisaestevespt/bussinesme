@@ -12385,6 +12385,10 @@ export type Database = {
         Args: { _project_id: string }
         Returns: Json
       }
+      calculate_project_progress: {
+        Args: { _project_id: string }
+        Returns: number
+      }
       can_edit_event: { Args: { _event_id: string }; Returns: boolean }
       can_edit_marketing_metrics: { Args: never; Returns: boolean }
       can_edit_operational_kpis: { Args: never; Returns: boolean }

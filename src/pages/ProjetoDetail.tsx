@@ -38,7 +38,7 @@ import { PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
-import { computeMonthlyCycleProgress, computeProjectProgressFromSources, isDeliverableDone, isPhaseDone } from '@/lib/projectProgress';
+import { computeMonthlyCycleProgress, isDeliverableDone, isPhaseDone } from '@/lib/projectProgress';
 import { ProjectAnaliseTab } from '@/components/project/tabs/ProjectAnaliseTab';
 import { ProjectFechoTab } from '@/components/project/tabs/ProjectFechoTab';
 import { ProjectPortalTab } from '@/components/project/tabs/ProjectPortalTab';
@@ -232,20 +232,7 @@ function ProjetoDetailInner() {
     });
   }, [projectPhases, monthlyOccurrences, monthlyTasks]);
 
-  function getProjectProgress() {
-    // Single source of truth — same rule used by Operação's "Saúde dos Projetos"
-    // card and by the project detail health badge. Do NOT inline a different rule.
-    if (!local) return 0;
-    if (isRecorrenteMensal && monthlyCycleLoading) return local.progress || 0;
-    return computeProjectProgressFromSources(
-      local as any,
-      projectDeliverables as any,
-      projectPhases as any,
-      isRecorrenteMensal
-        ? () => monthlyCycleProgress
-        : null,
-    );
-  }
+  const projectProgressValue = Math.min(100, Math.max(0, Math.round(Number(local?.progress || 0))));
 
   function getProjectProgressSummary() {
     if (isRecorrenteMensal) {
@@ -266,19 +253,6 @@ function ProjetoDetailInner() {
 
     return 'Sem fases ou points definidos';
   }
-
-  const autoProgress = getProjectProgress();
-  // Persist computed progress when it diverges, but debounced and only when DB value
-  // (project.progress) is out of sync — avoids a write on every render/keypress.
-  useEffect(() => {
-    if (!local || !project) return;
-    if (isRecorrenteMensal && monthlyCycleLoading) return;
-    if (autoProgress === project.progress) return;
-    const t = setTimeout(() => {
-      supabase.from('projects').update({ progress: autoProgress }).eq('id', local.id);
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [autoProgress, project?.progress, local?.id, isRecorrenteMensal, monthlyCycleLoading]);
 
   // Deadline overdue check
   const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date()
@@ -327,7 +301,14 @@ function ProjetoDetailInner() {
     ])
   );
 
-  useEffect(() => { if (project && !local) setLocal(project); }, [project]);
+  useEffect(() => {
+    if (!project) return;
+    setLocal(prev => {
+      if (!prev) return project;
+      if (prev.progress === project.progress) return prev;
+      return { ...prev, progress: project.progress };
+    });
+  }, [project]);
 
   const updateField = (field: keyof ProjectFull, value: any) => {
     setLocal(prev => (prev ? { ...prev, [field]: value } : prev));
@@ -735,7 +716,7 @@ function ProjetoDetailInner() {
               <ProjectHealthBadge
                 project={local as any}
                 tasks={tasks as any}
-                progressOverride={autoProgress}
+                progressOverride={projectProgressValue}
                 variant="square"
                 className="ml-auto"
               />
@@ -820,9 +801,9 @@ function ProjetoDetailInner() {
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? 'Progresso do contrato' : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
-                  <span className="text-sm font-medium">{getProjectProgress()}%</span>
+                  <span className="text-sm font-medium">{projectProgressValue}%</span>
                   <span className="text-xs text-muted-foreground">{getProjectProgressSummary()}</span>
-                  <Progress value={getProjectProgress()} className="h-2 max-w-xs" />
+                  <Progress value={projectProgressValue} className="h-2 max-w-xs" />
                 </div>
               </div>
             )}

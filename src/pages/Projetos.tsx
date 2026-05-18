@@ -29,8 +29,6 @@ import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isWithinInterval, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { isTaskDone } from '@/lib/taskStatus';
-import { isDeliverableDone, isPhaseDone, deliverableProgress, phaseProgress } from '@/lib/projectProgress';
 import { Card, CardContent } from '@/components/ui/card';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -242,38 +240,6 @@ export default function ProjetosPage() {
     },
   });
 
-  const { data: allProjectPhases = [] } = useQuery({
-    queryKey: ['projects-progress-phases'],
-    queryFn: async () => {
-      const { data } = await supabase.from('project_phases').select('id, project_id, status, is_offboarding');
-      return (data || []) as { id: string; project_id: string; status: string; is_offboarding: boolean | null }[];
-    },
-  });
-
-  const { data: allProjectDeliverables = [] } = useQuery({
-    queryKey: ['projects-progress-deliverables'],
-    queryFn: async () => {
-      const { data } = await supabase.from('project_deliverables').select('project_id, status, phase_id');
-      return (data || []) as { project_id: string; status: string; phase_id: string | null }[];
-    },
-  });
-
-  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
-
-  const { data: monthlyTasksByProject = [] } = useQuery({
-    queryKey: ['projects-monthly-tasks', monthStart],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('tasks')
-        .select('id, status, project_id')
-        .not('project_id', 'is', null)
-        .gte('deadline', monthStart)
-        .lte('deadline', monthEnd);
-      return (data || []) as { id: string; status: string; project_id: string }[];
-    },
-  });
-
   const { data: allClients = [] } = useQuery({
     queryKey: ['clients-for-progress'],
     queryFn: async () => {
@@ -291,40 +257,7 @@ export default function ProjetosPage() {
   });
 
   const profileMap = new Map(profiles.map(p => [p.id, p]));
-  const clientStatusById = new Map(allClients.map((c: any) => [c.id, c.status as string | null]));
-  const phaseById = new Map(allProjectPhases.map(p => [p.id, p]));
-
-  function getTaskProgress(projectId: string, projectType?: string, projectMode?: string, clientId?: string | null) {
-    // Only recorrente serviço mensal uses monthly tasks
-    if (projectType === 'cliente_servico_mensal' && projectMode === 'recorrente') {
-      const tasks = monthlyTasksByProject.filter(t => t.project_id === projectId);
-      if (tasks.length === 0) return 0;
-      const completed = tasks.filter(isTaskDone).length;
-      return Math.round((completed / tasks.length) * 100);
-    }
-
-    // Match portal logic: exclude deliverables of Offboarding phases when the
-    // client is NOT yet in offboarding/terminado — otherwise the % shown here
-    // doesn't match the % shown in the client portal.
-    const clientStatus = clientId ? clientStatusById.get(clientId) : null;
-    const includeOffboarding = clientStatus === 'em_offboarding' || clientStatus === 'terminado';
-    const projectDeliverables = allProjectDeliverables.filter(d => {
-      if (d.project_id !== projectId) return false;
-      if (includeOffboarding) return true;
-      const ph = d.phase_id ? phaseById.get(d.phase_id) : null;
-      return !(ph && ph.is_offboarding);
-    });
-    if (projectDeliverables.length > 0) {
-      return deliverableProgress(projectDeliverables);
-    }
-
-    const projectPhases = allProjectPhases.filter(p => p.project_id === projectId && (includeOffboarding || !p.is_offboarding));
-    if (projectPhases.length > 0) {
-      return phaseProgress(projectPhases);
-    }
-
-    return 0;
-  }
+  const getProjectProgress = (project: Project) => Math.min(100, Math.max(0, Math.round(Number(project.progress || 0))));
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -572,8 +505,8 @@ export default function ProjetosPage() {
           />
         ) : (
           <>
-            {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} onStatusChange={(id, s) => updateStatusMutation.mutate({ projectId: id, status: s })} getTaskProgress={getTaskProgress} />}
-            {view === 'gallery' && <GalleryView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} getTaskProgress={getTaskProgress} />}
+            {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} onStatusChange={(id, s) => updateStatusMutation.mutate({ projectId: id, status: s })} getProjectProgress={getProjectProgress} />}
+            {view === 'gallery' && <GalleryView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} getProjectProgress={getProjectProgress} />}
             {view === 'calendar' && <CalendarView projects={projects} month={calMonth} onMonthChange={setCalMonth} onOpen={id => navigate(`/hub/projetos/${id}`)} />}
           </>
         )}
@@ -707,7 +640,7 @@ export default function ProjetosPage() {
 
 // ─── Table View ─────────────────────────────────────────────────
 
-function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null, clientId?: string | null) => number }) {
+function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getProjectProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getProjectProgress: (project: Project) => number }) {
   const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="rounded-lg border overflow-x-auto">
@@ -759,7 +692,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                 <TableCell><ProjectDeptBadges project={p} /></TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
-                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type, p.project_mode, (p as any).client_id)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type, p.project_mode, (p as any).client_id)}%</span></div></TableCell>
+                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getProjectProgress(p)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getProjectProgress(p)}%</span></div></TableCell>
                 <TableCell><div className="flex -space-x-1">{members.slice(0, 3).map(m => <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(m)} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>)}{members.length > 3 && <span className="text-xs text-muted-foreground ml-1">+{members.length - 3}</span>}</div></TableCell>
               </TableRow>
             );
@@ -772,7 +705,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 
 // ─── Gallery View ───────────────────────────────────────────────
 
-function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null, clientId?: string | null) => number }) {
+function GalleryView({ projects, getMembersForProject, onOpen, getProjectProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getProjectProgress: (project: Project) => number }) {
   const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -802,8 +735,8 @@ function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }
                 ) : null;
               })()}
               <div className="flex items-center gap-2 mb-3">
-                <Progress value={getTaskProgress(p.id, p.type, p.project_mode)} className="h-2 flex-1" />
-                <span className="text-xs text-muted-foreground">{getTaskProgress(p.id, p.type, p.project_mode)}%</span>
+                <Progress value={getProjectProgress(p)} className="h-2 flex-1" />
+                <span className="text-xs text-muted-foreground">{getProjectProgress(p)}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-xs text-muted-foreground space-y-0.5">
