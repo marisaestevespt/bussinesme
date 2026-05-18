@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Check, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { validateExpensePaymentMethod } from '@/lib/formValidation';
 import type { useFinancialData, Expense, RecurringExpense } from '@/hooks/useFinancialData';
 import type { TablesInsert } from '@/integrations/supabase/types';
 import type { useQueryClient } from '@tanstack/react-query';
