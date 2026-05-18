@@ -313,7 +313,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     queryFn: async () => {
       const { data: products } = await supabase.from('products').select('id, name').order('name');
       if (!products?.length) return [];
-      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring, estimated_minutes, deliverable_type, is_meeting, meeting_title_template, responsible_type, link_url, document_url, document_file_path');
+      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, estimated_minutes, deliverable_type, is_meeting, meeting_title_template, responsible_type, link_url, document_url, document_file_path');
       const templatesByProduct = new Map<string, any[]>();
       ((templates || []) as any[]).forEach((t: any) => {
         if (!templatesByProduct.has(t.product_id)) templatesByProduct.set(t.product_id, []);
