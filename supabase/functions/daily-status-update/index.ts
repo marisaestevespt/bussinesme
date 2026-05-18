@@ -5,6 +5,7 @@ type SupabaseAdmin = ReturnType<typeof createClient>;
 type Row = Record<string, unknown>;
 
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { startCronRun, finishCronRun } from "../_shared/cron-log.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -20,11 +21,13 @@ Deno.serve(async (req) => {
     });
   }
 
+  const cronRun = await startCronRun("daily-status-update");
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
+  try {
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
   const results: string[] = [];
@@ -752,10 +755,18 @@ Deno.serve(async (req) => {
     return null;
   });
 
+  await finishCronRun(cronRun, { status: "success", itemsProcessed: results.length });
   return new Response(
     JSON.stringify({ success: true, results }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
+  } catch (err) {
+    await finishCronRun(cronRun, { status: "error", error: err });
+    return new Response(
+      JSON.stringify({ success: false, error: err instanceof Error ? err.message : String(err) }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 });
 
 // ── Helper: get Monday of current week ──
