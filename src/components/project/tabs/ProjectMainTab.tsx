@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { EntitySection } from '@/components/layout/entity';
@@ -11,7 +11,7 @@ import { ProjectPhasesGallery } from '@/components/project/ProjectPhasesGallery'
 import { Target, BookOpen, CalendarIcon, FileText, Users, Lightbulb, StickyNote, ClipboardList, ChevronRight, Workflow, Video, RefreshCw } from 'lucide-react';
 import type { ProjectFull, Meeting } from '@/hooks/useProjectDetailData';
 
-type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
+type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas';
 
 interface Props {
   projectId: string;
@@ -33,6 +33,30 @@ export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, t
   // Monthly services also render the gallery so each cycle month appears as a card.
   const isMonthlyService = local.type === 'cliente_servico_mensal';
   const showGallery = hasPhases || isMonthlyService;
+
+  // Briefing tile "filled" indicator: count answered portal initial questions for this client.
+  const { data: briefingAnswered = 0 } = useQuery({
+    queryKey: ['project-briefing-answered', resolvedClientId],
+    enabled: !!resolvedClientId,
+    queryFn: async () => {
+      const { data: portals } = await supabase
+        .from('client_portals')
+        .select('id')
+        .eq('client_id', resolvedClientId!);
+      const ids = (portals || []).map((p: { id: string }) => p.id);
+      if (ids.length === 0) return 0;
+      const { data: qs } = await supabase
+        .from('portal_initial_questions')
+        .select('id, answer, file_urls')
+        .in('portal_id', ids);
+      return (qs || []).filter((q: { answer: string | null; file_urls: unknown }) => {
+        if (q.answer && q.answer.trim()) return true;
+        const f = q.file_urls;
+        if (Array.isArray(f)) return f.length > 0;
+        return false;
+      }).length;
+    },
+  });
 
   const handleSyncTemplate = async () => {
     if (!local.product_id) {
@@ -83,7 +107,7 @@ export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, t
   const devTiles = [
     local.type === 'interno'
       ? { key: 'brainstorming' as SubPage, icon: Lightbulb, label: 'Brainstorming', filled: hasText((local as { brainstorming?: string }).brainstorming) }
-      : { key: 'briefing' as SubPage, icon: ClipboardList, label: local.type === 'cliente_servico_mensal' ? 'Âmbito da Avença' : 'Briefing', filled: false },
+      : { key: 'briefing' as SubPage, icon: ClipboardList, label: local.type === 'cliente_servico_mensal' ? 'Âmbito da Avença' : 'Briefing', filled: briefingAnswered > 0 },
     { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis', filled: hasText(local.entregaveis) },
     { key: 'reunioes' as SubPage, icon: Users, label: 'Reuniões', filled: meetings.length > 0 },
     { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos & Materiais', filled: hasText(local.recursos) },
