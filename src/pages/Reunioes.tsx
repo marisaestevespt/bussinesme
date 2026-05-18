@@ -667,7 +667,7 @@ export function MeetingFormDialog({
 
       // Create calendar event. Reunião-specific event types were retired —
       // the agenda detects meetings via the meetings table (purple pill).
-      const isClientMeeting = meetingType === 'cliente';
+      const isClientMeeting = !!clientId;
       const eventTypeId: string | null = null;
       await supabase.from('events').insert({
         title: finalTitle,
