@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Asset {
   id: string;
@@ -174,6 +175,7 @@ export function ProjectAssetTable({ projectId, pageKey, categories = [], emptyTi
 
   const deleteAsset = useMutation({
     mutationFn: async (a: Asset) => {
+      await requireConfirm();
       if (a.kind === 'file' && a.storage_path) {
         await supabase.storage.from('project-assets').remove([a.storage_path]);
       }

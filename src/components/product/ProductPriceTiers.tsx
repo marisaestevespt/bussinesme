@@ -7,6 +7,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { InlineField } from '@/components/product/InlineField';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface PriceTier {
   id: string;
@@ -57,6 +58,7 @@ export function ProductPriceTiers({ productId, readOnly }: Props) {
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('product_price_tiers').delete().eq('id', id);
       if (error) throw error;
     },

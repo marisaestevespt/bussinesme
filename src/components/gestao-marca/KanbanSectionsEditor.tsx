@@ -10,6 +10,7 @@ import { Pencil, Check, X, Plus, Trash2, ChevronUp, ChevronDown, Link2, Upload, 
 import { toast } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { KanbanSection } from './types';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface SectionAttachment {
   id: string;
@@ -94,6 +95,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
   };
 
   const deleteSection = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_kanban_sections').delete().eq('id', id);
     invalidate();
   };
@@ -138,6 +140,7 @@ export function KanbanSectionsEditor({ itemId, isOwner, twoColumns = false, hide
   };
 
   const deleteAttachment = async (att: SectionAttachment) => {
+    if (!(await confirmDestructive())) return;
     if (att.kind === 'file' && att.file_path) {
       await supabase.storage.from('brand-section-files').remove([att.file_path]);
     }

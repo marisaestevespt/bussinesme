@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { resolveProductId } from '@/lib/productResolver';
 import { PastLaunchesDialog } from './PastLaunchesDialog';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const ENTRY_TYPES = ['Lançamento', 'Relançamento', 'Campanha', 'Sequência de Email', 'Promoção', 'Outro'];
 const RESULTS = ['Funcionou', 'Não Funcionou', 'Parcialmente'];
@@ -227,6 +228,7 @@ export function LibraryEntrySheet({ open, onOpenChange, entry, isNew, products }
   };
 
   const handleDelete = async () => {
+    if (!(await confirmDestructive())) return;
     if (!entry) return;
     const { error } = await supabase.from('commercial_library_entries').delete().eq('id', entry.id);
     if (error) { toast.error('Não consegui eliminar a entrada da biblioteca. Tenta novamente.'); return; }

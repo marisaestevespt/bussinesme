@@ -25,6 +25,7 @@ import { EntradasTable, IvaCobradoDialog } from './finMensal/EntradasTable';
 import { SegurancaSocialCard, SaidasTable, IvaPagoDialog, NewExpenseDialog } from './finMensal/SaidasSection';
 import { MONTHS, getSubscriptionDueDate, canRenderSubscriptionForMonth, type Sale } from './finMensal/helpers';
 import { buildSubscriptionExpense, buildContractExpense, type ContractLike } from './finMensal/expenseBuilders';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Props {
   sales: (Sale & { id?: string; sale_id?: string | null; payment_date?: string | null; documents?: unknown; })[];
@@ -298,6 +299,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   };
 
   const deleteMonthlyDoc = async (id: string, docType: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('financial_documents').delete().eq('id', id);
     if (docType === 'extrato_bancario') refetchStatements();
     else refetchMetaAds();

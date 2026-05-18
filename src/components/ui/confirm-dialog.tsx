@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useState, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
+import { registerConfirmResolver } from '@/lib/confirmDestructive';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,6 +65,12 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
       }),
     [],
   );
+
+  // Regista o resolver global para que `confirmDestructive()` funcione em
+ // qualquer ponto da app (hooks, mutationFns, helpers fora de componentes).
+  useEffect(() => {
+    registerConfirmResolver(confirm);
+  }, [confirm]);
 
   const prompt = useCallback(
     (opts: PromptOptions) =>

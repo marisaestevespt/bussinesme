@@ -20,6 +20,7 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const CONTEXTS = [
   { value: 'conteudos', label: 'Conteúdos' },
@@ -94,7 +95,8 @@ function TrainingCoursesTable() {
   });
 
   const deleteCourse = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('training_courses').delete().eq('id', id); },
+    mutationFn: async (id: string) => {
+      await requireConfirm(); await supabase.from('training_courses').delete().eq('id', id); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_courses'] }); toast.success('Removida'); },
   });
 
@@ -182,7 +184,8 @@ function CourseDetailSheet({ course, open, onClose }: { course: any; open: boole
   });
 
   const deleteDoubt = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('training_doubts').delete().eq('id', id); },
+    mutationFn: async (id: string) => {
+      await requireConfirm(); await supabase.from('training_doubts').delete().eq('id', id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['training_doubts', course.id] }),
   });
 
@@ -332,6 +335,7 @@ function IdeasTable() {
 
   const deleteIdea = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       await supabase.from('innovation_ideas').delete().eq('id', id);
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['innovation_ideas'] }); toast.success('Removida'); },

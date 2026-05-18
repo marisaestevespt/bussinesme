@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-warning/15 text-warning' },
@@ -89,6 +90,7 @@ export default function MarketingAutomacoes() {
   };
 
   const deleteAuto = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('marketing_automations').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['marketing-automations'] });
     toast.success('Automação eliminada');

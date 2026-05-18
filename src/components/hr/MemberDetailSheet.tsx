@@ -31,6 +31,7 @@ import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingItem } from '@/components/onboarding/OnboardingItem';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 function MemberIconBlock({ member }: { member: any }) {
   const qc = useQueryClient();
@@ -170,6 +171,7 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
   };
 
   const handleDeleteVacation = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('team_member_vacations').delete().eq('id', id);
     toast.success('Férias removidas');
     qc.invalidateQueries({ queryKey: ['member-vacations', member.id] });

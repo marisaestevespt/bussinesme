@@ -24,6 +24,7 @@ import { useClients } from '@/hooks/useClients';
 import { WEEKS_PER_MONTH, getDateRange } from './productivity-constants';
 import { formatEuro } from '@/lib/formatting';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export function CapacityTab({ members, entries, clients, products, scenario, scenarioProducts }: {
   members: any[]; entries: any[]; clients: any[]; products: any[]; scenario: any; scenarioProducts: any[];
@@ -352,6 +353,7 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
 
   const deleteScenarioProduct = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('capacity_scenario_products').delete().eq('id', id);
       if (error) throw error;
     },

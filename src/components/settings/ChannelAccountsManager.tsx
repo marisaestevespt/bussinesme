@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Trash2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export interface ChannelAccount {
   id: string;
@@ -65,6 +66,7 @@ export function ChannelAccountsManager({ channelId, channelName }: Props) {
   };
 
   const removeAccount = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     const { error } = await supabase.from('marketing_channel_accounts' as any).delete().eq('id', id);
     if (error) { toast.error('Não consegui eliminar a conta.'); return; }
     refresh();

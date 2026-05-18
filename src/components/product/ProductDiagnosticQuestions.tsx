@@ -10,6 +10,7 @@ import { Plus, Trash2, ChevronDown, ChevronRight, Settings, ClipboardList, Penci
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { toast } from 'sonner';
 import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Props {
   productId: string;
@@ -330,6 +331,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
 
   const deleteQuestion = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('product_diagnostic_questions').delete().eq('id', id);
       if (error) throw error;
     },

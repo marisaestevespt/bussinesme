@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
   MessageCircle, FolderOpen, FileText, Figma, Slack, Trello, Video,
   Plus, Pencil, Trash2, ExternalLink, Link2,
 } from "lucide-react";
@@ -111,6 +112,7 @@ export function DepartmentLinks({
   };
 
   const remove = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     if (!confirm("Eliminar este link?")) return;
     const { error } = await supabase.from("department_links" as any).delete().eq("id", id);
     if (error) { toast.error("Erro ao eliminar"); return; }

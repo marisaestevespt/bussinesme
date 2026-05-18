@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
+import { isConfirmCancelled } from "@/lib/confirmDestructive";
 import { AppTabsProvider } from "@/hooks/useAppTabs";
 import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -121,6 +122,12 @@ const RecursosHumanosSubPage = lazy(() => import("./pages/RecursosHumanosSubPage
 const mutationCache = new MutationCache({
   onSuccess: () => {
     queryClient.invalidateQueries();
+  },
+  onError: (error) => {
+    // Silencia erros de cancelamento das confirmações destrutivas — não são bugs.
+    if (isConfirmCancelled(error)) {
+      return;
+    }
   },
 });
 

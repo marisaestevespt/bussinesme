@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export interface ModifierLevel {
   id: string;
@@ -69,6 +70,7 @@ export function useProductModifiers(productId?: string | null) {
 
   const removeDimension = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('product_modifier_dimensions').delete().eq('id', id);
       if (error) throw error;
     },
@@ -96,6 +98,7 @@ export function useProductModifiers(productId?: string | null) {
 
   const removeLevel = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('product_modifier_levels').delete().eq('id', id);
       if (error) throw error;
     },

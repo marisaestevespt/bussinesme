@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect } from 'react';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export function useNotifications() {
   const { user } = useAuth();
@@ -56,6 +57,7 @@ export function useNotifications() {
 
   const deleteNotification = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       await supabase.from('notifications').delete().eq('id', id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications', user?.id] }),

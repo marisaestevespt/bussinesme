@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Compass, Eye, Heart, Grid2x2, Plus, X, Pencil, Save, Trash2, ExternalLink, Sparkles, Target } from 'lucide-react';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type Directive = {
   id: string;
@@ -136,7 +137,8 @@ export function StrategicSection() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['strategic', 'swot'] }); setAddingSwot(null); setSwotDraft(''); },
   });
   const removeSwot = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('brand_swot_items').delete().eq('id', id); },
+    mutationFn: async (id: string) => {
+      await requireConfirm(); await supabase.from('brand_swot_items').delete().eq('id', id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['strategic', 'swot'] }),
   });
 
@@ -175,7 +177,8 @@ export function StrategicSection() {
     onError: (e: any) => toast.error(e?.message || 'Erro'),
   });
   const deleteDirective = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('strategic_directives').delete().eq('id', id); },
+    mutationFn: async (id: string) => {
+      await requireConfirm(); await supabase.from('strategic_directives').delete().eq('id', id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }),
   });
 

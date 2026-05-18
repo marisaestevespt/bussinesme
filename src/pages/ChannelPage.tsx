@@ -27,6 +27,7 @@ import { ChannelMonthlyAnalysis } from '@/components/marketing/ChannelMonthlyAna
 import { InstagramFeedPreview } from '@/components/marketing/InstagramFeedPreview';
 import { BackNavigation } from '@/components/BackNavigation';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const DIST_DAY_LABELS: Record<string, string> = {
   segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta',
@@ -198,6 +199,7 @@ export default function ChannelPage() {
   };
 
   const deletePage = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('channel_pages').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['channel-pages', channelId] });
     toast.success('Página removida');

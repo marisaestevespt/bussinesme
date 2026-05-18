@@ -40,6 +40,7 @@ import { TaskTable, TASK_STATUSES, PRIORITIES, getStatusInfo, getPriorityInfo, g
 import { CalendarView } from '@/components/tasks/CalendarView';
 import { ResponsavelView } from '@/components/tasks/ResponsavelView';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -262,6 +263,7 @@ export default function TarefasPage() {
 
   const deleteTask = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('tasks').delete().eq('id', id);
       if (error) throw error;
     },

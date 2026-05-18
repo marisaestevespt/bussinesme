@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Props {
   entityType: string; // 'client', 'project', 'lead', 'product', 'member'
@@ -100,6 +101,7 @@ export function CustomFieldsSection({ entityType, entityId, showConfig = false }
 
   const deleteField = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       await (supabase.from('custom_fields' as any) as any).delete().eq('id', id);
     },
     onSuccess: () => {

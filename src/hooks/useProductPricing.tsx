@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type PricingDriver = Tables<'product_pricing_drivers'>;
 export type ProductQuote = Tables<'product_quotes'>;
@@ -41,6 +42,7 @@ export function usePricingDrivers(productId?: string | null) {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('product_pricing_drivers').delete().eq('id', id);
       if (error) throw error;
     },
@@ -90,6 +92,7 @@ export function useProductQuotes(opts: { productId?: string | null; leadId?: str
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('product_quotes').delete().eq('id', id);
       if (error) throw error;
     },

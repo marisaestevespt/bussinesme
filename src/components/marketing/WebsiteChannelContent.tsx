@@ -17,6 +17,7 @@ import {
   ChevronLeft, Plus, Trash2, Upload, Check, Image as ImageIcon, Globe, X,
 } from 'lucide-react';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const PAGE_STATUSES = [
   { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
@@ -92,6 +93,7 @@ export function WebsiteChannelContent({ channelId, channelName }: WebsiteChannel
   };
 
   const deletePage = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('website_pages').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['website-pages', channelId] });
     toast.success('Página removida');
@@ -115,6 +117,7 @@ export function WebsiteChannelContent({ channelId, channelName }: WebsiteChannel
   };
 
   const deleteFile = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('website_page_files').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['website-page-files', editingPage?.id] });
     toast.success('Ficheiro removido');

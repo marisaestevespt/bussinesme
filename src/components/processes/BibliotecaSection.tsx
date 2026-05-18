@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const DEFAULT_CATEGORIES = [
   { value: 'cultura', label: 'Guia de Cultura' },
@@ -106,6 +107,7 @@ export function BibliotecaSection() {
 
   const deleteDoc = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('internal_documents').delete().eq('id', id);
       if (error) throw error;
     },

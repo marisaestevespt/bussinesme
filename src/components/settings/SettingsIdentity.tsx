@@ -10,6 +10,7 @@ import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon } from 'lucide-react';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 /* ── colour helpers ── */
 
@@ -228,6 +229,7 @@ export function SettingsIdentity() {
   };
 
   const deleteFont = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('custom_fonts').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['custom-fonts'] });
     toast.success('Fonte removida');

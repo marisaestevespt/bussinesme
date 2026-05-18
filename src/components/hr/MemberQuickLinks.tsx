@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Trash2, ExternalLink, Link2, Pencil, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface QuickLink {
   id: string;
@@ -70,6 +71,7 @@ export function MemberQuickLinks({ memberId, readOnly = false, compact = false }
   };
 
   const remove = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     const { error } = await supabase.from('member_quick_links').delete().eq('id', id);
     if (error) { toast.error('Falha ao remover'); return; }
     toast.success('Link removido');

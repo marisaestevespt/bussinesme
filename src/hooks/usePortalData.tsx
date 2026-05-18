@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type Portal = Tables<'client_portals'>;
 export type PortalFaq = Tables<'portal_faqs'>;
@@ -117,6 +118,7 @@ export function usePortalFaqs(portalId: string | undefined) {
 
   const deleteFaq = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('portal_faqs').delete().eq('id', id);
       if (error) throw error;
     },
@@ -160,6 +162,7 @@ export function usePortalQuestions(portalId: string | undefined) {
 
   const deleteQuestion = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('portal_initial_questions').delete().eq('id', id);
       if (error) throw error;
     },
@@ -259,6 +262,7 @@ export function usePortalSummaries(portalId: string | undefined) {
 
   const deleteSummary = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('portal_monthly_summaries').delete().eq('id', id);
       if (error) throw error;
     },

@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const STATUSES = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-primary/15 text-primary' },
@@ -96,6 +97,7 @@ export default function MarketingFunis() {
   };
 
   const deleteFunnel = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('marketing_funnels').delete().eq('id', id) as any;
     qc.invalidateQueries({ queryKey: ['marketing-funnels'] });
     toast.success('Funil eliminado');

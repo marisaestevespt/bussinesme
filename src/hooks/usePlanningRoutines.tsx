@@ -8,6 +8,7 @@ import {
 } from 'date-fns';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { adjustToBusinessDay as adjustToBusinessDayWithHolidays } from '@/lib/holidays';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 type PlanningRoutine = Tables<'planning_routines'>;
 
@@ -215,6 +216,7 @@ export function usePlanningRoutines() {
 
   const deleteRoutine = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const todayStr = format(new Date(), 'yyyy-MM-dd');
       await supabase
         .from('tasks')

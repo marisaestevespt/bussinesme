@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { cleanPayload as clean } from '@/lib/utils';
 import { sumRevenue } from '@/lib/salesCalculations';
 import type {
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
   PlanningFormPayload,
   ObjectiveRow,
   CriterionRow,
@@ -240,6 +241,7 @@ export function usePlanningData(year = currentYear) {
 
   const deleteObjective = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('executive_objectives').delete().eq('id', id);
       if (error) throw error;
     },
@@ -273,6 +275,7 @@ export function usePlanningData(year = currentYear) {
 
   const deleteCriterion = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('objective_criteria').delete().eq('id', id);
       if (error) throw error;
     },
@@ -325,6 +328,7 @@ export function usePlanningData(year = currentYear) {
 
   const deleteGoal = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('planning_goals').delete().eq('id', id);
       if (error) throw error;
     },
@@ -358,6 +362,7 @@ export function usePlanningData(year = currentYear) {
 
   const deleteMetric = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('objective_metrics').delete().eq('id', id);
       if (error) throw error;
     },
@@ -418,6 +423,7 @@ export function usePlanningData(year = currentYear) {
 
   const deleteAction = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('objective_actions').delete().eq('id', id);
       if (error) throw error;
     },

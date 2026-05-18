@@ -9,6 +9,7 @@ import { Plus, Trash2, MessageSquare, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Props {
   clientId: string | undefined;
@@ -79,6 +80,7 @@ export function ClientFeedbackSection({ clientId, clientName }: Props) {
 
   const deleteFeedback = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await (supabase.from('client_feedback' as any) as any).delete().eq('id', id);
       if (error) throw error;
     },

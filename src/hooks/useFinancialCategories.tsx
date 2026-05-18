@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { EXPENSE_CATEGORIES } from '@/lib/financialCategories';
 import type { TablesInsert } from '@/integrations/supabase/types';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type CategoryType = 'expense' | 'subscription';
 
@@ -59,6 +60,7 @@ export function useFinancialCategories() {
 
   const deleteCategory = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm();
       const { error } = await supabase.from('financial_categories').delete().eq('id', id);
       if (error) throw error;
     },

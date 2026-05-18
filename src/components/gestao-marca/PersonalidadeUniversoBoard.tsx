@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { ArchetypesBoard } from './ArchetypesBoard';
 import { PersonalidadePalavrasLayout } from './PersonalidadePalavrasLayout';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 interface PersonalityImage {
   id: string;
@@ -105,6 +106,7 @@ function ImageGallery({ itemId, kind, isOwner, layout }: { itemId: string; kind:
   };
 
   const remove = async (img: PersonalityImage) => {
+    if (!(await confirmDestructive())) return;
     if (img.file_path) await supabase.storage.from('brand-section-files').remove([img.file_path]);
     await supabase.from('brand_personality_images').delete().eq('id', img.id);
     invalidate();
@@ -254,6 +256,7 @@ function UniverseNotes({ isOwner }: { isOwner: boolean }) {
   };
 
   const remove = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_universe_notes').delete().eq('id', id);
     invalidate();
   };

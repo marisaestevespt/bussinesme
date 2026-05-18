@@ -49,6 +49,7 @@ import type { BrandCompetitor, BrandLink, VisualCard, VisualFile } from '@/compo
 import { KANBAN_GROUPS, KANBAN_EMOJIS } from '@/components/gestao-marca/constants';
 import { BrandIdentitySync } from '@/components/gestao-marca/BrandIdentitySync';
 import { safeUrl } from '@/lib/url';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 
 /** Sanitize filename for Supabase Storage (no spaces, accents, or unsafe chars). */
@@ -290,6 +291,7 @@ export default function GestaoMarcaPage() {
   };
 
   const deleteLink = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_links').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['brand-links'] });
   };
@@ -329,6 +331,7 @@ export default function GestaoMarcaPage() {
   };
 
   const deleteKanbanItem = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_kanban_items').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['brand-kanban-items'] });
     toast.success('Item removido');
@@ -461,6 +464,7 @@ export default function GestaoMarcaPage() {
   };
 
   const deleteVisualCard = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_visual_files').delete().eq('card_id', id);
     await supabase.from('brand_visual_cards').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-cards'] });
@@ -468,6 +472,7 @@ export default function GestaoMarcaPage() {
   };
 
   const deleteVisualFile = async (fileId: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_visual_files').delete().eq('id', fileId);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual?.id] });
     toast.success('Ficheiro removido');
@@ -524,6 +529,7 @@ export default function GestaoMarcaPage() {
   };
 
   const deleteCompetitor = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_competitors').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['brand-competitors'] });
     toast.success('Concorrente removido');
@@ -552,6 +558,7 @@ export default function GestaoMarcaPage() {
   };
 
   const deleteSwotItem = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_swot_items').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['brand-swot'] });
   };
@@ -566,6 +573,7 @@ export default function GestaoMarcaPage() {
   };
 
   const deleteDifferential = async (id: string) => {
+    if (!(await confirmDestructive())) return;
     await supabase.from('brand_differentials').delete().eq('id', id);
     queryClient.invalidateQueries({ queryKey: ['brand-differentials'] });
   };
