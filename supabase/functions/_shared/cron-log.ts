@@ -23,6 +23,62 @@ function getServiceClient(): SupabaseClient {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+/**
+ * Lower-friction API: call `startCronRun` at the top of the handler, then
+ * `finishCronRun(run, ...)` once (in try/catch/finally style).
+ */
+export interface CronRunHandle {
+  id: string | null;
+  startedAt: number;
+}
+
+export async function startCronRun(functionName: string): Promise<CronRunHandle> {
+  const startedAt = Date.now();
+  try {
+    const sb = getServiceClient();
+    const { data, error } = await sb
+      .from("cron_runs")
+      .insert({ function_name: functionName, status: "running" })
+      .select("id")
+      .single();
+    if (error) {
+      console.warn("[cron-log] start insert error:", error.message);
+      return { id: null, startedAt };
+    }
+    return { id: data?.id ?? null, startedAt };
+  } catch (e) {
+    console.warn("[cron-log] start exception:", e);
+    return { id: null, startedAt };
+  }
+}
+
+export async function finishCronRun(
+  run: CronRunHandle,
+  outcome: { status: "success" | "error"; error?: unknown; itemsProcessed?: number; metadata?: Record<string, unknown> },
+): Promise<void> {
+  if (!run.id) return;
+  try {
+    const sb = getServiceClient();
+    const duration = Date.now() - run.startedAt;
+    const errMsg = outcome.error
+      ? (outcome.error instanceof Error ? outcome.error.message : String(outcome.error)).slice(0, 2000)
+      : null;
+    await sb
+      .from("cron_runs")
+      .update({
+        status: outcome.status,
+        finished_at: new Date().toISOString(),
+        duration_ms: duration,
+        error_message: errMsg,
+        items_processed: outcome.itemsProcessed ?? null,
+        metadata: outcome.metadata && Object.keys(outcome.metadata).length ? outcome.metadata : null,
+      })
+      .eq("id", run.id);
+  } catch (e) {
+    console.warn("[cron-log] finish exception:", e);
+  }
+}
+
 export async function withCronLog<T>(
   functionName: string,
   handler: (ctx: CronLogCtx) => Promise<T>,
