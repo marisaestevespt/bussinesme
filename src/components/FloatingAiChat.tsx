@@ -35,6 +35,8 @@ type Msg = {
   action_proposal?: ActionProposal | null;
   confirmed?: boolean;
   file?: { name: string; type: string } | null;
+  model?: string | null;
+  streaming?: boolean;
 };
 
 const ACTION_LABELS: Record<string, { label: string; icon: string; color: string }> = {
@@ -45,16 +47,8 @@ const ACTION_LABELS: Record<string, { label: string; icon: string; color: string
   workflow: { label: "Workflow", icon: "⚡", color: "text-warning" },
 };
 
-const STORAGE_KEY_MESSAGES = "lyrata-ai-messages";
 const STORAGE_KEY_OPEN = "lyrata-ai-open";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-function loadPersistedMessages(): Msg[] {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY_MESSAGES);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
