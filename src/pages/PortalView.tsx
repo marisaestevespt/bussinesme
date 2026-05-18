@@ -957,6 +957,11 @@ export default function PortalViewPage() {
               pc={pc}
               pcAlpha={pcAlpha}
               hasOngoingWork={recurringOccurrences.some((o: any) => o.status !== 'concluida') || routines.length > 0}
+              unifiedProgress={computeMonthlyCycleProgress({
+                phases: phases as any,
+                occurrences: recurringOccurrences as any,
+                tasks: tasks as any,
+              })}
             />
             {(recurringOccurrences.length > 0 || routines.length > 0 || responsibilities.length > 0) && (
               <div className="space-y-6">
