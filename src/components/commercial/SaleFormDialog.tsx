@@ -165,7 +165,8 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     if (!form.base_value || parseFloat(form.base_value) <= 0) { toast.error('Valor base deve ser maior que 0'); return; }
     if (!form.client) { toast.error('Seleciona um cliente'); return; }
     if (!form.product) { toast.error('Seleciona um produto'); return; }
-    if (!form.assigned_to) { toast.error('Seleciona o vendedor responsável'); return; }
+    const sellerErr = validateSaleSeller(form.assigned_to);
+    if (sellerErr) { toast.error(sellerErr); return; }
 
     onSave({
       ...(form.id ? { id: form.id } : {}),
