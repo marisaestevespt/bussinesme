@@ -489,11 +489,18 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
               <div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
                   <span>
-                    {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
-                    {phaseTotal > 0 && occTotal > 0 && ' · '}
-                    {occTotal > 0 && `${occDone}/${occTotal} cadências`}
-                    {(phaseTotal > 0 || occTotal > 0) && taskTotal > 0 && ' · '}
-                    {taskTotal > 0 && `${taskDone}/${taskTotal} tarefas`}
+                    {taskTotal > 0 ? (
+                      <>
+                        {`${taskDone}/${taskTotal} tarefas do mês`}
+                        {occTotal > 0 && ` · ${occTotal} cadências planeadas`}
+                      </>
+                    ) : (
+                      <>
+                        {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
+                        {phaseTotal > 0 && occTotal > 0 && ' · '}
+                        {occTotal > 0 && `${occDone}/${occTotal} cadências`}
+                      </>
+                    )}
                   </span>
                   <span className="font-semibold text-foreground">{pct}%</span>
                 </div>
