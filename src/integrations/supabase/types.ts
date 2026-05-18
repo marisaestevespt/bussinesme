@@ -12351,6 +12351,16 @@ export type Database = {
         Args: { _from: string; _hours: number }
         Returns: string
       }
+      admin_top_queries: {
+        Args: { _limit?: number }
+        Returns: {
+          calls: number
+          mean_ms: number
+          query_preview: string
+          rows: number
+          total_ms: number
+        }[]
+      }
       apply_product_portal_template: {
         Args: {
           _mode?: string
