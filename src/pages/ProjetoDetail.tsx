@@ -818,7 +818,7 @@ function ProjetoDetailInner() {
             {/* Progresso */}
             {taskMode !== 'tarefas_livres' && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
+                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? 'Progresso do contrato' : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
                   <span className="text-sm font-medium">{getProjectProgress()}%</span>
                   <span className="text-xs text-muted-foreground">{getProjectProgressSummary()}</span>
