@@ -301,7 +301,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     return team.map((m) => {
       const monthlyAvailable = monthlyCapacity(m);
       const memberTasks = monthTasks.filter((t) => t.assigned_to === m.profile_id);
-      const committed = memberTasks.reduce((s: number, t: any) => s + Number(t.estimated_time || 0), 0);
+      const committed = memberTasks.reduce((s: number, t: any) => s + Number(t.estimated_minutes || 0) / 60, 0);
       return { name: m.full_name, available: Math.round(monthlyAvailable), committed: Math.round(committed), over: committed > monthlyAvailable };
     }).filter(m => m.committed > 0);
   }, [team, monthTasks]);

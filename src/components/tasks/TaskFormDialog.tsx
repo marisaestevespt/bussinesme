@@ -128,7 +128,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     queryKey: ['tasks-for-deps'],
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,parent_task_id,estimated_time').order('created_at', { ascending: false }).limit(500);
+      const { data } = await supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,parent_task_id,estimated_minutes').order('created_at', { ascending: false }).limit(500);
       return data || [];
     },
   });
@@ -170,19 +170,15 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setProjectId(editingTask.project_id || ''); setClientId(editingTask.client_id || ''); setNotes(editingTask.notes || '');
         setParentTaskId(editingTask.parent_task_id || '');
         setIsSubtask(!!editingTask.parent_task_id);
-        setRecurrenceType(editingTask.recurrence_type || '');
-        setRecurrenceEnd(editingTask.recurrence_end ? parseISO(editingTask.recurrence_end) : undefined);
-        setRecurrenceIntervalDays(editingTask.recurrence_interval_days != null ? String(editingTask.recurrence_interval_days) : '');
-        setEstimatedTime(editingTask.estimated_time != null ? String(editingTask.estimated_time) : '');
+        setEstimatedTime(editingTask.estimated_minutes != null ? String(editingTask.estimated_minutes / 60) : '');
         setSopId(editingTask.sop_id || '');
-        setScheduledTime(editingTask.scheduled_time || '');
         const deps = taskDependencies.filter(d => d.task_id === editingTask.id).map(d => d.depends_on_task_id);
         setDependsOnIds(deps);
       } else {
         setName(''); setStatus('por_comecar'); setPriority('alta');
         setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(defaultProjectId || ''); setClientId(defaultClientId || ''); setNotes('');
-        setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
-        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime(''); setSopId('');
+        setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false);
+        setEstimatedTime(''); setSopId('');
       }
     }
   }, [open, editingTask]);
@@ -231,7 +227,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       if (editingTask && t.id === editingTask.id) return;
       if (!t.deadline) return;
       const td = parseISO(t.deadline);
-      if (td >= wStart && td <= wEnd && t.estimated_time) committedHours += Number(t.estimated_time);
+      if (td >= wStart && td <= wEnd && t.estimated_minutes) committedHours += Number(t.estimated_minutes) / 60;
     });
     const totalAfter = committedHours + estHours;
     const occupancy = Math.round((totalAfter / weeklyHours) * 100);
@@ -372,13 +368,8 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       client_id: clientId && clientId !== 'none' ? clientId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
-      recurrence_type: recurrenceType || null,
-      recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
-      recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
-      estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
       estimated_minutes: estimatedTime ? Math.round(parseFloat(estimatedTime) * 60) : null,
       sop_id: sopId || null,
-      scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
@@ -462,9 +453,6 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                     <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus className="p-3 pointer-events-auto" />
                   </PopoverContent>
                 </Popover>
-              </EntityProperty>
-              <EntityProperty icon={Clock} label="Hora">
-                <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="—" className={inlineInputClass} />
               </EntityProperty>
               <EntityProperty icon={User} label="Responsável">
                 <Select value={assignedTo} onValueChange={setAssignedTo}>
@@ -572,36 +560,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               )}
             </EntityProperties>
 
-            {/* ── Recorrência ────────────────────────────────── */}
-            <EntitySection title="Recorrência" icon={Repeat} compact>
-              <EntityProperties>
-                <EntityProperty icon={Repeat} label="Frequência">
-                  <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
-                    <SelectTrigger className={inlineTriggerClass}><SelectValue placeholder="Não se repete" /></SelectTrigger>
-                    <SelectContent>{RECURRENCE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </EntityProperty>
-                {recurrenceType === 'personalizado' && (
-                  <EntityProperty icon={Hash} label="A cada X dias">
-                    <Input type="number" min="1" max="365" value={recurrenceIntervalDays} onChange={e => setRecurrenceIntervalDays(e.target.value)} placeholder="Ex: 3" className={inlineInputClass} />
-                  </EntityProperty>
-                )}
-                {recurrenceType && (
-                  <EntityProperty icon={CalendarIcon} label="Repetir até">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" className={cn(inlineTriggerClass, 'w-full justify-start font-normal', !recurrenceEnd && 'text-muted-foreground')}>
-                          {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={recurrenceEnd} onSelect={setRecurrenceEnd} initialFocus className="p-3 pointer-events-auto" />
-                      </PopoverContent>
-                    </Popover>
-                  </EntityProperty>
-                )}
-              </EntityProperties>
-            </EntitySection>
+            {/* Recorrência removida — usar Rotinas para tarefas recorrentes */}
 
             {/* ── Hierarquia ─────────────────────────────────── */}
             <EntitySection

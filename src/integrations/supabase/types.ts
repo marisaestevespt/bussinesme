@@ -11109,15 +11109,12 @@ export type Database = {
           assigned_to: string | null
           client_id: string | null
           content_id: string | null
-          cover_url: string | null
           created_at: string
           created_by: string | null
           deadline: string | null
           deliverable_id: string | null
           department: string | null
           estimated_minutes: number | null
-          estimated_time: number | null
-          icon: Json | null
           id: string
           name: string
           notes: string | null
@@ -11126,12 +11123,7 @@ export type Database = {
           parent_task_id: string | null
           priority: string
           project_id: string | null
-          recurrence_end: string | null
-          recurrence_interval_days: number | null
-          recurrence_type: string | null
-          renewal_id: string | null
           routine_id: string | null
-          scheduled_time: string | null
           sop_id: string | null
           status: string
           tag: string | null
@@ -11142,15 +11134,12 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           content_id?: string | null
-          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
           deliverable_id?: string | null
           department?: string | null
           estimated_minutes?: number | null
-          estimated_time?: number | null
-          icon?: Json | null
           id?: string
           name: string
           notes?: string | null
@@ -11159,12 +11148,7 @@ export type Database = {
           parent_task_id?: string | null
           priority?: string
           project_id?: string | null
-          recurrence_end?: string | null
-          recurrence_interval_days?: number | null
-          recurrence_type?: string | null
-          renewal_id?: string | null
           routine_id?: string | null
-          scheduled_time?: string | null
           sop_id?: string | null
           status?: string
           tag?: string | null
@@ -11175,15 +11159,12 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           content_id?: string | null
-          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
           deliverable_id?: string | null
           department?: string | null
           estimated_minutes?: number | null
-          estimated_time?: number | null
-          icon?: Json | null
           id?: string
           name?: string
           notes?: string | null
@@ -11192,12 +11173,7 @@ export type Database = {
           parent_task_id?: string | null
           priority?: string
           project_id?: string | null
-          recurrence_end?: string | null
-          recurrence_interval_days?: number | null
-          recurrence_type?: string | null
-          renewal_id?: string | null
           routine_id?: string | null
-          scheduled_time?: string | null
           sop_id?: string | null
           status?: string
           tag?: string | null
@@ -11266,13 +11242,6 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_renewal_id_fkey"
-            columns: ["renewal_id"]
-            isOneToOne: false
-            referencedRelation: "client_renewals"
             referencedColumns: ["id"]
           },
           {

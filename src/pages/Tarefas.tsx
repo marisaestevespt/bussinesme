@@ -144,7 +144,7 @@ export default function TarefasPage() {
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      let query = supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,original_assignee,created_by,department,project_id,client_id,notes,parent_task_id,recurrence_type,recurrence_end,estimated_time,tag,created_at,updated_at', { count: 'exact' }).order('created_at', { ascending: false });
+      let query = supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,original_assignee,created_by,department,project_id,client_id,notes,parent_task_id,estimated_minutes,tag,created_at,updated_at', { count: 'exact' }).order('created_at', { ascending: false });
       if (filterStatus) {
         query = query.eq('status', filterStatus);
       }
@@ -311,9 +311,7 @@ export default function TarefasPage() {
     setProjectId(task.project_id || ''); setClientId(task.client_id || ''); setNotes(task.notes || '');
     setParentTaskId(task.parent_task_id || '');
     setIsSubtask(!!task.parent_task_id);
-    setRecurrenceType(task.recurrence_type || '');
-    setRecurrenceEnd(task.recurrence_end ? parseISO(task.recurrence_end) : undefined);
-    setEstimatedTime(task.estimated_time != null ? String(task.estimated_time) : '');
+    setEstimatedTime(task.estimated_minutes != null ? String(task.estimated_minutes / 60) : '');
     setSuggestion(null); setSuggestionDismissed(false);
     // Load dependencies for this task
     const deps = taskDependencies.filter(d => d.task_id === task.id).map(d => d.depends_on_task_id);
@@ -384,8 +382,8 @@ export default function TarefasPage() {
       if (editingTask && t.id === editingTask.id) return;
       if (!t.deadline) return;
       const td = parseISO(t.deadline);
-      if (td >= wStart && td <= wEnd && t.estimated_time) {
-        committedHours += Number(t.estimated_time);
+      if (td >= wStart && td <= wEnd && t.estimated_minutes) {
+        committedHours += Number(t.estimated_minutes) / 60;
       }
     });
 
@@ -481,9 +479,7 @@ export default function TarefasPage() {
       client_id: clientId && clientId !== 'none' ? clientId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
-      recurrence_type: recurrenceType || null,
-      recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
-      estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      estimated_minutes: estimatedTime ? Math.round(parseFloat(estimatedTime) * 60) : null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
@@ -555,39 +551,8 @@ export default function TarefasPage() {
   const firstDayOffset = (getDay(calStart) + 6) % 7; // Monday-first
 
   const expandedCalendarTasks = useMemo(() => {
-    const result: any[] = [];
-    for (const t of tasks) {
-      if (!t.deadline) continue;
-      const start = parseISO(t.deadline);
-      if (!t.recurrence_type) {
-        result.push(t);
-        continue;
-      }
-      const recEnd = t.recurrence_end ? parseISO(t.recurrence_end) : calEnd;
-      let cursor = new Date(start);
-      let count = 0;
-      while (cursor <= recEnd && cursor <= calEnd && count < 366) {
-        if (cursor >= calStart || isSameDay(cursor, calStart)) {
-          result.push({
-            ...t,
-            id: `${t.id}_${format(cursor, 'yyyy-MM-dd')}`,
-            deadline: format(cursor, 'yyyy-MM-dd'),
-            _isOccurrence: true,
-            _originalId: t.id,
-          });
-        }
-        count++;
-        switch (t.recurrence_type) {
-          case 'diario': cursor = addDays(cursor, 1); break;
-          case 'semanal': cursor = addWeeks(cursor, 1); break;
-          case 'quinzenal': cursor = addWeeks(cursor, 2); break;
-          case 'mensal': cursor = addMonths(cursor, 1); break;
-          case 'mensal_primeiro': cursor = addMonths(cursor, 1); cursor = setDateFns(cursor, 1); break;
-          default: count = 366;
-        }
-      }
-    }
-    return result;
+    // Recurrence in tasks was removed (use Rotinas instead). Return tasks as-is.
+    return tasks.filter(t => t.deadline);
   }, [tasks, calStart, calEnd]);
 
   const tasksByDate = useMemo(() => {

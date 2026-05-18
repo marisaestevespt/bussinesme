@@ -80,7 +80,7 @@ export function MonthDetailTasksCard({ year, monthNum, tasks, team }: Props) {
     const internal = tasks.filter(t => !t.client_id && !t.project_id).length;
     const fromClients = tasks.filter(t => t.client_id || t.project_id).length;
 
-    // Capacity %: somatório (estimated_time committed) / sum(capacity)
+    // Capacity %: somatório (estimated_minutes/60 committed) / sum(capacity)
     let totalCommitted = 0;
     let totalCapacity = 0;
     team.forEach(m => {
@@ -89,7 +89,7 @@ export function MonthDetailTasksCard({ year, monthNum, tasks, team }: Props) {
       const myProfile = profiles.find(p => p.id === m.profile_id);
       const userId = myProfile?.user_id;
       const myTasks = tasks.filter(t => t.assigned_to === userId || t.assigned_to === m.profile_id);
-      totalCommitted += myTasks.reduce((s, t) => s + Number(t.estimated_time || 0), 0);
+      totalCommitted += myTasks.reduce((s, t) => s + Number(t.estimated_minutes || 0) / 60, 0);
     });
     const capPct = totalCapacity > 0 ? Math.round((totalCommitted / totalCapacity) * 100) : 0;
 
@@ -120,7 +120,7 @@ export function MonthDetailTasksCard({ year, monthNum, tasks, team }: Props) {
       const userId = profile?.user_id;
       const myTasks = tasks.filter(t => t.assigned_to === userId || t.assigned_to === m.profile_id);
       const cap = monthlyCapacity(m);
-      const committed = myTasks.reduce((s, t) => s + Number(t.estimated_time || 0), 0);
+      const committed = myTasks.reduce((s, t) => s + Number(t.estimated_minutes || 0) / 60, 0);
       return {
         member: m,
         photoUrl: getPhotoUrl({ id: profile?.id, full_name: m.full_name, avatar_url: profile?.avatar_url }),
