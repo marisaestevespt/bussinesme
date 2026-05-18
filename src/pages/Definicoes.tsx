@@ -12,6 +12,7 @@ import { SettingsRecolhas } from '@/components/settings/SettingsRecolhas';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
+import { SupplierExtensionSuggestions } from '@/components/settings/SupplierExtensionSuggestions';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { SettingsEdgeMonitoring } from '@/components/settings/SettingsEdgeMonitoring';
@@ -81,6 +82,7 @@ export default function DefinicoesPage() {
             <div className="space-y-10">
               <SettingsKpis />
               <SettingsRecolhas />
+              <SupplierExtensionSuggestions />
               <SettingsAutomations />
             </div>
           )}
