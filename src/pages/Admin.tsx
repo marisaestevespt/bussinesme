@@ -10,15 +10,17 @@ import { RecurringPhasesPreview } from '@/components/settings/RecurringPhasesPre
 import { SupplierExtensionSuggestions } from '@/components/settings/SupplierExtensionSuggestions';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
+import { SettingsPerformance } from '@/components/settings/SettingsPerformance';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Activity, Wrench, CalendarClock, Zap, Database, FlaskConical, ChevronRight } from 'lucide-react';
+import { Activity, Wrench, CalendarClock, Zap, Database, FlaskConical, ChevronRight, Gauge } from 'lucide-react';
 
 const TABS = [
   { key: 'monitorizacao', label: 'Monitorização', icon: Activity, desc: 'Saúde e logs das funções automáticas' },
   { key: 'reconciliacao', label: 'Reconciliação', icon: Wrench, desc: 'Detetar e corrigir drift entre tabelas' },
   { key: 'previews', label: 'Previews', icon: CalendarClock, desc: 'Pré-visualizar próximas execuções' },
   { key: 'automacoes', label: 'Automações', icon: Zap, desc: 'Configurar crons e regras' },
+  { key: 'performance', label: 'Performance', icon: Gauge, desc: 'Queries mais pesadas e estatísticas da base de dados' },
   { key: 'backups', label: 'Backups', icon: Database, desc: 'Snapshots e restauros' },
 ] as const;
 
@@ -89,6 +91,7 @@ export default function AdminPage() {
             </>
           )}
           {tab === 'automacoes' && <SettingsAutomations />}
+          {tab === 'performance' && <SettingsPerformance />}
           {tab === 'backups' && <SettingsBackups />}
         </div>
       </div>
