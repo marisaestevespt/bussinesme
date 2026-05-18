@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { resolveProductId } from '@/lib/productResolver';
 import { logAudit } from '@/lib/auditLog';
-import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
+import { requireConfirm, confirmDestructive, ConfirmCancelledError } from '@/lib/confirmDestructive';
+import { confirmNoClientDuplicates } from '@/lib/clientDuplicateCheck';
 
 export type Client = Tables<'clients'>;
 export type ClientHistory = Tables<'client_history'>;
@@ -49,6 +50,9 @@ export function useClients() {
         const { error } = await supabase.from('clients').update(client as TablesUpdate<'clients'>).eq('id', client.id);
         if (error) throw error;
       } else {
+        // Aviso suave: NIF/email já existem noutro cliente?
+        const ok = await confirmNoClientDuplicates({ nif: client.nif as string | null | undefined, email: client.email as string | null | undefined });
+        if (!ok) throw new ConfirmCancelledError();
         const { id, ...rest } = client;
         const { error } = await supabase.from('clients').insert(rest as TablesInsert<'clients'>);
         if (error) throw error;
@@ -56,6 +60,39 @@ export function useClients() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['clients'] }),
     onError: () => toast.error('Erro ao guardar cliente'),
+  });
+
+  /**
+   * Reactiva um cliente terminado: volta a status='ativo' e regista entrada no histórico.
+   */
+  const reactivateClient = useMutation({
+    mutationFn: async (clientId: string) => {
+      const ok = await confirmDestructive({
+        title: 'Reactivar cliente?',
+        description: 'O cliente volta ao estado "ativo" e fica disponível em listas, portal e relatórios. Será adicionada uma entrada ao histórico.',
+        confirmText: 'Reactivar',
+        cancelText: 'Cancelar',
+      });
+      if (!ok) throw new ConfirmCancelledError();
+      const { error } = await supabase.from('clients').update({
+        status: 'ativo',
+        portal_deactivation_date: null,
+      } as TablesUpdate<'clients'>).eq('id', clientId);
+      if (error) throw error;
+      await supabase.from('client_history').insert({
+        client_id: clientId,
+        entry_date: new Date().toISOString().slice(0, 10),
+        milestone: 'Reactivação',
+        observations: 'Cliente reactivado a partir do estado terminado.',
+      } as TablesInsert<'client_history'>);
+      logAudit('updated', 'client', clientId, { action: 'reactivated' });
+    },
+    onSuccess: (_d, clientId) => {
+      toast.success('Cliente reactivado');
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.invalidateQueries({ queryKey: ['clients', clientId] });
+      qc.invalidateQueries({ queryKey: ['client_history', clientId] });
+    },
   });
 
   const deleteClient = useMutation({
@@ -78,7 +115,7 @@ export function useClients() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); toast.success('Ficha duplicada'); },
   });
 
-  return { clients, upsertClient, deleteClient, duplicateClient };
+  return { clients, upsertClient, deleteClient, duplicateClient, reactivateClient };
 }
 
 export function useClient(id: string | undefined) {
