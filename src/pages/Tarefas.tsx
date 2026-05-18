@@ -29,6 +29,7 @@ import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbse
 import { useOffDates, findOffRange } from '@/hooks/useOffDates';
 import { useAuth } from '@/hooks/useAuth';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import { toast } from 'sonner';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { weeklyHours as memberWeeklyHours } from '@/lib/memberCapacity';
@@ -72,6 +73,7 @@ const DEFAULT_VIEWS: DefaultView[] = [
 export default function TarefasPage() {
   const { user, isOwner } = useAuth();
   const { impersonating } = useImpersonation();
+  const { userDepartments } = usePermissions();
   const effectiveUserId = impersonating?.user_id || user?.id;
   const realIsOwner = isOwner && !impersonating;
   const queryClient = useQueryClient();
@@ -519,8 +521,13 @@ export default function TarefasPage() {
     if (filterResponsible) result = result.filter(t => t.assigned_to === filterResponsible);
     if (filterPriority) result = result.filter(t => t.priority === filterPriority);
     if (filterProject) result = result.filter(t => t.project_id === filterProject);
+    // Restrição por departamento: membros não-Owner só veem tarefas do(s) seu(s) dept ou sem dept (transversais)
+    if (!realIsOwner && !userDepartments.includes('admin')) {
+      const userDepts = new Set(userDepartments);
+      result = result.filter(t => !t.department || userDepts.has(t.department));
+    }
     return result;
-  }, [tasks, view, today, filterDept, filterResponsible, filterPriority, filterProject]);
+  }, [tasks, view, today, filterDept, filterResponsible, filterPriority, filterProject, realIsOwner, userDepartments]);
 
   // Helpers
   const isOverdue = (task: any) => isTaskOverdue(task, today);
