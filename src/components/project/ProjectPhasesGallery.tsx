@@ -184,10 +184,21 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     () => phases.filter(p => p.cycle_month_index != null),
     [phases]
   );
-  const oneShotPhases = useMemo(
-    () => phases.filter(p => p.cycle_month_index == null),
-    [phases]
-  );
+  const oneShotPhases = useMemo(() => {
+    // Hide monthly-cycle template rows: any phase that is the parent template
+    // of one or more cycle instances (cycle_month_index !== null with same source_phase_id).
+    const templateSourceIds = new Set(
+      phases
+        .filter(p => p.cycle_month_index != null && p.source_phase_id)
+        .map(p => p.source_phase_id as string)
+    );
+    return phases.filter(p => {
+      if (p.cycle_month_index != null) return false;
+      // If this phase itself is referenced as a template, hide it.
+      if (p.source_phase_id && templateSourceIds.has(p.source_phase_id)) return false;
+      return true;
+    });
+  }, [phases]);
 
   // Unified monthly buckets: each month aggregates mini-fases + cadências
   const monthlyBuckets = useMemo(() => {
