@@ -10676,45 +10676,6 @@ export type Database = {
           },
         ]
       }
-      strategic_directives: {
-        Row: {
-          area: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          horizon: string
-          id: string
-          sort_order: number
-          status: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          area?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          horizon?: string
-          id?: string
-          sort_order?: number
-          status?: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          area?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          horizon?: string
-          id?: string
-          sort_order?: number
-          status?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       strategy_channel_details: {
         Row: {
           channel_id: string

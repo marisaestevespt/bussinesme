@@ -7,20 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Compass, Eye, Heart, Grid2x2, Plus, X, Pencil, Save, Trash2, ExternalLink, Sparkles, Target } from 'lucide-react';
+import { Compass, Eye, Heart, Grid2x2, Plus, X, Pencil, Save, ExternalLink, Sparkles, Target } from 'lucide-react';
 import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
-
-type Directive = {
-  id: string;
-  title: string;
-  description: string | null;
-  horizon: '3_anos' | '5_anos';
-  area: string | null;
-  status: 'ativa' | 'em_revisao' | 'concluida' | 'arquivada';
-  sort_order: number;
-};
 
 type SwotItem = { id: string; quadrant: string; content: string; sort_order: number };
 
@@ -30,13 +19,6 @@ const SWOT_QUADRANTS = [
   { key: 'oportunidades', label: 'Oportunidades', hint: 'Tendências externas a aproveitar', color: 'text-primary', bg: 'bg-primary/5', border: 'border-primary/30' },
   { key: 'ameacas', label: 'Ameaças', hint: 'Riscos externos a antecipar', color: 'text-warning', bg: 'bg-warning/5', border: 'border-warning/30' },
 ] as const;
-
-const STATUS_LABEL: Record<Directive['status'], string> = {
-  ativa: 'Ativa',
-  em_revisao: 'Em revisão',
-  concluida: 'Concluída',
-  arquivada: 'Arquivada',
-};
 
 function EditableTextBlock({
   label, icon: Icon, value, placeholder, onSave, rows = 4,
@@ -140,46 +122,6 @@ export function StrategicSection() {
     mutationFn: async (id: string) => {
       await requireConfirm(); await supabase.from('brand_swot_items').delete().eq('id', id); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['strategic', 'swot'] }),
-  });
-
-  // ===== Diretrizes =====
-  const dirQuery = useQuery({
-    queryKey: ['strategic', 'directives'],
-    queryFn: async () => {
-      const { data } = await supabase.from('strategic_directives').select('*').order('sort_order').order('created_at');
-      return (data || []) as Directive[];
-    },
-  });
-  const directives = dirQuery.data || [];
-
-  const [showNewDirective, setShowNewDirective] = useState(false);
-  const [dirDraft, setDirDraft] = useState<Partial<Directive>>({ title: '', description: '', horizon: '3_anos', status: 'ativa' });
-  const [editDirId, setEditDirId] = useState<string | null>(null);
-  const [editDir, setEditDir] = useState<Partial<Directive>>({});
-
-  const addDirective = useMutation({
-    mutationFn: async (d: Partial<Directive>) => {
-      const { error } = await supabase.from('strategic_directives').insert({
-        title: d.title, description: d.description || null, horizon: d.horizon || '3_anos',
-        area: d.area || null, status: d.status || 'ativa', sort_order: directives.length,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }); setShowNewDirective(false); setDirDraft({ title: '', description: '', horizon: '3_anos', status: 'ativa' }); toast.success('Diretriz adicionada'); },
-    onError: (e: any) => toast.error(e?.message || 'Erro'),
-  });
-  const updateDirective = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Directive> }) => {
-      const { error } = await supabase.from('strategic_directives').update(patch).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }); setEditDirId(null); },
-    onError: (e: any) => toast.error(e?.message || 'Erro'),
-  });
-  const deleteDirective = useMutation({
-    mutationFn: async (id: string) => {
-      await requireConfirm(); await supabase.from('strategic_directives').delete().eq('id', id); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['strategic', 'directives'] }),
   });
 
   return (
@@ -355,137 +297,6 @@ export function StrategicSection() {
         </CardContent>
       </Card>
 
-      {/* === DIRETRIZES — full width === */}
-      <Card className="hq-card">
-        <CardHeader className="pb-4 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" /> Diretrizes Plurianuais
-            <Badge variant="outline" className="ml-2 text-[10px] font-normal">3-5 anos</Badge>
-          </CardTitle>
-          <Button variant="outline" size="sm" onClick={() => setShowNewDirective(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Nova diretriz
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {showNewDirective && (
-            <div className="rounded-xl border-2 border-dashed border-primary/40 p-4 space-y-3 bg-primary/5">
-              <Input
-                value={dirDraft.title || ''}
-                onChange={e => setDirDraft(d => ({ ...d, title: e.target.value }))}
-                placeholder="Título da diretriz (ex: Internacionalizar para mercados europeus)"
-                className="h-10 text-sm"
-                autoFocus
-              />
-              <Textarea
-                value={dirDraft.description || ''}
-                onChange={e => setDirDraft(d => ({ ...d, description: e.target.value }))}
-                placeholder="Descrição — porquê, como, que impacto esperado…"
-                rows={3}
-                className="text-sm leading-relaxed resize-none"
-              />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <Select value={dirDraft.horizon} onValueChange={(v: any) => setDirDraft(d => ({ ...d, horizon: v }))}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Horizonte" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="3_anos">Horizonte 3 anos</SelectItem>
-                    <SelectItem value="5_anos">Horizonte 5 anos</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={dirDraft.status} onValueChange={(v: any) => setDirDraft(d => ({ ...d, status: v }))}>
-                  <SelectTrigger className="h-9"><SelectValue placeholder="Estado" /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(STATUS_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input
-                  value={dirDraft.area || ''}
-                  onChange={e => setDirDraft(d => ({ ...d, area: e.target.value }))}
-                  placeholder="Área (opcional)"
-                  className="h-9"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => dirDraft.title?.trim() && addDirective.mutate(dirDraft)}>
-                  <Save className="h-3.5 w-3.5 mr-1.5" /> Adicionar diretriz
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => { setShowNewDirective(false); setDirDraft({ title: '', description: '', horizon: '3_anos', status: 'ativa' }); }}>Cancelar</Button>
-              </div>
-            </div>
-          )}
-
-          {directives.length === 0 && !showNewDirective && (
-            <div className="rounded-xl border border-dashed border-border py-12 px-4 text-center">
-              <Target className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
-              <p className="text-sm font-medium text-foreground/80 mb-1">Sem diretrizes ainda</p>
-              <p className="text-xs text-muted-foreground mb-4">Define até onde queres chegar nos próximos 3-5 anos.</p>
-              <Button variant="outline" size="sm" onClick={() => setShowNewDirective(true)}>
-                <Plus className="h-3.5 w-3.5 mr-1.5" /> Adicionar primeira diretriz
-              </Button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {directives.map(d => {
-              const isEdit = editDirId === d.id;
-              if (isEdit) {
-                return (
-                  <div key={d.id} className="md:col-span-2 rounded-xl border-2 border-primary/40 p-4 space-y-3 bg-primary/5">
-                    <Input value={editDir.title ?? d.title} onChange={e => setEditDir(p => ({ ...p, title: e.target.value }))} className="h-10 text-sm" />
-                    <Textarea value={editDir.description ?? d.description ?? ''} onChange={e => setEditDir(p => ({ ...p, description: e.target.value }))} rows={3} className="text-sm leading-relaxed resize-none" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <Select value={editDir.horizon ?? d.horizon} onValueChange={(v: any) => setEditDir(p => ({ ...p, horizon: v }))}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="3_anos">Horizonte 3 anos</SelectItem>
-                          <SelectItem value="5_anos">Horizonte 5 anos</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select value={editDir.status ?? d.status} onValueChange={(v: any) => setEditDir(p => ({ ...p, status: v }))}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(STATUS_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <Input value={editDir.area ?? d.area ?? ''} onChange={e => setEditDir(p => ({ ...p, area: e.target.value }))} placeholder="Área" className="h-9" />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => updateDirective.mutate({ id: d.id, patch: editDir })}><Save className="h-3.5 w-3.5 mr-1.5" />Guardar</Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setEditDirId(null); setEditDir({}); }}>Cancelar</Button>
-                    </div>
-                  </div>
-                );
-              }
-              return (
-                <div key={d.id} className="rounded-xl border bg-card hover:border-primary/40 hover:shadow-sm hq-transition p-4 group">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h4 className="text-sm font-semibold leading-tight flex-1">{d.title}</h4>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5 shrink-0">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditDirId(d.id); setEditDir({}); }}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 hover:text-destructive" onClick={() => deleteDirective.mutate(d.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  {d.description && (
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-3 whitespace-pre-wrap">{d.description}</p>
-                  )}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge variant="outline" className="text-[10px]">{d.horizon === '3_anos' ? '3 anos' : '5 anos'}</Badge>
-                    {d.area && <Badge variant="secondary" className="text-[10px]">{d.area}</Badge>}
-                    <span className={`text-[10px] uppercase tracking-wide font-medium ml-1 ${
-                      d.status === 'ativa' ? 'text-success' :
-                      d.status === 'em_revisao' ? 'text-warning' :
-                      d.status === 'concluida' ? 'text-primary' : 'text-muted-foreground'
-                    }`}>{STATUS_LABEL[d.status]}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
