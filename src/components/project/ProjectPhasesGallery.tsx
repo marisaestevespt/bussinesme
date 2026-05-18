@@ -37,6 +37,8 @@ interface Phase {
   planned_end: string | null;
   completed_at: string | null;
   started_at: string | null;
+  cycle_month_index?: number | null;
+  source_phase_id?: string | null;
 }
 
 interface Deliverable {
