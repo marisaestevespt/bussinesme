@@ -25,14 +25,27 @@ interface RecurringItem {
 
 const WEEKDAY_LABELS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
-export function ProductRecurringItems({ productId, isOwner }: { productId: string; isOwner: boolean }) {
+interface ProductRecurringItemsProps {
+  productId: string;
+  isOwner: boolean;
+  /** Optional: filter items to those belonging to this phase. */
+  phaseId?: string;
+  /** Optional: when phaseId is set, force frequency on new items. */
+  defaultFrequency?: 'semanal' | 'quinzenal' | 'mensal' | 'trimestral';
+  /** When true, removes the EntitySection wrapper and helper text (used embedded inside a phase card). */
+  embedded?: boolean;
+}
+
+export function ProductRecurringItems({ productId, isOwner, phaseId, defaultFrequency, embedded = false }: ProductRecurringItemsProps) {
   const qc = useQueryClient();
 
   const { data: items = [] } = useQuery({
-    queryKey: ['product-recurring-items', productId],
+    queryKey: ['product-recurring-items', productId, phaseId ?? 'all'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from('product_recurring_items')
+      let q = (supabase as any).from('product_recurring_items')
         .select('*').eq('product_id', productId).order('sort_order');
+      if (phaseId) q = q.eq('phase_id', phaseId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as RecurringItem[];
     },
@@ -40,15 +53,18 @@ export function ProductRecurringItems({ productId, isOwner }: { productId: strin
 
   const addItem = useMutation({
     mutationFn: async () => {
-      const { error } = await (supabase as any).from('product_recurring_items').insert({
+      const freq = defaultFrequency ?? 'semanal';
+      const payload: Record<string, unknown> = {
         product_id: productId,
         name: 'Novo item recorrente',
         item_type: 'reuniao',
-        frequency: 'semanal',
-        day_of_week: 1,
+        frequency: freq,
         sort_order: items.length,
         visible_in_portal: true,
-      });
+      };
+      if (freq === 'semanal' || freq === 'quinzenal') payload.day_of_week = 1;
+      if (phaseId) payload.phase_id = phaseId;
+      const { error } = await (supabase as any).from('product_recurring_items').insert(payload);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['product-recurring-items', productId] }),
@@ -71,19 +87,8 @@ export function ProductRecurringItems({ productId, isOwner }: { productId: strin
     onSuccess: () => qc.invalidateQueries({ queryKey: ['product-recurring-items', productId] }),
   });
 
-  return (
-    <EntitySection
-      title="Itens Recorrentes do Ciclo"
-      icon={Repeat}
-      action={isOwner ? (
-        <Button size="sm" variant="outline" className="gap-1" onClick={() => addItem.mutate()}>
-          <Plus className="h-3.5 w-3.5" /> Item
-        </Button>
-      ) : undefined}
-    >
-      <p className="text-xs text-muted-foreground mb-3">
-        Reuniões, entregas ou tarefas que se repetem dentro do ciclo (ex: reunião semanal, relatório mensal). Quando criares um projeto a partir deste produto, o sistema gera automaticamente todas as ocorrências para o ciclo inteiro.
-      </p>
+  const body = (
+    <>
       {items.length === 0 ? (
         <div className="text-sm text-muted-foreground italic border border-dashed rounded-lg py-8 text-center">
           Sem itens recorrentes. Adiciona o primeiro com o botão acima.
@@ -103,7 +108,7 @@ export function ProductRecurringItems({ productId, isOwner }: { productId: strin
               </Select>
               <Input className="h-8 text-sm flex-1 min-w-[180px]" value={it.name} readOnly={!isOwner}
                 onChange={(e) => updateItem.mutate({ id: it.id, patch: { name: e.target.value } })} />
-              <Select value={it.frequency} disabled={!isOwner}
+              <Select value={it.frequency} disabled={!isOwner || !!phaseId}
                 onValueChange={(v) => updateItem.mutate({ id: it.id, patch: { frequency: v as RecurringItem['frequency'] } })}>
                 <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -147,6 +152,36 @@ export function ProductRecurringItems({ productId, isOwner }: { productId: strin
           ))}
         </div>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="space-y-2">
+        {body}
+        {isOwner && (
+          <Button size="sm" variant="ghost" className="text-xs gap-1" onClick={() => addItem.mutate()}>
+            <Plus className="h-3 w-3" /> Item recorrente
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <EntitySection
+      title="Itens Recorrentes do Ciclo"
+      icon={Repeat}
+      action={isOwner ? (
+        <Button size="sm" variant="outline" className="gap-1" onClick={() => addItem.mutate()}>
+          <Plus className="h-3.5 w-3.5" /> Item
+        </Button>
+      ) : undefined}
+    >
+      <p className="text-xs text-muted-foreground mb-3">
+        Reuniões, entregas ou tarefas que se repetem dentro do ciclo (ex: reunião semanal, relatório mensal). Quando criares um projeto a partir deste produto, o sistema gera automaticamente todas as ocorrências para o ciclo inteiro.
+      </p>
+      {body}
     </EntitySection>
   );
 }

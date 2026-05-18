@@ -26,7 +26,6 @@ import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { ProductClientsHub } from '@/components/product/ProductClientsHub';
 import { ProductEntregasSection } from '@/components/product/ProductEntregasSection';
-import { ProductRecurringItems } from '@/components/product/ProductRecurringItems';
 import { Switch } from '@/components/ui/switch';
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
 import { ProductSalesKitSection } from '@/components/product/ProductSalesKitSection';
@@ -1016,9 +1015,6 @@ export default function ProdutoDetailPage() {
                 onUpdate={(rowId, data) => updateRow.mutate({ table: 'product_deliverable_templates', id: rowId, data })}
                 onDelete={(rowId) => deleteRow.mutate({ table: 'product_deliverable_templates', id: rowId })}
               />
-              {deriveProjectMode(form.product_type, form.sales_type) === 'recorrente' && id && (
-                <ProductRecurringItems productId={id} isOwner={isOwner} />
-              )}
             </div>
           )}
 
