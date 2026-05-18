@@ -16,8 +16,8 @@ import { FileText, Compass } from 'lucide-react';
  *   4. Análise SWOT — embebido via StrategicSection
  *
  * Não duplica conteúdo: tudo o que aqui aparece edita as mesmas tabelas
- * (`business_settings`, `brand_swot_items`, `strategic_directives`)
- * usadas pela Gestão de Marca, e o canvas usa `business_plan_*`.
+ * (`business_settings`, `brand_swot_items`) usadas pela Gestão de Marca,
+ * e o canvas usa `business_plan_*`.
  * Click num bloco do canvas abre `/executive/business-plan/:columnKey` para edição detalhada.
  */
 export default function ExecutivePlaneamentoEstrategico() {
