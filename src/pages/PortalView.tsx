@@ -382,7 +382,6 @@ export default function PortalViewPage() {
     { key: 'requests', label: 'Pedidos', icon: Inbox },
     { key: 'payments', label: 'Pagamentos', icon: CreditCard },
     ...(faqs.length > 0 ? [{ key: 'faqs', label: 'FAQs', icon: HelpCircle }] : []),
-    ...((routines.length > 0 || responsibilities.length > 0 || recurringOccurrences.length > 0) ? [{ key: 'avenca', label: 'Avença', icon: Repeat }] : []),
     { key: 'feedback', label: 'A tua opinião', icon: MessageSquare },
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
@@ -949,14 +948,109 @@ export default function PortalViewPage() {
 
         {/* ═══ WORKSPACE ═══ */}
         {activeSection === 'workspace' && (
-          <PortalWorkspaceSection
-            phases={phases}
-            client={client}
-            portalMaterials={[]}
-            tasks={tasks}
-            pc={pc}
-            pcAlpha={pcAlpha}
-          />
+          <div className="space-y-6">
+            <PortalWorkspaceSection
+              phases={phases}
+              client={client}
+              portalMaterials={[]}
+              tasks={tasks}
+              pc={pc}
+              pcAlpha={pcAlpha}
+            />
+            {(recurringOccurrences.length > 0 || routines.length > 0 || responsibilities.length > 0) && (
+              <div className="space-y-6">
+                {recurringOccurrences.length > 0 && (
+                  <section className="rounded-2xl border bg-card p-5 sm:p-6">
+                    <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><CalendarDays className="h-5 w-5" style={{ color: pc }} /> Cronograma do ciclo</h2>
+                    <p className="text-xs text-muted-foreground mb-4">Reuniões, entregas e tarefas planeadas para o ciclo atual.</p>
+                    <div className="space-y-2">
+                      {(() => {
+                        const groups: Record<string, any[]> = {};
+                        recurringOccurrences.forEach((o: any) => {
+                          const d = new Date(o.scheduled_date);
+                          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                          (groups[key] ||= []).push(o);
+                        });
+                        const months = Object.keys(groups).sort();
+                        return months.map((mk) => {
+                          const [y, m] = mk.split('-');
+                          const label = new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
+                          return (
+                            <div key={mk} className="space-y-1.5">
+                              <p className="text-[11px] uppercase tracking-wide text-muted-foreground mt-2">{label}</p>
+                              {groups[mk].map((o: any) => {
+                                const date = new Date(o.scheduled_date);
+                                const dStr = date.toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' });
+                                const tStr = o.scheduled_time ? ` · ${String(o.scheduled_time).slice(0, 5)}` : '';
+                                const done = o.status === 'concluida';
+                                return (
+                                  <div key={o.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                                    <div className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-medium shrink-0" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
+                                      {o.item_type}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`text-sm font-medium truncate ${done ? 'line-through text-muted-foreground' : ''}`}>{o.name}</p>
+                                      <p className="text-xs text-muted-foreground">{dStr}{tStr}</p>
+                                    </div>
+                                    {done && <span className="text-[10px] font-semibold uppercase" style={{ color: pc }}>Concluída</span>}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </section>
+                )}
+
+                {routines.length > 0 && (
+                  <section className="rounded-2xl border bg-card p-5 sm:p-6">
+                    <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><Repeat className="h-5 w-5" style={{ color: pc }} /> Rotinas</h2>
+                    <p className="text-xs text-muted-foreground mb-4">Tarefas fixas e recorrentes deste serviço.</p>
+                    <div className="space-y-2">
+                      {routines.map((r: any) => {
+                        const desc = r.recurrence_type === 'diaria' ? 'Todos os dias'
+                          : r.recurrence_type === 'semanal' ? `Semanal${r.weekday !== null ? ` · ${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][r.weekday]}` : ''}`
+                          : r.recurrence_type === 'mensal' ? (r.month_day ? `Dia ${r.month_day} de cada mês` : 'Mensal')
+                          : r.recurrence_type;
+                        return (
+                          <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                            <Repeat className="h-4 w-4 shrink-0" style={{ color: pc }} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{r.title}</p>
+                              <p className="text-xs text-muted-foreground">{desc}{r.hour_time ? ` · ${String(r.hour_time).slice(0,5)}` : ''}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                {responsibilities.length > 0 && (
+                  <section className="rounded-2xl border bg-card p-5 sm:p-6">
+                    <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><Handshake className="h-5 w-5" style={{ color: pc }} /> Responsabilidades Acordadas</h2>
+                    <p className="text-xs text-muted-foreground mb-4">O que ficou definido entre cliente e equipa.</p>
+                    <div className="space-y-2">
+                      {responsibilities.map((r: any) => {
+                        const Icon = r.party === 'cliente' ? User : r.party === 'equipa' ? Users : Handshake;
+                        const label = r.party === 'cliente' ? 'Cliente' : r.party === 'equipa' ? 'Equipa' : 'Partilhada';
+                        return (
+                          <div key={r.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium shrink-0" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
+                              <Icon className="h-3 w-3" /> {label}
+                            </span>
+                            <p className="text-sm flex-1">{r.description}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {/* ═══ CONTRACT ═══ */}
@@ -1012,101 +1106,6 @@ export default function PortalViewPage() {
             pc={pc}
             statusLabel={statusLabel}
           />
-        )}
-
-        {/* ═══ AVENÇA: Rotinas + Responsabilidades ═══ */}
-        {activeSection === 'avenca' && (
-          <div className="space-y-6">
-            {recurringOccurrences.length > 0 && (
-              <section className="rounded-2xl border bg-card p-5 sm:p-6">
-                <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><CalendarDays className="h-5 w-5" style={{ color: pc }} /> Cronograma do ciclo</h2>
-                <p className="text-xs text-muted-foreground mb-4">Reuniões, entregas e tarefas planeadas para o ciclo atual.</p>
-                <div className="space-y-2">
-                  {(() => {
-                    const groups: Record<string, any[]> = {};
-                    recurringOccurrences.forEach((o: any) => {
-                      const d = new Date(o.scheduled_date);
-                      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                      (groups[key] ||= []).push(o);
-                    });
-                    const months = Object.keys(groups).sort();
-                    return months.map((mk) => {
-                      const [y, m] = mk.split('-');
-                      const label = new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
-                      return (
-                        <div key={mk} className="space-y-1.5">
-                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground mt-2">{label}</p>
-                          {groups[mk].map((o: any) => {
-                            const date = new Date(o.scheduled_date);
-                            const dStr = date.toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' });
-                            const tStr = o.scheduled_time ? ` · ${String(o.scheduled_time).slice(0, 5)}` : '';
-                            const done = o.status === 'concluida';
-                            return (
-                              <div key={o.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
-                                <div className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-medium shrink-0" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
-                                  {o.item_type}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className={`text-sm font-medium truncate ${done ? 'line-through text-muted-foreground' : ''}`}>{o.name}</p>
-                                  <p className="text-xs text-muted-foreground">{dStr}{tStr}</p>
-                                </div>
-                                {done && <span className="text-[10px] font-semibold uppercase" style={{ color: pc }}>Concluída</span>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </section>
-            )}
-
-            {routines.length > 0 && (
-              <section className="rounded-2xl border bg-card p-5 sm:p-6">
-                <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><Repeat className="h-5 w-5" style={{ color: pc }} /> Rotinas</h2>
-                <p className="text-xs text-muted-foreground mb-4">Tarefas fixas e recorrentes deste serviço.</p>
-                <div className="space-y-2">
-                  {routines.map((r: any) => {
-                    const desc = r.recurrence_type === 'diaria' ? 'Todos os dias'
-                      : r.recurrence_type === 'semanal' ? `Semanal${r.weekday !== null ? ` · ${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][r.weekday]}` : ''}`
-                      : r.recurrence_type === 'mensal' ? (r.month_day ? `Dia ${r.month_day} de cada mês` : 'Mensal')
-                      : r.recurrence_type;
-                    return (
-                      <div key={r.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
-                        <Repeat className="h-4 w-4 shrink-0" style={{ color: pc }} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{r.title}</p>
-                          <p className="text-xs text-muted-foreground">{desc}{r.hour_time ? ` · ${String(r.hour_time).slice(0,5)}` : ''}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {responsibilities.length > 0 && (
-              <section className="rounded-2xl border bg-card p-5 sm:p-6">
-                <h2 className="text-lg font-semibold flex items-center gap-2 mb-1"><Handshake className="h-5 w-5" style={{ color: pc }} /> Responsabilidades Acordadas</h2>
-                <p className="text-xs text-muted-foreground mb-4">O que ficou definido entre cliente e equipa.</p>
-                <div className="space-y-2">
-                  {responsibilities.map((r: any) => {
-                    const Icon = r.party === 'cliente' ? User : r.party === 'equipa' ? Users : Handshake;
-                    const label = r.party === 'cliente' ? 'Cliente' : r.party === 'equipa' ? 'Equipa' : 'Partilhada';
-                    return (
-                      <div key={r.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30">
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium shrink-0" style={{ backgroundColor: pcAlpha(0.1), color: pc }}>
-                          <Icon className="h-3 w-3" /> {label}
-                        </span>
-                        <p className="text-sm flex-1">{r.description}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-          </div>
         )}
 
         {/* ═══ ONBOARDING ═══ */}
