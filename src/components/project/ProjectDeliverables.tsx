@@ -15,7 +15,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Package, CalendarIcon, Trash2, Download, Clock, Video } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, isAfter } from 'date-fns';
+import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -32,77 +32,7 @@ import {
 import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 import { useNavigate } from 'react-router-dom';
 
-const WEEK_OPTIONS = [
-  { value: '1', label: '1ª semana' },
-  { value: '2', label: '2ª semana' },
-  { value: '3', label: '3ª semana' },
-  { value: '4', label: '4ª semana' },
-  { value: '-1', label: 'Última semana' },
-  { value: '-2', label: 'Penúltima semana' },
-];
-
-const WEEKDAY_OPTIONS = [
-  { value: '1', label: 'Segunda' },
-  { value: '2', label: 'Terça' },
-  { value: '3', label: 'Quarta' },
-  { value: '4', label: 'Quinta' },
-  { value: '5', label: 'Sexta' },
-  { value: '6', label: 'Sábado' },
-  { value: '0', label: 'Domingo' },
-];
-
 const getStatusInfo = getDeliverableStatusInfo;
-
-/**
- * Calculate the next occurrence date given a week-of-month and weekday rule.
- * recurrence_week: 1-4 = nth week, -1 = last week, -2 = second-to-last
- * recurrence_weekday: 0 = Sunday, 1 = Monday ... 6 = Saturday
- */
-function calcNextOccurrence(recurrenceWeek: number, recurrenceWeekday: number): Date {
-  const today = new Date();
-  // Try current month first, then next month
-  for (let offset = 0; offset <= 2; offset++) {
-    const target = addMonths(today, offset);
-    const date = getOccurrenceInMonth(target, recurrenceWeek, recurrenceWeekday);
-    if (date && isAfter(date, subDays(today, 1))) return date;
-  }
-  return addMonths(today, 1); // fallback
-}
-
-function getOccurrenceInMonth(refDate: Date, week: number, weekday: number): Date | null {
-  const monthStart = startOfMonth(refDate);
-  const monthEnd = endOfMonth(refDate);
-
-  if (week > 0) {
-    // Find nth occurrence of weekday in month
-    let count = 0;
-    let d = monthStart;
-    while (d <= monthEnd) {
-      if (getDay(d) === weekday) {
-        count++;
-        if (count === week) return d;
-      }
-      d = addDays(d, 1);
-    }
-    return null;
-  } else {
-    // From end: -1 = last, -2 = second-to-last
-    const occurrences: Date[] = [];
-    let d = monthStart;
-    while (d <= monthEnd) {
-      if (getDay(d) === weekday) occurrences.push(new Date(d));
-      d = addDays(d, 1);
-    }
-    const idx = occurrences.length + week; // e.g. length + (-1) = last
-    return idx >= 0 ? occurrences[idx] : null;
-  }
-}
-
-function formatRecurrenceRule(week: number, weekday: number): string {
-  const w = WEEK_OPTIONS.find(o => o.value === String(week));
-  const d = WEEKDAY_OPTIONS.find(o => o.value === String(weekday));
-  return `${w?.label || ''}, ${d?.label || ''}`;
-}
 
 interface Profile {
   id: string;
@@ -161,10 +91,6 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [assignedTo, setAssignedTo] = useState('');
   const { data: serviceMembers = [] } = useServiceMembers();
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurrenceLabel, setRecurrenceLabel] = useState('');
-  const [recurrenceWeek, setRecurrenceWeek] = useState('');
-  const [recurrenceWeekday, setRecurrenceWeekday] = useState('');
   const [taskDetailId, setTaskDetailId] = useState<string | null>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -299,41 +225,23 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     },
   });
 
-  // Enrich deliverables with computed next deadline for recurring ones
+  // Deliverables sem recorrência interna (a recorrência vive em product_recurring_items)
   const enrichedDeliverables = useMemo(() => {
-    return deliverables.map(d => {
-      if (d.is_recurring && d.recurrence_week != null && d.recurrence_weekday != null) {
-        const nextDate = calcNextOccurrence(d.recurrence_week, d.recurrence_weekday);
-        return { ...d, computed_deadline: format(nextDate, 'yyyy-MM-dd'), _nextDate: nextDate };
-      }
-      return { ...d, computed_deadline: d.deadline, _nextDate: d.deadline ? new Date(d.deadline) : null };
-    });
+    return deliverables.map(d => ({
+      ...d,
+      computed_deadline: d.deadline,
+      _nextDate: d.deadline ? new Date(d.deadline) : null,
+    }));
   }, [deliverables]);
-
-  const computedDeadline = useMemo(() => {
-    if (!isRecurring || !recurrenceWeek || !recurrenceWeekday) return deadline;
-    return calcNextOccurrence(Number(recurrenceWeek), Number(recurrenceWeekday));
-  }, [isRecurring, recurrenceWeek, recurrenceWeekday, deadline]);
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const finalDeadline = isRecurring && recurrenceWeek && recurrenceWeekday
-        ? format(calcNextOccurrence(Number(recurrenceWeek), Number(recurrenceWeekday)), 'yyyy-MM-dd')
-        : deadline ? format(deadline, 'yyyy-MM-dd') : null;
-
-      const autoLabel = isRecurring && recurrenceWeek && recurrenceWeekday
-        ? formatRecurrenceRule(Number(recurrenceWeek), Number(recurrenceWeekday))
-        : recurrenceLabel || null;
-
-      const { error } = await supabase.from('project_deliverables').insert({
+      const finalDeadline = deadline ? format(deadline, 'yyyy-MM-dd') : null;
+      const { error } = await (supabase.from('project_deliverables') as any).insert({
         project_id: projectId,
         name,
         deadline: finalDeadline,
         assigned_to: assignedTo || null,
-        is_recurring: isRecurring,
-        recurrence_label: isRecurring ? autoLabel : null,
-        recurrence_week: isRecurring && recurrenceWeek ? Number(recurrenceWeek) : null,
-        recurrence_weekday: isRecurring && recurrenceWeekday ? Number(recurrenceWeekday) : null,
         sort_order: deliverables.length,
       });
       if (error) throw error;
@@ -349,7 +257,6 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
 
   const resetForm = () => {
     setName(''); setDeadline(undefined); setAssignedTo('');
-    setIsRecurring(false); setRecurrenceLabel(''); setRecurrenceWeek(''); setRecurrenceWeekday('');
   };
 
   const updateStatus = useMutation({
@@ -428,7 +335,6 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         project_id: projectId,
         name: t.name,
         description: t.description || null,
-        is_recurring: !!t.is_recurring,
         sort_order: deliverables.length + i,
         status: 'pendente',
         estimated_minutes: t.estimated_minutes ?? null,
@@ -531,14 +437,6 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                           >
                             {d.name}
                           </button>
-                          {d.is_recurring && d.recurrence_week != null && d.recurrence_weekday != null && (
-                            <Badge variant="outline" className="text-[9px] shrink-0">
-                              🔄 {formatRecurrenceRule(d.recurrence_week, d.recurrence_weekday)}
-                            </Badge>
-                          )}
-                          {d.is_recurring && d.recurrence_label && d.recurrence_week == null && (
-                            <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
-                          )}
                         </div>
                       </TableCell>
                       <TableCell className="py-2 px-3">
