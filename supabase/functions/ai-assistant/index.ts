@@ -1401,8 +1401,15 @@ serve(async (req) => {
       });
     }
 
-    const rawBody = await req.json() as { messages?: ChatMessage[]; file?: Record<string, unknown> };
-    const { messages = [], file } = rawBody;
+    const rawBody = await req.json() as {
+      messages?: ChatMessage[];
+      file?: Record<string, unknown>;
+      conversation_id?: string | null;
+      stream?: boolean;
+      model?: string;
+    };
+    const { messages = [], file, stream: wantStream = false, model: modelOverride } = rawBody;
+    let conversationId = rawBody.conversation_id || null;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -1435,6 +1442,135 @@ serve(async (req) => {
 
     const today = new Date().toISOString().split('T')[0];
     const currentYear = new Date().getFullYear();
+
+    // --- Model selection (auto-escalate on complex prompts) ---
+    const lastUserText = (() => {
+      for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === "user") return messages[i].content || "";
+      return "";
+    })();
+    const hasFile = !!file;
+    function pickModel(): string {
+      if (modelOverride) return modelOverride;
+      const t = lastUserText.toLowerCase();
+      const complex = ["analis", "relatório", "relatorio", "estrateg", "estratég", "compar", "recomend", "porqu", "explica", "raciocin", "diagnós", "diagnos"];
+      const isComplex = lastUserText.length > 600 || complex.some(k => t.includes(k)) || hasFile;
+      return isComplex ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash";
+    }
+    const chosenModel = pickModel();
+
+    // --- Conversation + message persistence (RLS-scoped via userClient) ---
+    async function ensureConversation(): Promise<string | null> {
+      if (conversationId) return conversationId;
+      const title = (lastUserText || "Conversa").slice(0, 60);
+      const { data, error } = await userClient
+        .from("ai_conversations")
+        .insert({ user_id: user.id, title })
+        .select("id")
+        .single();
+      if (error) { console.error("ensureConversation error:", error); return null; }
+      conversationId = (data as { id: string }).id;
+      return conversationId;
+    }
+    async function persistUserMessage() {
+      const last = messages[messages.length - 1];
+      if (!last || last.role !== "user") return;
+      // Skip confirmation/rejection synthetic messages
+      if (/^\[AÇÃO (CONFIRMADA|REJEITADA)\]/.test(last.content || "")) return;
+      const cid = await ensureConversation();
+      if (!cid) return;
+      const { error } = await userClient.from("ai_messages").insert({
+        conversation_id: cid,
+        user_id: user.id,
+        role: "user",
+        content: last.content || "",
+        file: file ? { name: file.name, type: file.type } : null,
+      });
+      if (error) console.error("persist user msg error:", error);
+    }
+    async function persistAssistant(content: string, proposal: unknown = null) {
+      const cid = await ensureConversation();
+      if (!cid) return;
+      const { error } = await userClient.from("ai_messages").insert({
+        conversation_id: cid,
+        user_id: user.id,
+        role: "assistant",
+        content,
+        action_proposal: proposal ?? null,
+        model: chosenModel,
+      });
+      if (error) console.error("persist assistant msg error:", error);
+    }
+    await persistUserMessage();
+
+    function jsonResponse(payload: Record<string, unknown>, status = 200) {
+      return new Response(JSON.stringify({ ...payload, conversation_id: conversationId, model: chosenModel }), {
+        status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- SSE helper: stream a non-tool completion and persist on done ---
+    async function streamCompletion(msgsForModel: Array<Record<string, unknown>>, proposal: unknown = null): Promise<Response> {
+      const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: chosenModel, messages: msgsForModel, stream: true }),
+      });
+      if (!upstream.ok || !upstream.body) {
+        const status = upstream.status;
+        const text = await upstream.text();
+        console.error("AI gateway stream error:", status, text);
+        if (status === 429) return jsonResponse({ error: "Limite de pedidos excedido." }, 429);
+        if (status === 402) return jsonResponse({ error: "Créditos de IA esgotados." }, 402);
+        return jsonResponse({ error: "Erro no serviço de IA" }, 500);
+      }
+      let fullText = "";
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      const reader = upstream.body.getReader();
+      const out = new ReadableStream({
+        async start(controller) {
+          // Emit initial meta event so client gets conversation_id ASAP
+          controller.enqueue(encoder.encode(`event: meta\ndata: ${JSON.stringify({ conversation_id: conversationId, model: chosenModel })}\n\n`));
+          let buf = "";
+          try {
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream: true });
+              const lines = buf.split("\n");
+              buf = lines.pop() || "";
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith("data:")) continue;
+                const payload = trimmed.slice(5).trim();
+                if (payload === "[DONE]") continue;
+                try {
+                  const j = JSON.parse(payload);
+                  const delta = j.choices?.[0]?.delta?.content;
+                  if (typeof delta === "string" && delta) {
+                    fullText += delta;
+                    controller.enqueue(encoder.encode(`event: chunk\ndata: ${JSON.stringify({ text: delta })}\n\n`));
+                  }
+                } catch { /* skip non-json */ }
+              }
+            }
+          } catch (err) {
+            console.error("stream read error:", err);
+          }
+          await persistAssistant(fullText, proposal);
+          controller.enqueue(encoder.encode(`event: done\ndata: ${JSON.stringify({ conversation_id: conversationId, action_proposal: proposal, model: chosenModel })}\n\n`));
+          controller.close();
+        },
+      });
+      return new Response(out, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    }
 
     const systemPrompt = `És a **Atena**, assistente do Lyrata (sistema de ${businessName}). PT-PT, tratas por "tu". ${userName ? `Utilizador: **${userName}** — chama-o pelo primeiro nome.` : ""}
 Hoje: ${today}. Ano atual: ${currentYear}. Datas sem ano = ${currentYear}.
@@ -1552,9 +1688,9 @@ Quando o utilizador anexar um ficheiro **e** pedir para o ligar a um registo (de
               console.log(`Auto-workflow step ${i + 1}/${steps.length}: ${step.step_label}`);
               const stepResult = await executeSingleAction(step.action_type, resolvedDetails, supabaseAdmin, file as { name?: string; type?: string; base64?: string } | undefined);
               if (stepResult.error) {
-                return new Response(JSON.stringify({
-                  content: `❌ Erro no passo ${i + 1} (${step.step_label}): ${stepResult.error}`,
-                }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+                const msg = `❌ Erro no passo ${i + 1} (${step.step_label}): ${stepResult.error}`;
+                await persistAssistant(msg);
+                return jsonResponse({ content: msg });
               }
               stepResults[i + 1] = stepResult;
               results.push({ step: i + 1, label: step.step_label, success: true, result: stepResult });
@@ -1571,20 +1707,19 @@ Quando o utilizador anexar um ficheiro **e** pedir para o ligar a um registo (de
           }
 
           if (result.error) {
-            return new Response(JSON.stringify({
-              content: `❌ Erro ao executar: ${result.error}`,
-            }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            const msg = `❌ Erro ao executar: ${result.error}`;
+            await persistAssistant(msg);
+            return jsonResponse({ content: msg });
           }
 
           const summary = formatExecutionSummary(confirmedAction, result);
-          return new Response(JSON.stringify({ content: summary }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          await persistAssistant(summary);
+          return jsonResponse({ content: summary });
         } catch (e) {
           console.error("Auto-execute error:", e);
-          return new Response(JSON.stringify({
-            content: `❌ Erro ao executar a ação: ${e instanceof Error ? e.message : "desconhecido"}`,
-          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          const msg = `❌ Erro ao executar a ação: ${e instanceof Error ? e.message : "desconhecido"}`;
+          await persistAssistant(msg);
+          return jsonResponse({ content: msg });
         }
       }
     }
@@ -1600,7 +1735,7 @@ Quando o utilizador anexar um ficheiro **e** pedir para o ligar a um registo (de
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: chosenModel,
           messages: currentMessages,
           tools: TOOLS,
           stream: false,
@@ -1611,18 +1746,23 @@ Quando o utilizador anexar um ficheiro **e** pedir para o ligar a um registo (de
         const status = aiResponse.status;
         const text = await aiResponse.text();
         console.error("AI gateway error:", status, text);
-        if (status === 429) return new Response(JSON.stringify({ error: "Limite de pedidos excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        if (status === 402) return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        return new Response(JSON.stringify({ error: "Erro no serviço de IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (status === 429) return jsonResponse({ error: "Limite de pedidos excedido." }, 429);
+        if (status === 402) return jsonResponse({ error: "Créditos de IA esgotados." }, 402);
+        return jsonResponse({ error: "Erro no serviço de IA" }, 500);
       }
 
       const result = await aiResponse.json();
       const choice = result.choices?.[0];
-      if (!choice) return new Response(JSON.stringify({ error: "Sem resposta da IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (!choice) return jsonResponse({ error: "Sem resposta da IA" }, 500);
 
       if (!choice.message?.tool_calls || choice.message.tool_calls.length === 0) {
         const content = choice.message?.content || "";
-        return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (wantStream) {
+          // No tools needed → re-issue as streaming for typing UX
+          return await streamCompletion(currentMessages, null);
+        }
+        await persistAssistant(content);
+        return jsonResponse({ content });
       }
 
       currentMessages.push(choice.message);
@@ -1650,57 +1790,39 @@ Quando o utilizador anexar um ficheiro **e** pedir para o ligar a um registo (de
       currentMessages.push(...toolResults);
 
       if (hasProposal) {
+        // Find the proposal from tool results
+        let actionProposal: Record<string, unknown> | null = null;
+        for (const tr of toolResults) {
+          try {
+            const parsed = JSON.parse(tr.content);
+            if (parsed.pending_confirmation) {
+              actionProposal = parsed.workflow
+                ? { action_type: "workflow", description: parsed.description, steps: parsed.steps, pending_confirmation: true, workflow: true }
+                : parsed;
+              break;
+            }
+          } catch { /* skip */ }
+        }
+        if (wantStream) {
+          return await streamCompletion(currentMessages, actionProposal);
+        }
         const confirmResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: currentMessages,
-            stream: false,
-          }),
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: chosenModel, messages: currentMessages, stream: false }),
         });
-
         if (confirmResponse.ok) {
           const confirmResult = await confirmResponse.json();
           const confirmContent = confirmResult.choices?.[0]?.message?.content || "";
-
-          // Find the proposal from tool results
-          let actionProposal = null;
-          for (const tr of toolResults) {
-            try {
-              const parsed = JSON.parse(tr.content);
-              if (parsed.pending_confirmation) {
-                if (parsed.workflow) {
-                  // Workflow proposal
-                  actionProposal = {
-                    action_type: "workflow",
-                    description: parsed.description,
-                    steps: parsed.steps,
-                    pending_confirmation: true,
-                    workflow: true,
-                  };
-                } else {
-                  actionProposal = parsed;
-                }
-                break;
-              }
-            } catch { /* skip */ }
-          }
-
-          return new Response(JSON.stringify({
-            content: confirmContent,
-            action_proposal: actionProposal,
-          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          await persistAssistant(confirmContent, actionProposal);
+          return jsonResponse({ content: confirmContent, action_proposal: actionProposal });
         }
       }
     }
 
-    return new Response(JSON.stringify({ content: "Desculpa, não consegui completar o pedido." }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const fallback = "Desculpa, não consegui completar o pedido.";
+    await persistAssistant(fallback);
+    return jsonResponse({ content: fallback });
   } catch (e) {
     console.error("ai-assistant error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
