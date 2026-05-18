@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
   MessageCircle, FolderOpen, FileText, Figma, Slack, Trello, Video,
   Plus, Pencil, Trash2, ExternalLink, Link2,
 } from "lucide-react";
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 export type DepartmentKey =
   | "comercial" | "marketing" | "trafego" | "conteudo" | "clientes"

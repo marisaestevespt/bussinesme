@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { cleanPayload as clean } from '@/lib/utils';
 import { sumRevenue } from '@/lib/salesCalculations';
 import type {
-import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
   PlanningFormPayload,
   ObjectiveRow,
   CriterionRow,
@@ -27,6 +26,7 @@ import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
   AutoProjectRow,
   ProductLite,
 } from '@/types/planning';
+import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
 const currentYear = new Date().getFullYear();
 
