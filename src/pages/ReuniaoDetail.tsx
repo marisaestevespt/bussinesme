@@ -30,6 +30,7 @@ import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { toast } from 'sonner';
+import { confirmDestructive } from '@/lib/confirmDestructive';
 import { logAudit } from '@/lib/auditLog';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
