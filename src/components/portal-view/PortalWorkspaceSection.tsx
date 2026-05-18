@@ -15,11 +15,12 @@ interface Props {
   tasks: Array<Record<string, any>>;
   pc: string;
   pcAlpha: (a: number) => string;
+  hasOngoingWork?: boolean;
 }
 
 type TaskFilter = 'pendentes' | 'concluidas' | 'todas';
 
-export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha }: Props) {
+export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha, hasOngoingWork = false }: Props) {
   // Use the SAME progress calculation as the home banner: based on deliverables
   // across all (portal-visible) phases. Keeps the % consistent between sections.
   const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
@@ -33,6 +34,11 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
   })();
   const activePhase = activeIdx >= 0 ? phases[activeIdx] : null;
   const nextPhase = activeIdx >= 0 ? phases.slice(activeIdx + 1).find(p => !isPhaseDone(p)) || null : null;
+  // Quando todas as fases explícitas estão concluídas mas o projeto tem trabalho contínuo
+  // (avença, rotinas, reuniões recorrentes), tratamos isso como uma "fase" ativa em vez
+  // de mostrar "Projeto concluído".
+  const allPhasesDone = total > 0 && !activePhase;
+  const showContinuous = allPhasesDone && hasOngoingWork;
   const activeDeliverables = (activePhase && Array.isArray(activePhase.deliverables)) ? activePhase.deliverables : [];
   const activeDDone = activeDeliverables.filter((d: any) => d.status === 'concluido').length;
   const activeDPct = activeDeliverables.length ? Math.round((activeDDone / activeDeliverables.length) * 100) : 0;
@@ -108,15 +114,26 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
         <div className="relative grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6 items-end">
           <div className="space-y-2">
             <div className="text-[10px] tracking-[0.28em] uppercase font-semibold" style={{ color: pc }}>
-              {total > 0 ? (activePhase ? 'Fase atual' : 'Projeto concluído') : 'Sem fases ainda'}
+              {total > 0
+                ? (activePhase ? 'Fase atual' : (showContinuous ? 'Trabalho contínuo' : 'Projeto concluído'))
+                : 'Sem fases ainda'}
             </div>
             <h2
               className="text-2xl sm:text-3xl leading-tight"
             >
-              {activePhase ? (activePhase.title || activePhase.name) : (total > 0 ? 'Tudo concluído' : 'A começar em breve')}
+              {activePhase
+                ? (activePhase.title || activePhase.name)
+                : (showContinuous
+                    ? 'Avença a decorrer'
+                    : (total > 0 ? 'Tudo concluído' : 'A começar em breve'))}
             </h2>
-            {activePhase?.description && (
+            {activePhase?.description ? (
               <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">{activePhase.description}</p>
+            ) : showContinuous ? (
+              <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
+                Fases iniciais concluídas. O serviço continua com reuniões, rotinas e entregas recorrentes em curso.
+              </p>
+            ) : null}
             )}
             {total > 0 && (
               <div className="flex items-center gap-3 pt-2">
