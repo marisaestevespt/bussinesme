@@ -425,7 +425,7 @@ export default function ProjetosPage() {
           const active = projects.filter(p => p.status === 'em_curso' || p.status === 'em_revisao');
           // Compare against today at 00:00 local to avoid timezone-induced false positives
           const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const overdue = projects.filter(p => p.deadline && parseISO(p.deadline) < todayMidnight && p.status !== 'concluido' && p.status !== 'cancelado' && p.status !== 'arquivo');
+          const overdue = projects.filter(p => isProjectOverdue(p, now));
           const completedThisMonth = projects.filter(p => {
             if (p.status !== 'concluido') return false;
             // Use deadline as proxy for completion date
