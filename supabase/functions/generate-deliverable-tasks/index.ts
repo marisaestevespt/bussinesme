@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { logRun } from "../_shared/resilience.ts";
 
 // Calculate the next occurrence of a recurring deliverable in a given month
 function getOccurrenceInMonth(year: number, month: number, week: number, weekday: number): string | null {
@@ -42,6 +43,7 @@ Deno.serve(async (req) => {
     });
   }
 
+  const startedAt = new Date();
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -104,10 +106,12 @@ Deno.serve(async (req) => {
       }
     }
 
+    await logRun({ functionName: "generate-deliverable-tasks", startedAt, status: "success", context: { tasks_created: created } });
     return new Response(JSON.stringify({ success: true, tasks_created: created }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
+    await logRun({ functionName: "generate-deliverable-tasks", startedAt, status: "failed", errorMessage: error?.message ?? String(error) });
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
