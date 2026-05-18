@@ -6362,27 +6362,6 @@ export type Database = {
           },
         ]
       }
-      member_personal_images: {
-        Row: {
-          id: string
-          image_url: string
-          member_id: string | null
-          notes: string | null
-        }
-        Insert: {
-          id?: string
-          image_url: string
-          member_id?: string | null
-          notes?: string | null
-        }
-        Update: {
-          id?: string
-          image_url?: string
-          member_id?: string | null
-          notes?: string | null
-        }
-        Relationships: []
-      }
       member_personal_links: {
         Row: {
           created_at: string

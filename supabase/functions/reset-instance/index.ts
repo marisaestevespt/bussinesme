@@ -174,7 +174,6 @@ Deno.serve(async (req) => {
       "member_contracts",
       "member_onboarding",
       "member_payments",
-      "member_personal_images",
       "member_personal_links",
       "member_personal_notes",
       "member_quick_links",

@@ -49,7 +49,7 @@ const TABLES_TO_BACKUP = [
   "launch_tasks", "launch_data",
   "capacity_scenarios", "capacity_scenario_products",
   "member_contracts", "member_onboarding", "member_payments",
-  "member_personal_images", "member_personal_links", "member_personal_notes",
+  "member_personal_links", "member_personal_notes",
   "team_member_vacations",
   "hiring_simulations", "training_courses", "training_doubts",
   "feedback_sessions", "performance_monthly", "performance_weekly",
