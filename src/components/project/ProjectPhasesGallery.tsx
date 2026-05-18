@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import {
+  computeMonthlyCycleProgress,
   getPhaseStatusInfo,
   isDeliverableDone,
   isPhaseDone,
@@ -451,13 +452,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
           const taskTotal = bTasks.length;
           const taskDone = bTasks.filter(isTaskDone).length;
-          // Dedupe: tasks linked from an occurrence are counted only once (via the occurrence).
-          const linkedTaskIds = new Set(items.map(o => o.linked_task_id).filter(Boolean) as string[]);
-          const standaloneTasks = bTasks.filter(t => !linkedTaskIds.has(t.id));
-          const standaloneDone = standaloneTasks.filter(isTaskDone).length;
-          const total = occTotal + phaseTotal + standaloneTasks.length;
-          const done = occDone + phaseDoneCount + standaloneDone;
-          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+          const monthlyProgress = computeMonthlyCycleProgress({ phases: miniPhases, occurrences: items, tasks: bTasks });
+          const total = monthlyProgress.total;
+          const done = monthlyProgress.done;
+          const pct = monthlyProgress.pct;
           const monthDate = parseISO(monthKey + '-01');
           const now = new Date();
           const isCurrentMonth = monthDate.getFullYear() === now.getFullYear() && monthDate.getMonth() === now.getMonth();
