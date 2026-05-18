@@ -178,8 +178,8 @@ export default function SecretariaProdutividade() {
       if (!t.deadline) return;
       const d = parseISO(t.deadline);
       if (!isWithinInterval(d, { start: periodStart, end: periodEnd })) return;
-      const est = Number(t.estimated_time || 0);
-      if (est > 0) total += est;
+      const estMin = Number(t.estimated_minutes || 0);
+      if (estMin > 0) total += estMin / 60;
     });
 
     return total;
