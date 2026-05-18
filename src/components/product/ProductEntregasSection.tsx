@@ -877,11 +877,11 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
         .from('product_deliverable_templates' as any)
         .select('id')
         .eq('phase_id', id);
-      const linkedIds = ((linkedDeliverables ?? []) as Array<{ id: string }>).map(d => d.id);
+      const linkedIds = ((linkedDeliverables ?? []) as unknown as Array<{ id: string }>).map(d => d.id);
       // Unlink deliverables first, then delete phase
       await supabase.from('product_deliverable_templates' as any).update({ phase_id: null } as any).eq('phase_id', id);
       await supabase.from('product_phases' as any).delete().eq('id', id);
-      return { phaseSnap, linkedIds } as { phaseSnap: Record<string, unknown> | null; linkedIds: string[] };
+      return { phaseSnap: (phaseSnap ?? null) as unknown as Record<string, unknown> | null, linkedIds };
     },
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: phaseKey });
