@@ -1,54 +1,44 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-import { usePermissions } from '@/hooks/usePermissions';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TourStep {
   title: string;
   description: string;
   icon: string;
-  requireModule?: string;
-  ownerOnly?: boolean;
 }
 
-const ALL_STEPS: TourStep[] = [
-  { title: 'Bem-vindo à sua plataforma!', description: 'Vamos fazer um tour rápido para conhecer as áreas principais. Demora menos de 1 minuto.', icon: '🎉' },
-  { title: 'Secretária — o seu dia-a-dia', description: 'Aqui encontra as tarefas do dia, reuniões, agenda e tudo o que precisa para organizar o seu trabalho. É a sua "mesa de trabalho" digital.', icon: '🗂️' },
-  { title: 'Hub — a central de recursos', description: 'Projetos, reuniões, tarefas, processos e biblioteca. Tudo o que a equipa precisa, organizado num só lugar.', icon: '🏠' },
-  { title: 'Marketing', description: 'Estratégia de conteúdo, canais, calendário editorial e métricas de desempenho dos seus canais de comunicação.', icon: '📣', requireModule: 'marketing' },
-  { title: 'Comercial', description: 'Pipeline de vendas, CRM, metas comerciais e biblioteca de estratégias. Tudo para gerir o processo de vendas.', icon: '🛒', requireModule: 'comercial' },
-  { title: 'Clientes', description: 'Gestão de clientes, onboarding, feedback e portal do cliente. Acompanhe todo o ciclo de vida.', icon: '👤', requireModule: 'clientes' },
-  { title: 'Contabilidade', description: 'Entradas, saídas, balanço mensal, IVA e documentos fiscais. A saúde financeira do negócio.', icon: '💰', requireModule: 'financeiro' },
-  { title: 'Operação', description: 'Gestão operacional do dia-a-dia, processos e entregáveis dos seus produtos.', icon: '🎧', requireModule: 'operacao' },
-  { title: 'Produtos', description: 'Catálogo de produtos, KPIs, métricas de sucesso e calculadora de oferta.', icon: '📦', requireModule: 'produtos' },
-  { title: 'Recursos Humanos', description: 'Gestão de equipa, escalas, ausências, desempenho e desenvolvimento profissional.', icon: '👥', requireModule: 'recursos-humanos' },
-  { title: 'Sala Executiva', description: 'Visão geral do negócio: planeamento, produtividade, capacidade, KPIs e alinhamento semanal.', icon: '👑', ownerOnly: true },
-  { title: 'Definições', description: 'Configure o nome do negócio, cores, utilizadores, digestos e KPIs. Tudo personalizável ao seu gosto.', icon: '⚙️', ownerOnly: true },
-  { title: 'Está pronto!', description: 'Explore à vontade. Pode sempre aceder a qualquer secção pelo menu lateral. Se precisar de ajuda, estamos aqui.', icon: '🚀' },
+const STEPS: TourStep[] = [
+  {
+    title: 'Bem-vindo!',
+    description: 'Vamos fazer um tour rápido de 30 segundos para mostrar como o sistema está organizado.',
+    icon: '👋',
+  },
+  {
+    title: 'Secretária + Hub',
+    description: 'A Secretária é o teu dia-a-dia (tarefas, agenda, reuniões). O Hub é onde a equipa encontra projetos, processos e tudo o resto. Os módulos do menu lateral abrem-se conforme as permissões.',
+    icon: '🗂️',
+  },
+  {
+    title: 'Está pronto!',
+    description: 'Podes explorar à vontade pelo menu lateral. Se precisares de mudar algo (nome, cores, equipa), vai a Definições.',
+    icon: '🚀',
+  },
 ];
 
 export function OnboardingTour() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [checked, setChecked] = useState(false);
-  const { user, isOwner } = useAuth();
-  const { canAccess, loading: permLoading } = usePermissions();
-
-  const steps = useMemo(() => {
-    if (permLoading) return [];
-    return ALL_STEPS.filter((s) => {
-      if (s.ownerOnly && !isOwner) return false;
-      if (s.requireModule && !isOwner && !canAccess(s.requireModule)) return false;
-      return true;
-    });
-  }, [isOwner, canAccess, permLoading]);
+  const { user } = useAuth();
+  const steps = STEPS;
 
   // Check DB for onboarding_completed
   useEffect(() => {
-    if (permLoading || !user?.id || steps.length === 0) return;
+    if (!user?.id) return;
     let cancelled = false;
 
     supabase
@@ -65,7 +55,7 @@ export function OnboardingTour() {
       });
 
     return () => { cancelled = true; };
-  }, [permLoading, user?.id, steps.length]);
+  }, [user?.id]);
 
   const completeTour = () => {
     setIsVisible(false);
