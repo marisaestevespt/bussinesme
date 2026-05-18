@@ -53,7 +53,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { EntregaveisSubPage } from '@/components/project/subpages/EntregaveisSubPage';
 import { CronogramaSubPage } from '@/components/project/subpages/CronogramaSubPage';
-import { OutrasInfoSubPage } from '@/components/project/subpages/OutrasInfoSubPage';
 import { ReunioesSubPage } from '@/components/project/subpages/ReunioesSubPage';
 import { TextWithAssetsSubPage } from '@/components/project/subpages/TextWithAssetsSubPage';
 import { BriefingSubPage } from '@/components/project/subpages/BriefingSubPage';
@@ -65,7 +64,7 @@ import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
-type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
+type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'briefing' | 'brainstorming' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas';
 
 // ─── Main Component ─────────────────────────────────────────────
 
@@ -455,19 +454,6 @@ function ProjetoDetailInner() {
         projectId={id!}
         cronogramaJson={local.cronograma}
         onChange={v => updateField('cronograma', v)}
-        onBack={() => setSubPage(null)}
-        onSave={() => saveMutation.mutate()}
-        saving={saveMutation.isPending}
-        dirty={dirty}
-      />
-    );
-  }
-  if (subPage === 'outras_info') {
-    return (
-      <OutrasInfoSubPage
-        projectId={id!}
-        value={(local.project_notes as string) || ''}
-        onChange={v => updateField('project_notes', v)}
         onBack={() => setSubPage(null)}
         onSave={() => saveMutation.mutate()}
         saving={saveMutation.isPending}
