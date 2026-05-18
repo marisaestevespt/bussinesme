@@ -380,8 +380,6 @@ export function DeliverableFormatCell({
         ) : (
           <div className="flex items-center gap-0.5">
             <NewMeetingButton
-              skipPicker
-              forcedType={'projeto' as any}
               defaultProjectId={projectId}
               defaultProjectName={projectName ?? undefined}
               defaultClientId={clientId ?? undefined}
