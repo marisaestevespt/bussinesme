@@ -26,15 +26,17 @@ interface Props {
 type TaskFilter = 'pendentes' | 'concluidas' | 'todas';
 
 export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha, hasOngoingWork = false, unifiedProgress }: Props) {
-  // Use the SAME progress calculation as the home banner: based on deliverables
-  // across all (portal-visible) phases. Keeps the % consistent between sections.
   const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
-  // Quando unifiedProgress é fornecido (avenças/serviços recorrentes), usamos a
-  // mesma fórmula da app — caso contrário, caímos no cálculo por entregáveis.
-  const useUnified = !!unifiedProgress && unifiedProgress.total > 0;
+  const explicitProgress = phases
+    .map((p: any) => Number(p.project_progress))
+    .filter((v) => Number.isFinite(v));
+  const officialProgress = explicitProgress.length > 0
+    ? Math.round(Array.from(new Set(explicitProgress)).reduce((sum, v) => sum + v, 0) / Array.from(new Set(explicitProgress)).length)
+    : null;
+  const useUnified = officialProgress === null && !!unifiedProgress && unifiedProgress.total > 0;
   const total = useUnified ? unifiedProgress!.total : allDeliverables.length;
   const done = useUnified ? unifiedProgress!.done : allDeliverables.filter(isDeliverableDone).length;
-  const pct = useUnified ? unifiedProgress!.pct : deliverableProgress(allDeliverables);
+  const pct = officialProgress ?? (useUnified ? unifiedProgress!.pct : deliverableProgress(allDeliverables));
   const progressLabel = useUnified ? 'itens' : 'entregas';
   const activeIdx = (() => {
     const i = phases.findIndex(p => p.status === 'em_curso');

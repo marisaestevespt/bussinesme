@@ -38,7 +38,7 @@ import { PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
-import { computeMonthlyCycleProgress, computeProjectProgressFromSources } from '@/lib/projectProgress';
+import { computeMonthlyCycleProgress, computeProjectProgressFromSources, isDeliverableDone, isPhaseDone } from '@/lib/projectProgress';
 import { ProjectAnaliseTab } from '@/components/project/tabs/ProjectAnaliseTab';
 import { ProjectFechoTab } from '@/components/project/tabs/ProjectFechoTab';
 import { ProjectPortalTab } from '@/components/project/tabs/ProjectPortalTab';
@@ -255,12 +255,12 @@ function ProjetoDetailInner() {
     }
 
     if (projectDeliverables.length > 0) {
-      const completed = projectDeliverables.filter((d: any) => d.status === 'concluido').length;
+      const completed = projectDeliverables.filter(isDeliverableDone).length;
       return `${completed}/${projectDeliverables.length} points concluídos`;
     }
 
     if (projectPhases.length > 0) {
-      const completed = projectPhases.filter((p: any) => p.status === 'concluida').length;
+      const completed = projectPhases.filter(isPhaseDone).length;
       return `${completed}/${projectPhases.length} fases concluídas`;
     }
 
