@@ -6,19 +6,8 @@ import { Input } from '@/components/ui/input';
 import { AlertTriangle, FolderKanban, Clock, ListTodo, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-
-const PROJECT_STATUS_TONE: Record<string, string> = {
-  em_curso: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30',
-  bloqueado: 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30',
-  pausado: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
-  planeado: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30',
-};
-
-const PRIORITY_TONE: Record<string, string> = {
-  alta: 'text-red-600 dark:text-red-400',
-  media: 'text-amber-600 dark:text-amber-400',
-  baixa: 'text-muted-foreground',
-};
+import { getProjectStatusInfo, isProjectOverdue } from '@/lib/projectStatus';
+import { isTaskDone, isTaskOverdue, getTaskPriorityInfo } from '@/lib/taskStatus';
 
 export function BlockOperacao({ year, month }: { year: number; month: number }) {
   const [projectSearch, setProjectSearch] = useState('');
@@ -42,9 +31,10 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
       ]);
 
       const allTasks = tasks.data || [];
-      const overdue = allTasks.filter((t: any) => t.status !== 'done' && t.deadline && t.deadline < todayISO);
-      const done = allTasks.filter((t: any) => t.status === 'done');
-      const active = allTasks.filter((t: any) => t.status !== 'done');
+      const today = new Date();
+      const overdue = allTasks.filter((t: any) => isTaskOverdue(t, today));
+      const done = allTasks.filter((t: any) => isTaskDone(t));
+      const active = allTasks.filter((t: any) => !isTaskDone(t));
       const completionPct = allTasks.length > 0 ? (done.length / allTasks.length) * 100 : 0;
       const delivered = (deliverables.data || []).filter((d: any) => d.completed_at && d.completed_at >= start && d.completed_at <= end + 'T23:59:59');
 
@@ -73,7 +63,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
       allTasks.forEach((t: any) => {
         if (t.project_id) {
           tasksByProject[t.project_id] = (tasksByProject[t.project_id] || 0) + 1;
-          if (t.status !== 'done' && t.deadline && t.deadline < todayISO) {
+          if (isTaskOverdue(t, today)) {
             overdueByProject[t.project_id] = (overdueByProject[t.project_id] || 0) + 1;
           }
         }
@@ -144,7 +134,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
               {k.label}
             </div>
             <div className="text-lg font-semibold tabular-nums">{k.value}</div>
-            {k.sub && <div className={cn('text-[10px] mt-0.5', k.alert ? 'text-red-600' : 'text-muted-foreground')}>{k.sub}</div>}
+            {k.sub && <div className={cn('text-[10px] mt-0.5', k.alert ? 'text-destructive' : 'text-muted-foreground')}>{k.sub}</div>}
           </Link>
         ))}
       </div>
@@ -185,7 +175,8 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
               {filteredProjects.length === 0 ? (
                 <tr><td colSpan={8} className="text-center text-muted-foreground py-8 text-xs">Sem projetos.</td></tr>
               ) : filteredProjects.map((p: any) => {
-                const overdueDeadline = p.deadline && p.deadline < new Date().toISOString().slice(0,10);
+                const overdueDeadline = isProjectOverdue(p);
+                const statusInfo = getProjectStatusInfo(p.status);
                 return (
                   <tr key={p.id} className="border-t border-border/40 hover:bg-accent/30 hq-transition">
                     <td className="px-3 py-2 font-medium">
@@ -193,11 +184,11 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                     </td>
                     <td className="px-3 py-2 text-muted-foreground truncate max-w-[160px]">{p.client || '—'}</td>
                     <td className="px-3 py-2">
-                      <Badge variant="outline" className={cn('text-[10px] capitalize', PROJECT_STATUS_TONE[p.status] || '')}>
-                        {(p.status || '—').replace('_', ' ')}
+                      <Badge variant="outline" className={cn('text-[10px]', statusInfo.color)}>
+                        {statusInfo.label}
                       </Badge>
                     </td>
-                    <td className={cn('px-3 py-2 text-right tabular-nums text-xs', overdueDeadline && 'text-red-600 font-medium')}>{p.deadline || '—'}</td>
+                    <td className={cn('px-3 py-2 text-right tabular-nums text-xs', overdueDeadline && 'text-destructive font-medium')}>{p.deadline || '—'}</td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -208,7 +199,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{p.hours.toFixed(0)}h</td>
                     <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{p.taskCount}</td>
-                    <td className={cn('px-3 py-2 text-right tabular-nums', p.overdue > 0 && 'text-red-600 font-medium')}>{p.overdue || '—'}</td>
+                    <td className={cn('px-3 py-2 text-right tabular-nums', p.overdue > 0 && 'text-destructive font-medium')}>{p.overdue || '—'}</td>
                   </tr>
                 );
               })}
@@ -221,7 +212,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
       <div className="hq-surface-sunken rounded-lg overflow-hidden">
         <div className="flex items-center justify-between gap-3 p-3 border-b border-border/40">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <AlertTriangle className="h-4 w-4 text-destructive" />
             <div className="text-sm font-semibold">Tarefas atrasadas</div>
             <Badge variant="outline" className="text-[10px]">{filteredOverdue.length}</Badge>
           </div>
@@ -261,8 +252,8 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                       <td className="px-3 py-2 text-muted-foreground truncate max-w-[140px]">{t.assignee || '—'}</td>
                       <td className="px-3 py-2 text-muted-foreground truncate max-w-[140px]">{t.client || '—'}</td>
                       <td className="px-3 py-2 text-muted-foreground capitalize">{t.department || '—'}</td>
-                      <td className={cn('px-3 py-2 capitalize', PRIORITY_TONE[t.priority] || '')}>{t.priority || '—'}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-xs text-red-600">
+                      <td className={cn('px-3 py-2', getTaskPriorityInfo(t.priority).color)}>{getTaskPriorityInfo(t.priority).short}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-xs text-destructive">
                         {t.deadline} <span className="text-muted-foreground">({days}d)</span>
                       </td>
                     </tr>
@@ -289,10 +280,10 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
                     <Link to={`/hub/equipa/${m.id}`} className="block hover:bg-accent/30 rounded px-1 py-0.5" target="_blank" rel="noopener noreferrer">
                       <div className="flex justify-between">
                         <span className="truncate">{m.name}</span>
-                        <span className={cn('tabular-nums', overload ? 'text-red-600 font-medium' : 'text-muted-foreground')}>{hours.toFixed(0)}h</span>
+                        <span className={cn('tabular-nums', overload ? 'text-destructive font-medium' : 'text-muted-foreground')}>{hours.toFixed(0)}h</span>
                       </div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div className={cn('h-full', overload ? 'bg-red-500' : pct > 80 ? 'bg-amber-500' : 'bg-primary')} style={{ width: `${pct}%` }} />
+                        <div className={cn('h-full', overload ? 'bg-destructive' : pct > 80 ? 'bg-warning' : 'bg-primary')} style={{ width: `${pct}%` }} />
                       </div>
                     </Link>
                   </li>
