@@ -300,6 +300,7 @@ export function useProjectDetailData(id: string | undefined, opts?: { isRecorren
     projectDeliverables: projectDeliverablesQ.data || [],
     monthlyTasks: monthlyTasksQ.data || [],
     monthlyOccurrences: monthlyOccurrencesQ.data || [],
+    monthlyCycleLoading: monthlyTasksQ.isLoading || monthlyOccurrencesQ.isLoading || projectPhasesQ.isLoading,
     meetings: meetingsQ.data || [],
     toggleMember,
     deleteMutation,
