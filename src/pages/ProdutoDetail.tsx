@@ -978,7 +978,7 @@ export default function ProdutoDetailPage() {
           {openSection === 'operacao' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
               <ProductEntregasSection
-                deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string; is_recurring?: boolean }>}
+                deliverableTemplates={deliverableTemplates as Array<{ id: string; name: string; description?: string }>}
                 isOwner={isOwner}
                 productId={id!}
                 isRecurring={deriveProjectMode(form.product_type, form.sales_type) === 'recorrente'}
