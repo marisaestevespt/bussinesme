@@ -274,10 +274,40 @@ export default function ProdutoDetailPage() {
 
   const deleteRow = useMutation({
     mutationFn: async ({ table, id: rowId }: { table: string; id: string }) => {
+      // Snapshot the row before deletion so we can offer Undo
+      const { data: snapshot } = await supabase
+        .from(table as 'clients')
+        .select('*')
+        .eq('id', rowId)
+        .maybeSingle();
       const { error } = await supabase.from(table as 'clients').delete().eq('id', rowId);
       if (error) throw error;
+      return { table, snapshot } as { table: string; snapshot: Record<string, unknown> | null };
     },
-    onSuccess: invalidateAll,
+    onSuccess: (result) => {
+      invalidateAll();
+      if (result?.snapshot) {
+        const { table, snapshot } = result;
+        toast.success('Item eliminado', {
+          action: {
+            label: 'Desfazer',
+            onClick: async () => {
+              const { error } = await supabase
+                .from(table as 'clients')
+                .insert(snapshot as never);
+              if (error) {
+                toast.error('Não foi possível restaurar');
+                return;
+              }
+              invalidateAll();
+              toast.success('Item restaurado');
+            },
+          },
+          duration: 8000,
+        });
+      }
+    },
+    onError: () => toast.error('Erro ao eliminar'),
   });
 
   if (!isNew && isLoading) {
