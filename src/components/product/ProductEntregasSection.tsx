@@ -617,48 +617,57 @@ function PhaseCard({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {isOwner && !phase.is_onboarding && !phase.is_offboarding && (
-            <Select
-              value={phase.is_recurring ? 'recorrente' : 'unica'}
-              onValueChange={(v) => {
-                if (v === 'recorrente') {
-                  onUpdatePhase(phase.id, { is_recurring: true, recurrence_frequency: phase.recurrence_frequency || 'mensal' });
-                } else {
-                  onUpdatePhase(phase.id, { is_recurring: false, recurrence_frequency: null });
-                }
-              }}
-            >
-              <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unica">Única</SelectItem>
-                <SelectItem value="recorrente">Recorrente</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Modo</span>
+              <Select
+                value={phase.is_recurring ? 'recorrente' : 'unica'}
+                onValueChange={(v) => {
+                  if (v === 'recorrente') {
+                    onUpdatePhase(phase.id, { is_recurring: true, recurrence_frequency: phase.recurrence_frequency || 'mensal' });
+                  } else {
+                    onUpdatePhase(phase.id, { is_recurring: false, recurrence_frequency: null });
+                  }
+                }}
+              >
+                <SelectTrigger className="h-7 text-xs w-28" title="Acontece uma vez no contrato ou repete em ciclos"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unica">Única</SelectItem>
+                  <SelectItem value="recorrente">Recorrente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
           {isOwner && phase.is_recurring && (
-            <Select
-              value={phase.recurrence_frequency || 'mensal'}
-              onValueChange={(v) => onUpdatePhase(phase.id, { recurrence_frequency: v })}
-            >
-              <SelectTrigger className="h-7 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="semanal">Semanal</SelectItem>
-                <SelectItem value="quinzenal">Quinzenal</SelectItem>
-                <SelectItem value="mensal">Mensal</SelectItem>
-                <SelectItem value="trimestral">Trimestral</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Frequência</span>
+              <Select
+                value={phase.recurrence_frequency || 'mensal'}
+                onValueChange={(v) => onUpdatePhase(phase.id, { recurrence_frequency: v })}
+              >
+                <SelectTrigger className="h-7 text-xs w-28" title="De quanto em quanto tempo o ciclo se repete"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="semanal">Semanal</SelectItem>
+                  <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           )}
           {sops.length > 0 && (
-            <Select value={phase.linked_sop_id || 'none'}
-              onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
-              <SelectTrigger className="h-7 text-xs w-40">
-                <SelectValue placeholder="Ligar SOP..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem SOP</SelectItem>
-                {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">SOP ligado</span>
+              <Select value={phase.linked_sop_id || 'none'}
+                onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
+                <SelectTrigger className="h-7 text-xs w-40" title="Procedimento operacional associado a esta fase">
+                  <SelectValue placeholder="Ligar SOP..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem SOP</SelectItem>
+                  {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           )}
           {isOwner && onMoveUp && (
             <Button aria-label="Subir fase" size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={!canReorder?.up}>
