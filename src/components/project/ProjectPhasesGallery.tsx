@@ -605,34 +605,25 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Detail dialog: Trabalho Contínuo agrupado por mês */}
-      <Dialog open={continuousOpen} onOpenChange={setContinuousOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2">
-              <InfinityIcon className="h-5 w-5 text-primary" />
-              Trabalho Contínuo
-            </DialogTitle>
-          </DialogHeader>
-          {(() => {
-            const meetingOptions = projectMeetings.map(m => ({
-              value: m.id,
-              label: m.title || 'Sem título',
-              date: m.date_time ? format(parseISO(m.date_time), "d MMM · HH:mm", { locale: pt }) : '',
-            }));
-            const nowKey = new Date().toISOString().slice(0, 7);
-            return (
-              <div className="space-y-4 mt-2">
-                <div className="flex flex-wrap items-center gap-4 px-4 py-3 rounded-lg bg-muted/30 border border-border/40 text-xs">
-                  <span><strong>{continuousTotals.done}/{continuousTotals.total}</strong> itens concluídos no contrato</span>
-                  <span className="text-muted-foreground">·</span>
-                  <span><strong>{continuousTotals.pct}%</strong> de progresso global</span>
-                </div>
-                {continuousByMonth.length === 0 && (
-                  <div className="text-sm text-muted-foreground text-center py-6">
-                    Ainda não há cadências geradas para este projeto.
-                  </div>
-                )}
+      {/* Inline: Trabalho Contínuo agrupado por mês — vista calma e estática */}
+      {hasContinuous && (
+        <section className="mt-6 rounded-xl border border-border/60 bg-muted/20 p-4 md:p-5">
+          <header className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2 min-w-0">
+              <InfinityIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+              <h3 className="text-sm font-semibold truncate">Trabalho Contínuo</h3>
+              <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                · cadências e tarefas regulares ao longo do contrato
+              </span>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              <span><strong className="text-foreground">{continuousTotals.done}/{continuousTotals.total}</strong> itens</span>
+              <span>·</span>
+              <span><strong className="text-foreground">{continuousTotals.pct}%</strong></span>
+              <div className="w-32"><Progress value={continuousTotals.pct} className="h-1.5" /></div>
+            </div>
+          </header>
+          <div className="space-y-2">
                 {continuousByMonth.map(([monthKey, bucket]) => {
                   const monthDate = parseISO(monthKey + '-01');
                   const isCurrent = monthKey === nowKey;
@@ -653,10 +644,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   ].sort((a, b) => a.date.localeCompare(b.date));
                   return (
                     <Collapsible key={monthKey} defaultOpen={isCurrent}>
-                      <CollapsibleTrigger className="w-full group flex items-center justify-between gap-3 px-4 py-3 rounded-lg border border-border bg-card hover:border-primary/40 transition-colors">
+                      <CollapsibleTrigger className="w-full group flex items-center justify-between gap-3 px-3 py-2 rounded-md border border-border/60 bg-card hover:bg-card/80 transition-colors">
                         <div className="flex items-center gap-3 min-w-0">
                           <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90 shrink-0" />
-                          <h4 className="text-sm font-semibold capitalize">
+                          <h4 className="text-sm font-medium capitalize">
                             {format(monthDate, 'MMMM yyyy', { locale: pt })}
                           </h4>
                           <Badge
@@ -825,11 +816,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                     </Collapsible>
                   );
                 })}
-              </div>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
+          </div>
+        </section>
+      )}
     </>
   );
 }
