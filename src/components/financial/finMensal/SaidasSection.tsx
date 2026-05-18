@@ -372,7 +372,8 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
 
   const saveExpense = async () => {
     if (!expForm.base_value) { toast.error('Valor é obrigatório'); return; }
-    if (!expForm.payment_method) { toast.error('Seleciona o método de pagamento'); return; }
+    const pmErr = validateExpensePaymentMethod(expForm.payment_method);
+    if (pmErr) { toast.error(pmErr); return; }
     const inputValue = parseFloat(expForm.base_value) || 0;
     const vat = parseInt(expForm.vat_rate) || 0;
     let base: number, total: number;
