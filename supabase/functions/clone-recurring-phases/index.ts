@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
       .from('product_phases')
       .select('id, product_id, name, description, sort_order, duration_unit, is_onboarding, linked_sop_id, recurrence_frequency, recurrence_anchor_day, recurrence_lead_days, recurrence_week_of_month')
       .eq('is_recurring', true)
+      .eq('is_monthly_cycle', false)
       .not('recurrence_anchor_day', 'is', null);
 
     if (tErr) throw tErr;
