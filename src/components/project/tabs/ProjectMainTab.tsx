@@ -71,7 +71,7 @@ export function ProjectMainTab({ projectId, local, meetings, resolvedClientId, t
 
   const baseTiles = local.type === 'cliente_servico_mensal' ? [
     { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes da Avença', filled: hasText(local.diretrizes) },
-    { key: '__agenda__' as SubPage, icon: CalendarIcon, label: 'Calendário Editorial', filled: false },
+    { key: '__agenda__' as SubPage, icon: CalendarIcon, label: 'Calendário', filled: false },
     { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas', filled: hasText(local.project_notes) },
   ] : [
     { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição', filled: hasText(local.objetivo) },
