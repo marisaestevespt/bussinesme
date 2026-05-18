@@ -162,7 +162,7 @@ function ProjetoDetailInner() {
     const timerMinutes = timerEntries.reduce((sum, e) => sum + Number(e.duration_minutes || 0), 0);
     const totalMinutes = manualMinutes + timerMinutes;
     const doneTasks = tasks.filter(isTaskDone).length;
-    const estimatedTaskMinutes = tasks.reduce((sum, t) => sum + (Number(t.estimated_minutes || 0) || Math.round(Number(t.estimated_time || 0) * 60)), 0);
+    const estimatedTaskMinutes = tasks.reduce((sum, t) => sum + Number(t.estimated_minutes || 0), 0);
     const deliverableEstimatedMinutes = (projectDeliverables as any[]).reduce((sum, d) => sum + Number(d.estimated_minutes || 0), 0);
     const budgetMinutes = Number(local?.budgeted_minutes || 0) || estimatedTaskMinutes || deliverableEstimatedMinutes;
     const memberNames = new Map<string, string>();
