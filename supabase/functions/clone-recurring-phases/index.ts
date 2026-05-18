@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { logRun } from '../_shared/resilience.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -108,6 +109,7 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
+  const startedAt = new Date();
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -262,11 +264,13 @@ Deno.serve(async (req) => {
       }
     }
 
+    await logRun({ functionName: 'clone-recurring-phases', startedAt, status: 'success', context: { cloned, skipped, templates: templates?.length ?? 0 } });
     return new Response(JSON.stringify({ ok: true, cloned, skipped, templates: templates?.length ?? 0 }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
     console.error('clone-recurring-phases error', err);
+    await logRun({ functionName: 'clone-recurring-phases', startedAt, status: 'failed', errorMessage: err?.message ?? String(err) });
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
