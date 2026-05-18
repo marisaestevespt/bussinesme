@@ -5,7 +5,7 @@ import { Briefcase, FileText, FolderOpen, Download, CheckCircle2, Circle, Layers
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
-import { isPhaseDone, phaseProgress } from '@/lib/projectProgress';
+import { isPhaseDone, isDeliverableDone, deliverableProgress } from '@/lib/projectProgress';
 import type { PortalPhase, PortalMaterial } from '@/types/portal';
 
 interface Props {
@@ -20,9 +20,12 @@ interface Props {
 type TaskFilter = 'pendentes' | 'concluidas' | 'todas';
 
 export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha }: Props) {
-  const total = phases.length;
-  const done = phases.filter(isPhaseDone).length;
-  const pct = phaseProgress(phases);
+  // Use the SAME progress calculation as the home banner: based on deliverables
+  // across all (portal-visible) phases. Keeps the % consistent between sections.
+  const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
+  const total = allDeliverables.length;
+  const done = allDeliverables.filter(isDeliverableDone).length;
+  const pct = deliverableProgress(allDeliverables);
   const activeIdx = (() => {
     const i = phases.findIndex(p => p.status === 'em_curso');
     if (i >= 0) return i;
@@ -120,7 +123,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
                 <div className="flex-1 max-w-[260px] h-1.5 bg-muted/40 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: pc }} />
                 </div>
-                <span className="text-xs text-muted-foreground">{done}/{total} fases</span>
+                <span className="text-xs text-muted-foreground">{done}/{total} entregas</span>
               </div>
             )}
           </div>
