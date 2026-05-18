@@ -23,6 +23,7 @@ import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimelin
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { getInitials } from '@/pages/Projetos';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { AddCadenceDialog } from '@/components/project/AddCadenceDialog';
 
 interface Props {
   projectId: string;
@@ -621,6 +622,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
               <span>·</span>
               <span><strong className="text-foreground">{continuousTotals.pct}%</strong></span>
               <div className="w-32"><Progress value={continuousTotals.pct} className="h-1.5" /></div>
+              <AddCadenceDialog projectId={projectId} />
             </div>
           </header>
           <div className="space-y-2">
