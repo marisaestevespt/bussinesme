@@ -555,66 +555,23 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Calendário Editorial" />
             </div>
 
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={isRecurring} onChange={e => setIsRecurring(e.target.checked)} className="rounded" />
-                <span className="text-sm">Entrega recorrente</span>
-              </label>
+            <div className="space-y-2">
+              <Label>Data de entrega</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={deadline} onSelect={setDeadline} className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
             </div>
-
-            {isRecurring ? (
-              <div className="space-y-3 p-3 rounded-lg bg-muted/50 border">
-                <p className="text-xs text-muted-foreground">Define quando esta entrega acontece todos os meses:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Semana do mês</Label>
-                    <Select value={recurrenceWeek} onValueChange={setRecurrenceWeek}>
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Selecionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {WEEK_OPTIONS.map(o => (
-                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Dia da semana</Label>
-                    <Select value={recurrenceWeekday} onValueChange={setRecurrenceWeekday}>
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Selecionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {WEEKDAY_OPTIONS.map(o => (
-                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                {computedDeadline && recurrenceWeek && recurrenceWeekday && (
-                  <p className="text-xs text-muted-foreground">
-                    📅 Próxima entrega: <span className="font-medium text-foreground">{format(computedDeadline, "EEEE, d 'de' MMMM", { locale: pt })}</span>
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label>Data de entrega</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={deadline} onSelect={setDeadline} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
+            <p className="text-[11px] text-muted-foreground italic">
+              💡 Para entregas que se repetem todos os meses/semanas, usa <b>Itens recorrentes do ciclo</b> no produto.
+            </p>
 
             <div className="space-y-2">
               <Label>Responsável</Label>
@@ -646,10 +603,6 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               className="w-full"
               onClick={() => {
                 if (!name.trim()) { toast.error('Nome obrigatório'); return; }
-                if (isRecurring && (!recurrenceWeek || !recurrenceWeekday)) {
-                  toast.error('Seleciona a semana e o dia da semana');
-                  return;
-                }
                 createMutation.mutate();
               }}
               disabled={createMutation.isPending}
