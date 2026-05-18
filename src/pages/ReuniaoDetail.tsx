@@ -30,6 +30,7 @@ import { useImpersonation } from '@/contexts/ImpersonationContext';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { toast } from 'sonner';
+import { confirmDestructive } from '@/lib/confirmDestructive';
 import { logAudit } from '@/lib/auditLog';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
@@ -767,12 +768,17 @@ function ReuniaoDetailPageInner() {
                     label: 'Eliminar',
                     icon: Trash2,
                     variant: 'destructive' as const,
-                    onClick: () => {
+                    onClick: async () => {
                       if (isSeriesParent && seriesCount > 0) {
                         setDeleteDialogOpen(true);
-                      } else {
-                        deleteMutation.mutate('single');
+                        return;
                       }
+                      const ok = await confirmDestructive({
+                        title: 'Eliminar reunião?',
+                        description: `"${m?.title || 'Sem título'}" será removida. Esta ação não pode ser desfeita.`,
+                      });
+                      if (!ok) return;
+                      deleteMutation.mutate('single');
                     },
                     disabled: deleteMutation.isPending,
                   },
