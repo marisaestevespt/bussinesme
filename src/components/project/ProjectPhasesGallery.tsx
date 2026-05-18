@@ -37,6 +37,8 @@ interface Phase {
   planned_end: string | null;
   completed_at: string | null;
   started_at: string | null;
+  cycle_month_index?: number | null;
+  source_phase_id?: string | null;
 }
 
 interface Deliverable {
@@ -125,16 +127,38 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     onError: (e: Error) => toast.error('Erro ao eliminar', { description: e.message }),
   });
 
-  // Group recurring occurrences by month — render as "pseudo-phases" alongside real phases
-  const recurringMonths = useMemo(() => {
-    const map = new Map<string, RecurringOccurrence[]>();
+  // Split phases: cycle (mini-fases mensais) vs one-shot
+  const cyclePhases = useMemo(
+    () => phases.filter(p => p.cycle_month_index != null),
+    [phases]
+  );
+  const oneShotPhases = useMemo(
+    () => phases.filter(p => p.cycle_month_index == null),
+    [phases]
+  );
+
+  // Unified monthly buckets: each month aggregates mini-fases + cadências
+  const monthlyBuckets = useMemo(() => {
+    const map = new Map<string, { miniPhases: Phase[]; occurrences: RecurringOccurrence[] }>();
+    const ensure = (k: string) => {
+      if (!map.has(k)) map.set(k, { miniPhases: [], occurrences: [] });
+      return map.get(k)!;
+    };
+    for (const p of cyclePhases) {
+      const key = (p.planned_start || '').slice(0, 7);
+      if (!key) continue;
+      ensure(key).miniPhases.push(p);
+    }
     for (const o of occurrences) {
-      const key = o.scheduled_date.slice(0, 7); // YYYY-MM
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(o);
+      const key = o.scheduled_date.slice(0, 7);
+      ensure(key).occurrences.push(o);
+    }
+    for (const v of map.values()) {
+      v.miniPhases.sort((a, b) => (a.planned_start || '').localeCompare(b.planned_start || ''));
+      v.occurrences.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [occurrences]);
+  }, [cyclePhases, occurrences]);
 
   const [openMonthKey, setOpenMonthKey] = useState<string | null>(null);
 
@@ -180,10 +204,9 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     return <div className="text-sm text-muted-foreground">A carregar fases…</div>;
   }
 
-  const totalCards = phases.length + recurringMonths.length;
-
-  const offboardingPhases = phases.filter(p => /offboarding/i.test(p.name || ''));
-  const nonOffboardingPhases = phases.filter(p => !/offboarding/i.test(p.name || ''));
+  const offboardingPhases = oneShotPhases.filter(p => /offboarding/i.test(p.name || ''));
+  const nonOffboardingPhases = oneShotPhases.filter(p => !/offboarding/i.test(p.name || ''));
+  const totalCards = oneShotPhases.length + monthlyBuckets.length;
 
   return (
     <>
@@ -191,7 +214,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
       <div className="flex items-center justify-between mb-3">
         <div className="text-xs text-muted-foreground">
           {totalCards > 0
-            ? `${phases.length} ${phases.length === 1 ? 'fase' : 'fases'}${recurringMonths.length > 0 ? ` · ${recurringMonths.length} ${recurringMonths.length === 1 ? 'ciclo mensal' : 'ciclos mensais'}` : ''}`
+            ? `${oneShotPhases.length} ${oneShotPhases.length === 1 ? 'fase' : 'fases'}${monthlyBuckets.length > 0 ? ` · ${monthlyBuckets.length} ${monthlyBuckets.length === 1 ? 'mês' : 'meses'}` : ''}`
             : ''}
         </div>
         {addingPhase ? (
@@ -366,20 +389,25 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </button>
           );
         })}
-        {recurringMonths.map(([monthKey, items], idx) => {
-          const total = items.length;
-          const done = items.filter(o => o.status === 'concluida').length;
-          const cancelled = items.filter(o => o.status === 'cancelada').length;
+        {monthlyBuckets.map(([monthKey, bucket]) => {
+          const { miniPhases, occurrences: items } = bucket;
+          const occTotal = items.length;
+          const occDone = items.filter(o => o.status === 'concluida').length;
+          const occCancelled = items.filter(o => o.status === 'cancelada').length;
+          const phaseTotal = miniPhases.length;
+          const phaseDoneCount = miniPhases.filter(isPhaseDone).length;
+          const total = occTotal + phaseTotal;
+          const done = occDone + phaseDoneCount;
           const pct = total > 0 ? Math.round((done / total) * 100) : 0;
           const monthDate = parseISO(monthKey + '-01');
           const now = new Date();
           const isCurrentMonth = monthDate.getFullYear() === now.getFullYear() && monthDate.getMonth() === now.getMonth();
           const isPast = monthDate < new Date(now.getFullYear(), now.getMonth(), 1);
-          const allDone = total > 0 && done + cancelled === total;
+          const allDone = total > 0 && (done + occCancelled) === total;
 
           return (
             <button
-              key={`recurring-${monthKey}`}
+              key={`month-${monthKey}`}
               type="button"
               onClick={() => setOpenMonthKey(monthKey)}
               className={cn(
@@ -402,7 +430,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   <div className="flex items-center gap-2">
                     <Repeat className="h-3 w-3 text-muted-foreground/70 shrink-0" />
                     <span className="text-[10px] font-mono uppercase tracking-wide text-muted-foreground/70">
-                      Ciclo Mensal
+                      Mês do contrato
                     </span>
                   </div>
                   <h3 className="text-sm font-semibold leading-tight truncate mt-1 capitalize">
@@ -429,37 +457,61 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
               <div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>{done}/{total} ocorrências</span>
+                  <span>
+                    {phaseTotal > 0 && `${phaseDoneCount}/${phaseTotal} mini-fases`}
+                    {phaseTotal > 0 && occTotal > 0 && ' · '}
+                    {occTotal > 0 && `${occDone}/${occTotal} cadências`}
+                  </span>
                   <span className="font-semibold text-foreground">{pct}%</span>
                 </div>
                 <Progress value={pct} className="h-1.5" />
               </div>
 
-              <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
-                {items.slice(0, 3).map(o => (
-                  <div key={o.id} className="flex items-center gap-2 text-[11px]">
-                    <span
-                      className={cn(
-                        'h-1.5 w-1.5 rounded-full shrink-0',
-                        o.status === 'concluida' ? 'bg-success' : o.status === 'cancelada' ? 'bg-destructive/40' : 'bg-muted-foreground/30'
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        'truncate',
-                        o.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
-                      )}
-                    >
-                      {format(parseISO(o.scheduled_date), 'd MMM', { locale: pt })} · {o.name}
-                    </span>
-                  </div>
-                ))}
-                {items.length > 3 && (
-                  <div className="text-[10px] text-muted-foreground/70 pl-3.5">
-                    +{items.length - 3} ocorrências…
-                  </div>
-                )}
-              </div>
+              {miniPhases.length > 0 && (
+                <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
+                  {miniPhases.map(mp => {
+                    const done = isPhaseDone(mp);
+                    const dStart = mp.planned_start ? parseISO(mp.planned_start).getDate() : null;
+                    const dEnd = mp.planned_end ? parseISO(mp.planned_end).getDate() : null;
+                    return (
+                      <div key={mp.id} className="flex items-center gap-2 text-[11px]">
+                        <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', done ? 'bg-success' : 'bg-primary/40')} />
+                        <span className={cn('truncate', done ? 'line-through text-muted-foreground' : 'text-foreground font-medium')}>
+                          {dStart != null && dEnd != null ? `${dStart}–${dEnd} · ` : ''}{mp.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {items.length > 0 && (
+                <div className={cn('space-y-1', miniPhases.length === 0 && 'border-t border-border/50 pt-2 mt-1')}>
+                  {items.slice(0, 3).map(o => (
+                    <div key={o.id} className="flex items-center gap-2 text-[11px]">
+                      <span
+                        className={cn(
+                          'h-1.5 w-1.5 rounded-full shrink-0',
+                          o.status === 'concluida' ? 'bg-success' : o.status === 'cancelada' ? 'bg-destructive/40' : 'bg-muted-foreground/30'
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          'truncate',
+                          o.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
+                        )}
+                      >
+                        {format(parseISO(o.scheduled_date), 'd MMM', { locale: pt })} · {o.name}
+                      </span>
+                    </div>
+                  ))}
+                  {items.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground/70 pl-3.5">
+                      +{items.length - 3} cadências…
+                    </div>
+                  )}
+                </div>
+              )}
             </button>
           );
         })}
@@ -611,13 +663,57 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
           <DialogHeader>
             <DialogTitle className="capitalize">
               {openMonthKey
-                ? `Ciclo Mensal — ${format(parseISO(openMonthKey + '-01'), 'MMMM yyyy', { locale: pt })}`
-                : 'Ciclo Mensal'}
+                ? format(parseISO(openMonthKey + '-01'), 'MMMM yyyy', { locale: pt })
+                : 'Mês do contrato'}
             </DialogTitle>
           </DialogHeader>
-          {openMonthKey && (
-            <div className="space-y-1.5 mt-2">
-              {(recurringMonths.find(([k]) => k === openMonthKey)?.[1] || []).map(o => (
+          {openMonthKey && (() => {
+            const bucket = monthlyBuckets.find(([k]) => k === openMonthKey)?.[1];
+            const mini = bucket?.miniPhases || [];
+            const occs = bucket?.occurrences || [];
+            return (
+            <div className="space-y-4 mt-2">
+              {mini.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Mini-fases do mês</div>
+                  {mini.map(mp => {
+                    const dStart = mp.planned_start ? parseISO(mp.planned_start).getDate() : null;
+                    const dEnd = mp.planned_end ? parseISO(mp.planned_end).getDate() : null;
+                    const phaseDels = deliverables.filter(d => d.phase_id === mp.id);
+                    const dDone = phaseDels.filter(isDeliverableDone).length;
+                    const statusInfo = getPhaseStatusInfo(mp.status);
+                    return (
+                      <button
+                        key={mp.id}
+                        type="button"
+                        onClick={() => { setOpenMonthKey(null); setOpenPhaseId(mp.id); }}
+                        className="w-full text-left flex flex-col gap-1.5 px-3 py-2 rounded-md border border-border bg-card hover:border-primary/50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[11px] font-mono text-muted-foreground shrink-0">
+                              {dStart != null && dEnd != null ? `${dStart}–${dEnd}` : '—'}
+                            </span>
+                            <span className="text-sm font-medium truncate">{mp.name}</span>
+                          </div>
+                          <Badge className={cn(statusInfo.color, 'border text-[10px] shrink-0')}>
+                            {statusInfo.label}
+                          </Badge>
+                        </div>
+                        {phaseDels.length > 0 && (
+                          <div className="text-[11px] text-muted-foreground">
+                            {dDone}/{phaseDels.length} entregas
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {occs.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Cadências do mês</div>
+              {occs.map(o => (
                 <div
                   key={o.id}
                   className={cn(
@@ -681,8 +777,14 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   </Button>
                 </div>
               ))}
+                </div>
+              )}
+              {mini.length === 0 && occs.length === 0 && (
+                <div className="text-sm text-muted-foreground text-center py-6">Sem mini-fases nem cadências neste mês.</div>
+              )}
             </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </>
