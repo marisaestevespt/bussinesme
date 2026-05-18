@@ -38,7 +38,7 @@ import { PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ProjectHealthBadge } from '@/components/project/ProjectHealthBadge';
-import { computeMonthlyCycleProgress, computeProjectProgressFromSources, isDeliverableDone, isPhaseDone } from '@/lib/projectProgress';
+import { computeMonthlyCycleProgress, isDeliverableDone, isPhaseDone } from '@/lib/projectProgress';
 import { ProjectAnaliseTab } from '@/components/project/tabs/ProjectAnaliseTab';
 import { ProjectFechoTab } from '@/components/project/tabs/ProjectFechoTab';
 import { ProjectPortalTab } from '@/components/project/tabs/ProjectPortalTab';
@@ -232,20 +232,7 @@ function ProjetoDetailInner() {
     });
   }, [projectPhases, monthlyOccurrences, monthlyTasks]);
 
-  function getProjectProgress() {
-    // Single source of truth — same rule used by Operação's "Saúde dos Projetos"
-    // card and by the project detail health badge. Do NOT inline a different rule.
-    if (!local) return 0;
-    if (isRecorrenteMensal && monthlyCycleLoading) return local.progress || 0;
-    return computeProjectProgressFromSources(
-      local as any,
-      projectDeliverables as any,
-      projectPhases as any,
-      isRecorrenteMensal
-        ? () => monthlyCycleProgress
-        : null,
-    );
-  }
+  const projectProgressValue = Math.min(100, Math.max(0, Math.round(Number(local?.progress || 0))));
 
   function getProjectProgressSummary() {
     if (isRecorrenteMensal) {
@@ -266,19 +253,6 @@ function ProjetoDetailInner() {
 
     return 'Sem fases ou points definidos';
   }
-
-  const autoProgress = getProjectProgress();
-  // Persist computed progress when it diverges, but debounced and only when DB value
-  // (project.progress) is out of sync — avoids a write on every render/keypress.
-  useEffect(() => {
-    if (!local || !project) return;
-    if (isRecorrenteMensal && monthlyCycleLoading) return;
-    if (autoProgress === project.progress) return;
-    const t = setTimeout(() => {
-      supabase.from('projects').update({ progress: autoProgress }).eq('id', local.id);
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [autoProgress, project?.progress, local?.id, isRecorrenteMensal, monthlyCycleLoading]);
 
   // Deadline overdue check
   const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date()
