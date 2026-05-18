@@ -59,6 +59,8 @@ interface Phase {
   is_offboarding?: boolean;
   is_recurring?: boolean;
   recurrence_frequency?: 'semanal' | 'quinzenal' | 'mensal' | 'trimestral' | null;
+  cycle_day_start?: number | null;
+  cycle_day_end?: number | null;
 }
 
 interface Props {
