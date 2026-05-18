@@ -142,9 +142,11 @@ export function ProductRecurringItems({ productId, isOwner, phaseId, defaultFreq
               )}
               {(it.frequency === 'mensal' || it.frequency === 'trimestral') && (
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none">Dia do mês</span>
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground leading-none" title="Opcional. Se vazio, herda o Dia início da fase.">Dia do mês</span>
                   <Input type="number" min={1} max={31} className="h-8 w-24 text-xs"
-                    placeholder="1-31" value={it.day_of_month ?? ''} readOnly={!isOwner}
+                    placeholder={phaseId ? 'herda fase' : '1-31'}
+                    title="Opcional. Se vazio, usa o Dia início definido na fase."
+                    value={it.day_of_month ?? ''} readOnly={!isOwner}
                     onChange={(e) => updateItem.mutate({ id: it.id, patch: { day_of_month: e.target.value ? parseInt(e.target.value) : null } })} />
                 </div>
               )}
