@@ -4,6 +4,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isAuthorizedCronCall } from "../_shared/cron-auth.ts";
+import { logRun } from "../_shared/resilience.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,7 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+  const startedAt = new Date();
   try {
     // Active contracts (no end_date OR end_date in the future) attached to active members
     const { data: contracts, error } = await supabase
@@ -113,12 +115,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    await logRun({ functionName: "ensure-member-payments", startedAt, status: "success", context: { contracts: contracts?.length ?? 0, createdPayments, createdPayroll } });
     return new Response(
       JSON.stringify({ ok: true, contracts: contracts?.length ?? 0, createdPayments, createdPayroll }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
     console.error("[ensure-member-payments]", err);
+    await logRun({ functionName: "ensure-member-payments", startedAt, status: "failed", errorMessage: (err as Error).message });
     return new Response(JSON.stringify({ error: (err as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
