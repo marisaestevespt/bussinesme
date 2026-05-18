@@ -222,9 +222,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
               <Button variant="outline" aria-label="Copiar" size="icon" className="shrink-0" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
                 <Copy className="h-4 w-4" />
               </Button>
-              <Button variant="outline" aria-label="Abrir link externo" size="icon" className="shrink-0" asChild>
-                <a href={portalUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-              </Button>
               <Button size="sm" className="shrink-0" onClick={() => {
                 localStorage.setItem(`portal_session_${portalData.id}`, JSON.stringify({
                   portal_id: portalData.id,
@@ -233,7 +230,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
                 }));
                 window.open(`${window.location.origin}/portal/${portalData.token}/view`, '_blank');
               }}>
-                <ExternalLink className="h-3 w-3 mr-1.5" />Editar Portal
+                <ExternalLink className="h-3 w-3 mr-1.5" />Abrir como cliente
               </Button>
             </div>
           </div>
