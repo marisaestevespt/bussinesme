@@ -528,6 +528,24 @@ interface OperacaoSectionProps {
 export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeekDone, tasksWeekCount, meetingsWeekCount, contentWeekCount, onOpenDetail }: OperacaoSectionProps) {
   const navigate = useNavigate();
 
+  const { data: deptList = [] } = useQuery({
+    queryKey: ['departments-lookup'],
+    queryFn: async () => {
+      const { data } = await supabase.from('departments').select('value, label');
+      return (data || []) as { value: string; label: string }[];
+    },
+  });
+  const deptLabel = (v?: string | null) => {
+    if (!v) return null;
+    return deptList.find((d) => d.value === v)?.label || v;
+  };
+  const resolveDepartments = (p: any) => {
+    const arr = Array.isArray(p?.departments) ? p.departments.filter(Boolean) : [];
+    if (arr.length > 0) return arr.map(deptLabel).filter(Boolean).join(', ');
+    if (p?.department) return deptLabel(p.department) || '—';
+    return '—';
+  };
+
   const openTaskDetail = (t: any) => onOpenDetail(t.name, 'Tarefa', [
     { label: 'Status', value: t.status, badge: true },
     { label: 'Deadline', value: t.deadline },
@@ -572,16 +590,14 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
             <Table><TableHeader><TableRow>
               <TableHead>Status</TableHead><TableHead>Projeto</TableHead><TableHead>Departamento</TableHead><TableHead>Deadline</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{projects.slice(0, 10).map(p => (
+            <TableBody>{projects.slice(0, 10).map(p => {
+              const st = getProjectStatusInfo(p.status);
+              return (
               <TableRow key={p.id} className={clickableRow} onClick={() => navigate(`/hub/projetos/${p.id}`)}>
-                <TableCell><Badge variant="secondary" className="text-[10px]">{p.status}</Badge></TableCell>
+                <TableCell><span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-medium', st.color)}>{st.label}</span></TableCell>
                 <TableCell className="text-sm">{p.name}</TableCell>
-                <TableCell className="">{(() => {
-                  const arr = Array.isArray((p as any).departments) ? (p as any).departments.filter(Boolean) : [];
-                  if (arr.length > 0) return arr.join(', ');
-                  return p.department || '—';
-                })()}</TableCell>
-                <TableCell className="">{p.deadline || '—'}</TableCell>
+                <TableCell className="">{resolveDepartments(p)}</TableCell>
+                <TableCell className="">{p.deadline ? format(parseISO(p.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
               </TableRow>
             ))}</TableBody></Table>
           </div>
