@@ -51,14 +51,20 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
   const monthPlanGoals = planning.allGoals.filter((g: any) => g.period === currentMonthName);
   const overdueMetrics = planning.allMetrics.filter((m: any) => planning.isMetricOverdue(m));
 
+  const CURRENCY_SOURCES = new Set(['commercial', 'bd_vendas', 'bd_despesas']);
+  const fmtGoalValue = (obj: any, v: number | null | undefined) =>
+    obj && CURRENCY_SOURCES.has(obj.value_source) ? formatEur(v) : formatNum(v);
+
   const openGoalDetail = (g: any) => {
     const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
+    const isCurrency = obj && CURRENCY_SOURCES.has(obj.value_source);
+    const fmt = (v: any) => isCurrency ? formatEur(Number(v)) : formatNum(Number(v));
     onOpenDetail(g.period || 'Meta', 'Meta', [
       { label: 'Objetivo Anual', value: obj?.title },
       { label: 'Período', value: g.period },
       { label: 'Status', value: planStatusLabel(g.status), badge: true, badgeVariant: g.status === 'atingido' ? 'default' : 'secondary' },
-      { label: 'Valor alvo', value: g.target_value },
-      { label: 'Valor real', value: g.actual_value },
+      { label: 'Valor alvo', value: g.target_value != null ? fmt(g.target_value) : '—' },
+      { label: 'Valor real', value: g.actual_value != null ? fmt(g.actual_value) : '—' },
     ]);
   };
 
@@ -78,16 +84,22 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
                   monthPlanGoals.map((g: any) => {
                     const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
                     const autoVal = obj ? planning.goalAutoValue(obj, g.period) : null;
-                    const actualValue = autoVal != null ? autoVal : Number(g.actual_value || 0);
-                    const targetValue = Number(g.target_value || 0);
-                    const dev = targetValue > 0 ? actualValue - targetValue : null;
+                    const actualValueRaw = autoVal != null
+                      ? Number(autoVal)
+                      : (g.actual_value != null ? Number(g.actual_value) : null);
+                    const targetValue = g.target_value != null ? Number(g.target_value) : null;
+                    const dev = (actualValueRaw != null && targetValue != null && targetValue > 0)
+                      ? actualValueRaw - targetValue
+                      : null;
                     return (
                       <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
                         <TableCell className="">{obj?.title || '—'}</TableCell>
                         <TableCell className="text-sm">{g.period}</TableCell>
-                        <TableCell className="">{targetValue || '—'}</TableCell>
-                        <TableCell className="">{actualValue || '—'}</TableCell>
-                        <TableCell className={` ${dev !== null && dev < 0 ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                        <TableCell className="">{fmtGoalValue(obj, targetValue)}</TableCell>
+                        <TableCell className="">{fmtGoalValue(obj, actualValueRaw)}</TableCell>
+                        <TableCell className={dev != null && dev < 0 ? 'text-destructive font-medium' : dev != null && dev >= 0 ? 'text-success font-medium' : ''}>
+                          {dev != null ? `${dev >= 0 ? '+' : ''}${fmtGoalValue(obj, dev)}` : '—'}
+                        </TableCell>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
                       </TableRow>
                     );
