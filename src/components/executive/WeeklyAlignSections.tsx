@@ -360,17 +360,20 @@ export function ClientesSection({ onboardingClients, renewalClients }: ClientesS
       </TableRow></TableHeader>
       <TableBody>
         {data.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
-          data.map(c => (
-            <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-              <TableCell className="">{c.client_id}</TableCell>
-              <TableCell className="">{c.start_date || '—'}</TableCell>
-              <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
-              <TableCell className="text-sm">{c.full_name}</TableCell>
-              <TableCell className="">{c.email || '—'}</TableCell>
-              <TableCell className="">{c.current_product || '—'}</TableCell>
-              <TableCell className="">{c.end_of_cycle || '—'}</TableCell>
-            </TableRow>
-          ))
+          data.map(c => {
+            const st = getClientStatusInfo(c.status);
+            return (
+              <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
+                <TableCell className="">{c.client_id || '—'}</TableCell>
+                <TableCell className="">{c.start_date || '—'}</TableCell>
+                <TableCell><span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium', st.color)}>{st.label}</span></TableCell>
+                <TableCell className="text-sm">{c.full_name}</TableCell>
+                <TableCell className="">{c.email || '—'}</TableCell>
+                <TableCell className="">{c.current_product || '—'}</TableCell>
+                <TableCell className="">{c.end_of_cycle || '—'}</TableCell>
+              </TableRow>
+            );
+          })
         }
       </TableBody></Table>
     </div></Card>
