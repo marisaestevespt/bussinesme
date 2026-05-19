@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -11,7 +11,6 @@ import { TimeTab } from '@/components/productivity/TimeTab';
 import { CapacityTab } from '@/components/productivity/CapacityTab';
 
 import { OverloadTab } from '@/components/productivity/OverloadTab';
-import { format } from 'date-fns';
 
 const MAIN_TABS = [
   { value: 'overview', label: 'Visão Geral', icon: BarChart3 },
@@ -87,76 +86,14 @@ export default function ExecutiveProductivity() {
     },
   });
 
-  // Fetch meetings with duration and participants
-  const meetingsQ = useQuery({
-    queryKey: ['meetings-for-productivity'],
-    queryFn: async () => {
-      const { data } = await supabase.from('meetings').select('id, title, date_time, duration_minutes, planned_duration_minutes, actual_duration_minutes, client_id, project_id, status');
-      return (data || []) as any[];
-    },
-  });
-
-  const participantsQ = useQuery({
-    queryKey: ['meeting-participants-for-productivity'],
-    queryFn: async () => {
-      const { data } = await supabase.from('meeting_participants').select('meeting_id, profile_id');
-      return (data || []) as any[];
-    },
-  });
-
   const m = members.data || [];
-  const rawEntries = entries.data || [];
+  const e = entries.data || [];
   const c = clientsQ.data || [];
   const p = productsQ.data || [];
   const pr = projects.data || [];
   const t = tasks.data || [];
   const sc = capacityScenarios.data?.[0] || null;
   const sp = capacityProducts.data || [];
-  const meetings = meetingsQ.data || [];
-  const participants = participantsQ.data || [];
-
-  // Merge meetings into virtual time entries
-  const e = useMemo(() => {
-    // Build profile_id → team_member.id map
-    const profileToMember: Record<string, string> = {};
-    m.forEach((member: any) => {
-      if (member.profile_id) profileToMember[member.profile_id] = member.id;
-    });
-
-    // Create virtual entries from meetings with duration
-    const meetingEntries: any[] = [];
-    meetings.forEach((meeting: any) => {
-      const minutes = meeting.actual_duration_minutes ?? meeting.planned_duration_minutes ?? meeting.duration_minutes;
-      if (!minutes || minutes <= 0) return;
-      if (meeting.status === 'por_confirmar') return; // only count confirmed/completed meetings
-
-      const durationHours = Number((minutes / 60).toFixed(2));
-      const entryDate = format(new Date(meeting.date_time), 'yyyy-MM-dd');
-
-      // Get participants for this meeting
-      const meetingParticipants = participants.filter((p: any) => p.meeting_id === meeting.id);
-
-      meetingParticipants.forEach((participant: any) => {
-        const memberId = profileToMember[participant.profile_id];
-        if (!memberId) return;
-
-        meetingEntries.push({
-          id: `meeting-${meeting.id}-${participant.profile_id}`,
-          entry_date: entryDate,
-          member_id: memberId,
-          duration: durationHours,
-          category: 'reuniao',
-          client_id: meeting.client_id || null,
-          project_id: meeting.project_id || null,
-          task_id: null,
-          description: `Reunião: ${meeting.title}`,
-          _isMeeting: true,
-        });
-      });
-    });
-
-    return [...rawEntries, ...meetingEntries];
-  }, [rawEntries, meetings, participants, m]);
 
   return (
     <AppLayout>
