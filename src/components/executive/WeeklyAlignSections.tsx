@@ -15,8 +15,14 @@ import { DeltaBadge } from './WeeklyAlignKpis';
 import type { DetailField } from './WeeklyAlignDetailSheet';
 import { isTaskDone } from '@/lib/taskStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { getClientStatusInfo } from '@/lib/clientStatus';
+import { getProjectStatusInfo } from '@/lib/projectStatus';
 
 const clickableRow = "cursor-pointer hover:bg-muted/70 transition-colors";
+
+const eurFormatter = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+const formatEur = (n: number | null | undefined) => (n == null || isNaN(Number(n))) ? '—' : eurFormatter.format(Number(n));
+const formatNum = (n: number | null | undefined) => (n == null || isNaN(Number(n))) ? '—' : new Intl.NumberFormat('pt-PT').format(Number(n));
 
 // ─── helpers ───
 function getNpsRowColor(expectedDate: string, status: string) {
