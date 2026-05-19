@@ -726,14 +726,14 @@ export default function ConteudoDetailPage() {
 
             <PropRow label="Responsável">
               <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 w-auto gap-2">
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 gap-2 min-w-[220px] w-auto">
                   <SelectValue placeholder="Ninguém" asChild>
                     {(() => {
                       const p = profiles.find((x: any) => x.id === form.assigned_to);
                       if (!p) return <span className="text-sm text-muted-foreground">Ninguém</span>;
                       return (
-                        <span className="inline-flex items-center gap-1.5 text-sm">
-                          <Avatar className="h-5 w-5">
+                        <span className="inline-flex items-center gap-1.5 text-sm whitespace-nowrap">
+                          <Avatar className="h-5 w-5 shrink-0">
                             <AvatarImage src={getPhotoUrl(p)} />
                             <AvatarFallback className="text-[9px]">{(p.full_name || '?').charAt(0)}</AvatarFallback>
                           </Avatar>
@@ -745,8 +745,8 @@ export default function ConteudoDetailPage() {
                 </SelectTrigger>
                 <SelectContent>{profiles.map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Avatar className="h-5 w-5">
+                    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                      <Avatar className="h-5 w-5 shrink-0">
                         <AvatarImage src={getPhotoUrl(p)} />
                         <AvatarFallback className="text-[9px]">{(p.full_name || '?').charAt(0)}</AvatarFallback>
                       </Avatar>
