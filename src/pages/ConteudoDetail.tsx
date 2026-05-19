@@ -470,9 +470,19 @@ export default function ConteudoDetailPage() {
           <div className="mb-8 rounded-xl border border-border/60 bg-card px-5 py-2">
             <PropRow label="Status">
               <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 w-auto gap-2">
+                  <SelectValue asChild>
+                    <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', statusOpt?.color || 'bg-muted text-muted-foreground')}>
+                      {statusOpt?.label || form.status}
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
-                  {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  {STATUS_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>
+                      <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium', o.color)}>{o.label}</span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </PropRow>
