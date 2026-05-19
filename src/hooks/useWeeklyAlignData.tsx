@@ -10,7 +10,7 @@ import type { Tables } from '@/integrations/supabase/types';
 
 type WeekTaskRow = Pick<Tables<'tasks'>, 'id' | 'name' | 'status' | 'deadline' | 'assigned_to' | 'department'>;
 type LeadLite = Pick<Tables<'crm_leads'>, 'id' | 'name' | 'status' | 'next_followup' | 'estimated_value'>;
-type ClientLite = Pick<Tables<'clients'>, 'id' | 'full_name' | 'status' | 'start_date' | 'end_of_cycle' | 'current_product'>;
+type ClientLite = Pick<Tables<'clients'>, 'id' | 'full_name' | 'status' | 'start_date' | 'end_of_cycle' | 'current_product' | 'email' | 'client_id'>;
 type MonthExpenseLite = Pick<Tables<'financial_expenses'>, 'total_with_vat' | 'category' | 'status'>;
 type MonthPayrollLite = Pick<Tables<'financial_payroll'>, 'total_cost' | 'status'>;
 type ExpiringContract = Tables<'member_contracts'> & {
@@ -130,8 +130,8 @@ export function useWeeklyAlignData(weekOffset: number) {
       const [salesActionsRes, leadsRes, clientsRes, projectsRes, npsOverdueRes, contractsRes, timeEntriesRes] = await Promise.all([
         supabase.from('commercial_sales_actions').select('id,action_name,status,start_date,end_date').in('status', ['em_curso', 'por_comecar']).order('start_date'),
         supabase.from('crm_leads').select('id,name,status,next_followup,estimated_value').not('status', 'in', '("ganho","perdido")').order('next_followup'),
-        supabase.from('clients').select('id,full_name,status,start_date,end_of_cycle,current_product').order('start_date', { ascending: false }),
-        supabase.from('projects').select('id,name,status,deadline,client_name').in('status', ['em_curso', 'em_ideia', 'em_pausa']).order('deadline').is('archived_at', null),
+        supabase.from('clients').select('id,client_id,full_name,status,start_date,end_of_cycle,current_product,email').order('start_date', { ascending: false }),
+        supabase.from('projects').select('id,name,status,deadline,client_name,department,departments').in('status', ['em_curso', 'em_ideia', 'em_pausa', 'em_revisao', 'em_onboarding', 'em_pausa']).order('deadline').is('archived_at', null),
         supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').lt('expected_date', weekStartStr).neq('status', 'feito').order('expected_date'),
         supabase.from('member_contracts').select('*, team_members(id, full_name, role_title, department)').eq('status', 'ativo').not('end_date', 'is', null).lte('end_date', sixtyDaysAhead).order('end_date'),
         supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStartDate).lte('entry_date', monthEndDate),
@@ -166,8 +166,24 @@ export function useWeeklyAlignData(weekOffset: number) {
   const meetingsWeekCount = (wk?.meetings || []).length;
 
   const followUps = useMemo(() => (gl?.leads || []).filter((l) => l.next_followup && l.next_followup <= todayStr), [gl?.leads, todayStr]);
-  const onboardingClients = useMemo(() => (gl?.clients || []).filter((c) => c.start_date && c.start_date >= thirtyDaysAgo), [gl?.clients, thirtyDaysAgo]);
-  const renewalClients = useMemo(() => (gl?.clients || []).filter((c) => c.end_of_cycle && c.end_of_cycle <= thirtyDaysAhead && c.end_of_cycle >= todayStr), [gl?.clients, thirtyDaysAhead, todayStr]);
+  // Onboarding: clientes com status 'em_onboarding' (estado real, não inferido por data)
+  const onboardingClients = useMemo(
+    () => (gl?.clients || []).filter((c) => c.status === 'em_onboarding'),
+    [gl?.clients],
+  );
+  // Renovações: status 'altura_renovacao' OU fim de ciclo nos próximos 30 dias (cliente ainda ativo)
+  const renewalClients = useMemo(
+    () =>
+      (gl?.clients || []).filter(
+        (c) =>
+          c.status === 'altura_renovacao' ||
+          (c.status === 'ativo' &&
+            c.end_of_cycle &&
+            c.end_of_cycle <= thirtyDaysAhead &&
+            c.end_of_cycle >= todayStr),
+      ),
+    [gl?.clients, thirtyDaysAhead, todayStr],
+  );
 
   const expiringContractsList = useMemo(() => {
     return (gl?.expiringContracts || []).map((c) => ({
