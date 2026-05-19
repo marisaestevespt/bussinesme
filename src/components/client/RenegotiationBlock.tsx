@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Handshake, CheckCircle2, XCircle, RotateCcw, RefreshCw } from 'lucide-react';
+import { Handshake, XCircle, RotateCcw, RefreshCw } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -173,11 +173,8 @@ export function RenegotiationBlock({ status, reason, startedAt, ownerId, notes, 
       <div className="flex flex-wrap items-center gap-2 pt-1">
         {isActive && (
           <>
-            <Button size="sm" variant="default" className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => close('concluida_renovada')}>
-              <CheckCircle2 className="h-4 w-4 mr-1.5" /> Marcar como renovada
-            </Button>
             {onRenewCycle && (
-              <Button size="sm" variant="outline" onClick={onRenewCycle}>
+              <Button size="sm" className="bg-success hover:bg-success/90 text-success-foreground" onClick={onRenewCycle}>
                 <RefreshCw className="h-4 w-4 mr-1.5" /> Renovar ciclo
               </Button>
             )}
