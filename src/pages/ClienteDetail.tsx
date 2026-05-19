@@ -1219,6 +1219,7 @@ function ClienteDetailPageInner() {
                 ownerId={(form as any).renegotiation_owner_id}
                 notes={(form as any).renegotiation_notes}
                 onChange={(f, v) => { update(f, v); setTimeout(() => save(), 0); }}
+                onRenewCycle={openRenewDialog}
               />
             )}
             {/* Financial Health */}
