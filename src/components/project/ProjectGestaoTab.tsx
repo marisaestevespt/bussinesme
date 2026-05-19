@@ -247,7 +247,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         throw new Error('Não existem pagamentos por gerar a partir deste mês');
       }
 
-      const { error } = await supabase.from('commercial_sales').insert(upcomingEntries);
+      // Attach client_id so DB trigger doesn't wipe the client text
+      const enriched = upcomingEntries.map(e => ({
+        ...e,
+        client_id: resolvedClientId || null,
+      }));
+      const { error } = await supabase.from('commercial_sales').insert(enriched);
       if (error) throw error;
 
     },
