@@ -105,11 +105,15 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     const db = b.payment_date || '';
     return da.localeCompare(db);
   }), [sales, currentYear, m]);
-  const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).sort((a, b) => {
+  const allMonthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).sort((a, b) => {
     const da = a.expense_date || '';
     const db = b.expense_date || '';
     return da.localeCompare(db);
   }), [expenses, currentYear, m]);
+  const isHiddenOccurrence = useCallback((e: Expense | undefined) => (
+    !!e && e.description?.startsWith('Oculto —') && (e.total_with_vat || 0) === 0 && (e.base_value || 0) === 0
+  ), []);
+  const monthExpenses = useMemo(() => allMonthExpenses.filter(e => !isHiddenOccurrence(e)), [allMonthExpenses, isHiddenOccurrence]);
 
   const recurringExps = useMemo(() => fin.recurringExpenses.data || [], [fin.recurringExpenses.data]);
   const dueSubscriptions = useMemo(() => {
@@ -121,21 +125,30 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   // duplicar uma despesa já criada pelo backend (ver mem://features/recurring-expenses-dedup.md).
   const subExpenseMap = useMemo(() => {
     const map = new Map<string, Expense>();
-    monthExpenses.forEach(e => {
+    allMonthExpenses.forEach(e => {
       if (e.source_type === 'subscription' && e.source_id) map.set(e.source_id, e);
       else if (e.parent_expense_id) map.set(e.parent_expense_id, e);
     });
     return map;
-  }, [monthExpenses]);
+  }, [allMonthExpenses]);
 
   const contractExpenseMap = useMemo(() => {
     const map = new Map<string, Expense>();
-    monthExpenses.forEach(e => {
+    allMonthExpenses.forEach(e => {
       if (e.source_type === 'contract' && e.source_id) map.set(e.source_id, e);
       else if (e.parent_expense_id) map.set(e.parent_expense_id, e);
     });
     return map;
-  }, [monthExpenses]);
+  }, [allMonthExpenses]);
+
+  const visibleDueSubscriptions = useMemo(
+    () => dueSubscriptions.filter(sub => !isHiddenOccurrence(subExpenseMap.get(sub.id))),
+    [dueSubscriptions, subExpenseMap, isHiddenOccurrence],
+  );
+  const visibleActiveContracts = useMemo(
+    () => activeContracts.filter(contract => !isHiddenOccurrence(contractExpenseMap.get(contract.id))),
+    [activeContracts, contractExpenseMap, isHiddenOccurrence],
+  );
 
   // Auto-materialize recurring subscription & contract expenses for current/past months
   const autoMaterializeRef = useRef(new Set<string>());
@@ -149,7 +162,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
     const toCreate: Array<() => Promise<void>> = [];
 
-    for (const sub of dueSubscriptions) {
+    for (const sub of visibleDueSubscriptions) {
       const key = `sub-${sub.id}-${m}-${currentYear}`;
       if (subExpenseMap.has(sub.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
@@ -169,7 +182,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       });
     }
 
-    for (const contract of activeContracts) {
+    for (const contract of visibleActiveContracts) {
       const key = `contract-${contract.id}-${m}-${currentYear}`;
       if (contractExpenseMap.has(contract.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
@@ -205,7 +218,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       qc.invalidateQueries({ queryKey: ['financial-expenses'] });
       isMaterializingRef.current = false;
     }
-  }, [dueSubscriptions, activeContracts, subExpenseMap, contractExpenseMap, m, currentYear, fin, qc]);
+  }, [visibleDueSubscriptions, visibleActiveContracts, subExpenseMap, contractExpenseMap, m, currentYear, fin, qc]);
 
   useEffect(() => { autoMaterialize(); }, [autoMaterialize]);
 
@@ -366,9 +379,9 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
         <SaidasTable
           monthExpenses={monthExpenses}
-          dueSubscriptions={dueSubscriptions}
+          dueSubscriptions={visibleDueSubscriptions}
           subExpenseMap={subExpenseMap}
-          activeContracts={activeContracts}
+          activeContracts={visibleActiveContracts}
           contractExpenseMap={contractExpenseMap}
           month={m}
           currentYear={currentYear}

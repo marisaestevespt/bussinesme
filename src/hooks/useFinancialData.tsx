@@ -225,7 +225,26 @@ export function useFinancialData(options?: FinancialDataOptions) {
   const deleteExpense = useMutation({
     mutationFn: async (id: string) => {
       await requireConfirm();
-      const { data: snap } = await supabase.from('financial_expenses').select('expense_name, total_with_vat, expense_id').eq('id', id).maybeSingle();
+      const { data: snap } = await supabase
+        .from('financial_expenses')
+        .select('expense_name, description, total_with_vat, expense_id, source_type, source_id, parent_expense_id')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (snap?.source_id && (snap.source_type === 'contract' || snap.source_type === 'subscription')) {
+        const { error } = await supabase.from('financial_expenses').update({
+          status: 'tudo_ok',
+          description: `Oculto — ${snap.expense_name || snap.description || snap.expense_id || 'pagamento mensal'}`,
+          base_value: 0,
+          vat_rate: 0,
+          total_with_vat: 0,
+          vat_deductible_amount: 0,
+        } satisfies TablesUpdate<'financial_expenses'>).eq('id', id);
+        if (error) throw error;
+        logAudit('cancelled', 'financial_expense', id, { name: snap.expense_name, total: snap.total_with_vat, expense_id: snap.expense_id, source_type: snap.source_type });
+        return;
+      }
+
       await supabase.from('financial_expenses').delete().eq('parent_expense_id', id);
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
       if (error) throw error;
