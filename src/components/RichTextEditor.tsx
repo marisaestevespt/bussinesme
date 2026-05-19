@@ -87,7 +87,7 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
   useEffect(() => {
     if (!editor) return;
     if (normalizeEditorContent(editor.getHTML()) !== normalizeEditorContent(content)) {
-      editor.commands.setContent(content || '', false);
+      editor.commands.setContent(content || '', { emitUpdate: false });
     }
   }, [content, editor]);
 
