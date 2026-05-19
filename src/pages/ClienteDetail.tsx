@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
@@ -26,6 +27,7 @@ import {
   useClient, useClients, useClientHistory,
   CLIENT_STATUS_OPTIONS, Client
 } from '@/hooks/useClients';
+import { getClientStatusInfo } from '@/lib/clientStatus';
 import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
