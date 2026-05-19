@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const REASON_OPTIONS = [
+  'Renovação de contrato',
   'Preço',
   'Scope / âmbito',
   'Pausa temporária',
