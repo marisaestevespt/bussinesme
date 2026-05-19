@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle, GripVertical, ArrowDownAZ } from 'lucide-react';
+import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle, GripVertical, ArrowDownAZ, Link2 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
