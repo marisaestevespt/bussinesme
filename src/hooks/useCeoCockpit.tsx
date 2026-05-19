@@ -48,7 +48,7 @@ export function useCeoCockpit() {
         members, timeEntries, tasks, projects, leads, npsRecords, meetings,
         annualGoal, contentMonth, contentIdeas,
       ] = await Promise.all([
-        supabase.from('clients').select('id, status, full_name, current_product, start_date, end_of_cycle'),
+        supabase.from('clients').select('id, status, full_name, current_product, start_date, end_of_cycle, renegotiation_status, renegotiation_reason, renegotiation_started_at'),
         supabase.from('products').select('id, name, ticket, product_type'),
         supabase.from('commercial_sales').select('id, invoice_total, sale_month, sale_year, status').eq('sale_year', currentYear),
         supabase.from('financial_expenses').select('total_with_vat, category, department, expense_date').gte('expense_date', monthStart).lte('expense_date', monthEnd),
@@ -119,6 +119,7 @@ export function useCeoCockpit() {
     const overdueSales = d.sales.filter((s: SaleLite) => s.status === 'em_atraso');
     const renewalClients = d.clients.filter(c => c.status === 'altura_renovacao');
     const onboardingClients = d.clients.filter(c => c.status === 'em_onboarding');
+    const renegotiatingClients = d.clients.filter((c: any) => c.renegotiation_status === 'em_curso');
 
     const clientsNearEndOfCycle = d.clients.filter(c => {
       if (c.status === 'terminado' || !c.end_of_cycle) return false;
@@ -225,6 +226,7 @@ export function useCeoCockpit() {
         expenseDeltaPct,
         renewalClients,
         onboardingClients,
+        renegotiatingClients,
       },
 
       // department health
