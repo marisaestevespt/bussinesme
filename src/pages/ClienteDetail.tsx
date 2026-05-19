@@ -933,9 +933,29 @@ function ClienteDetailPageInner() {
           </EntityProperty>
           <EntityProperty icon={Activity} label="Status">
             <Select value={form.status || 'ativo'} onValueChange={v => update('status', v)}>
-              <SelectTrigger className={inlineTriggerClass}><SelectValue /></SelectTrigger>
+              <SelectTrigger className={inlineTriggerClass}>
+                {(() => {
+                  const info = getClientStatusInfo(form.status);
+                  return (
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className={cn('inline-block h-2 w-2 rounded-full shrink-0', info.color.split(' ')[0].replace('/15', ''))} />
+                      <span className="truncate">{info.label}</span>
+                    </span>
+                  );
+                })()}
+              </SelectTrigger>
               <SelectContent>
-                {CLIENT_STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                {CLIENT_STATUS_OPTIONS.map(o => {
+                  const info = getClientStatusInfo(o.value);
+                  return (
+                    <SelectItem key={o.value} value={o.value}>
+                      <span className="flex items-center gap-2">
+                        <span className={cn('inline-block h-2 w-2 rounded-full', info.color.split(' ')[0].replace('/15', ''))} />
+                        {o.label}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </EntityProperty>
@@ -951,10 +971,28 @@ function ClienteDetailPageInner() {
           <EntityProperty icon={Package} label="Produto Atual">
             <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
               <SelectTrigger className={cn(inlineTriggerClass, '[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0')}>
-                <SelectValue placeholder="Selecionar" />
+                {form.current_product ? (
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="inline-block h-2 w-2 rounded-full shrink-0"
+                      style={{ background: `hsl(${(form.current_product.split('').reduce((a,c)=>a+c.charCodeAt(0),0) * 47) % 360} 65% 55%)` }}
+                    />
+                    <span className="truncate">{form.current_product}</span>
+                  </span>
+                ) : <SelectValue placeholder="Selecionar" />}
               </SelectTrigger>
               <SelectContent>
-                {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                {productList.map(p => (
+                  <SelectItem key={p.id} value={p.name}>
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="inline-block h-2 w-2 rounded-full"
+                        style={{ background: `hsl(${(p.name.split('').reduce((a,c)=>a+c.charCodeAt(0),0) * 47) % 360} 65% 55%)` }}
+                      />
+                      {p.name}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </EntityProperty>
@@ -979,13 +1017,31 @@ function ClienteDetailPageInner() {
               onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
             >
               <SelectTrigger className={cn(inlineTriggerClass, '[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0')}>
-                <SelectValue placeholder="Sem responsável" />
+                {(() => {
+                  const m = activeTeamMembers.find(x => x.id === form.account_manager_id);
+                  if (!m) return <SelectValue placeholder="Sem responsável" />;
+                  return (
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Avatar className="h-5 w-5 shrink-0">
+                        {m.photo_url && <AvatarImage src={m.photo_url} alt={m.full_name} />}
+                        <AvatarFallback className="text-[9px]">{m.full_name?.[0] || '?'}</AvatarFallback>
+                      </Avatar>
+                      <span className="truncate">{m.full_name}</span>
+                    </span>
+                  );
+                })()}
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sem responsável</SelectItem>
                 {activeTeamMembers.map(m => (
                   <SelectItem key={m.id} value={m.id}>
-                    {m.full_name}{m.role_title ? ` · ${m.role_title}` : ''}
+                    <span className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        {m.photo_url && <AvatarImage src={m.photo_url} alt={m.full_name} />}
+                        <AvatarFallback className="text-[9px]">{m.full_name?.[0] || '?'}</AvatarFallback>
+                      </Avatar>
+                      {m.full_name}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
