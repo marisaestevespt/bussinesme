@@ -812,6 +812,14 @@ function ClienteDetailPageInner() {
           : null,
       });
 
+      // 7. Auto-close any active renegotiation as "renovada"
+      if ((form as any).renegotiation_status === 'em_curso') {
+        await supabase
+          .from('clients')
+          .update({ renegotiation_status: 'concluida_renovada' })
+          .eq('id', id);
+      }
+
       return newProject.id;
     },
     onSuccess: (projectId) => {
@@ -824,7 +832,13 @@ function ClienteDetailPageInner() {
         setForm(prev => ({ ...prev, pending_renewal_project_id: projectId } as any));
         toast.success(`Renovação agendada para ${format(startObj, 'dd/MM/yyyy')}!`);
       } else {
-        setForm(prev => ({ ...prev, current_product: renewProduct, start_date: renewStartDate, status: 'ativo' }));
+        setForm(prev => ({
+          ...prev,
+          current_product: renewProduct,
+          start_date: renewStartDate,
+          status: 'ativo',
+          ...((prev as any).renegotiation_status === 'em_curso' ? { renegotiation_status: 'concluida_renovada' } : {}),
+        } as any));
         toast.success('Novo ciclo criado com sucesso!');
       }
       navigate(`/hub/projetos/${projectId}`);
