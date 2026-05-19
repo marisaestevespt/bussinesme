@@ -159,7 +159,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
     const toCreate: Array<() => Promise<void>> = [];
 
-    for (const sub of dueSubscriptions) {
+    for (const sub of visibleDueSubscriptions) {
       const key = `sub-${sub.id}-${m}-${currentYear}`;
       if (subExpenseMap.has(sub.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
@@ -179,7 +179,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       });
     }
 
-    for (const contract of activeContracts) {
+    for (const contract of visibleActiveContracts) {
       const key = `contract-${contract.id}-${m}-${currentYear}`;
       if (contractExpenseMap.has(contract.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
@@ -215,7 +215,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       qc.invalidateQueries({ queryKey: ['financial-expenses'] });
       isMaterializingRef.current = false;
     }
-  }, [dueSubscriptions, activeContracts, subExpenseMap, contractExpenseMap, m, currentYear, fin, qc]);
+  }, [visibleDueSubscriptions, visibleActiveContracts, subExpenseMap, contractExpenseMap, m, currentYear, fin, qc]);
 
   useEffect(() => { autoMaterialize(); }, [autoMaterialize]);
 
@@ -376,9 +376,9 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
         <SaidasTable
           monthExpenses={monthExpenses}
-          dueSubscriptions={dueSubscriptions}
+          dueSubscriptions={visibleDueSubscriptions}
           subExpenseMap={subExpenseMap}
-          activeContracts={activeContracts}
+          activeContracts={visibleActiveContracts}
           contractExpenseMap={contractExpenseMap}
           month={m}
           currentYear={currentYear}
