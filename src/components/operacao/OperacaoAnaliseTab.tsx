@@ -34,7 +34,7 @@ export function OperacaoAnaliseTab() {
     queryFn: async () => {
       const { data: projects } = await supabase
         .from('projects')
-        .select('id, name, status, client_id, clients(full_name)')
+        .select('id, name, status, client_id, clients!projects_client_id_fkey(full_name)')
         .not('status', 'in', '(concluido,cancelado)')
         .is('archived_at', null)
         .limit(200);
