@@ -302,7 +302,6 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
           editable={editable}
           placeholder={field.placeholder}
           minHeight={160}
-          collapsibleToolbar
         />
       );
     }
@@ -337,7 +336,6 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
           placeholder={`Escreve o copy / cola a imagem para ${field.label.toLowerCase()}...`}
           minHeight={140}
           enableImages
-          collapsibleToolbar
         />
       );
     }
@@ -491,7 +489,8 @@ function SortableSlide({
             size="sm"
             variant="ghost"
             className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-            onClick={onRemove}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
             title="Remover slide"
           >
             <Trash2 className="h-3.5 w-3.5" />
