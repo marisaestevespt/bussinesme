@@ -32,6 +32,9 @@ import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate'
 import { ContentComments } from '@/components/marketing/ContentComments';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { useDepartmentColors } from '@/hooks/useDepartmentColors';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +43,8 @@ export default function ConteudoDetailPage() {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const sectorConfig = useSectorConfig();
+  const { getBadgeClass } = useDepartmentColors();
+  const { getPhotoUrl } = useTeamPhotos();
 
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
@@ -621,36 +626,84 @@ export default function ConteudoDetailPage() {
 
             <PropRow label="Etapa de Funil">
               <Select value={form.funnel_stage} onValueChange={v => setForm(f => ({ ...f, funnel_stage: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
-                <SelectContent>{FUNNEL_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 w-auto gap-2">
+                  <SelectValue placeholder="Vazio" asChild>
+                    {form.funnel_stage ? (
+                      <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_funnel:${form.funnel_stage}`))}>
+                        {FUNNEL_OPTIONS.find(o => o.value === form.funnel_stage)?.label}
+                      </span>
+                    ) : <span className="text-sm text-muted-foreground">Vazio</span>}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>{FUNNEL_OPTIONS.map(o => (
+                  <SelectItem key={o.value} value={o.value}>
+                    <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_funnel:${o.value}`))}>{o.label}</span>
+                  </SelectItem>
+                ))}</SelectContent>
               </Select>
             </PropRow>
 
             <PropRow label="Tipo de Conteúdo">
               <Select value={form.content_type} onValueChange={v => setForm(f => ({ ...f, content_type: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
-                <SelectContent>{CONTENT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 w-auto gap-2">
+                  <SelectValue placeholder="Vazio" asChild>
+                    {form.content_type ? (
+                      <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_content_type:${form.content_type}`))}>
+                        {CONTENT_TYPE_OPTIONS.find(o => o.value === form.content_type)?.label}
+                      </span>
+                    ) : <span className="text-sm text-muted-foreground">Vazio</span>}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>{CONTENT_TYPE_OPTIONS.map(o => (
+                  <SelectItem key={o.value} value={o.value}>
+                    <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_content_type:${o.value}`))}>{o.label}</span>
+                  </SelectItem>
+                ))}</SelectContent>
               </Select>
             </PropRow>
 
             <PropRow label="Formato">
               <Select value={form.format} onValueChange={v => setForm(f => ({ ...f, format: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 w-auto gap-2">
+                  <SelectValue placeholder="Vazio" asChild>
+                    {form.format ? (
+                      <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_format:${form.format}`))}>
+                        {FORMAT_OPTIONS.find(o => o.value === form.format)?.label}
+                      </span>
+                    ) : <span className="text-sm text-muted-foreground">Vazio</span>}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   {getFormatsForChannels(
                     (selectedChannels.length > 0
                       ? selectedChannels.map(chId => channels.find(c => c.id === chId)?.name || '').filter(Boolean)
                       : channels.filter(c => c.is_active).map(c => c.name)
                     )
-                  ).map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  ).map(o => (
+                    <SelectItem key={o.value} value={o.value}>
+                      <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_format:${o.value}`))}>{o.label}</span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </PropRow>
 
             <PropRow label="Objetivo">
               <Select value={form.objective} onValueChange={v => setForm(f => ({ ...f, objective: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Vazio" /></SelectTrigger>
-                <SelectContent>{OBJECTIVE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 w-auto gap-2">
+                  <SelectValue placeholder="Vazio" asChild>
+                    {form.objective ? (
+                      <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_objective:${form.objective}`))}>
+                        {OBJECTIVE_OPTIONS.find(o => o.value === form.objective)?.label}
+                      </span>
+                    ) : <span className="text-sm text-muted-foreground">Vazio</span>}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>{OBJECTIVE_OPTIONS.map(o => (
+                  <SelectItem key={o.value} value={o.value}>
+                    <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium', getBadgeClass(`marketing_objective:${o.value}`))}>{o.label}</span>
+                  </SelectItem>
+                ))}</SelectContent>
               </Select>
             </PropRow>
 
@@ -673,8 +726,34 @@ export default function ConteudoDetailPage() {
 
             <PropRow label="Responsável">
               <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2"><SelectValue placeholder="Ninguém" /></SelectTrigger>
-                <SelectContent>{profiles.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 w-auto gap-2">
+                  <SelectValue placeholder="Ninguém" asChild>
+                    {(() => {
+                      const p = profiles.find((x: any) => x.id === form.assigned_to);
+                      if (!p) return <span className="text-sm text-muted-foreground">Ninguém</span>;
+                      return (
+                        <span className="inline-flex items-center gap-1.5 text-sm">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={getPhotoUrl(p)} />
+                            <AvatarFallback className="text-[9px]">{(p.full_name || '?').charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">{p.full_name || 'Sem nome'}</span>
+                        </span>
+                      );
+                    })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>{profiles.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={getPhotoUrl(p)} />
+                        <AvatarFallback className="text-[9px]">{(p.full_name || '?').charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span>{p.full_name || 'Sem nome'}</span>
+                    </span>
+                  </SelectItem>
+                ))}</SelectContent>
               </Select>
             </PropRow>
 
