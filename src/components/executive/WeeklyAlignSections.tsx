@@ -15,8 +15,14 @@ import { DeltaBadge } from './WeeklyAlignKpis';
 import type { DetailField } from './WeeklyAlignDetailSheet';
 import { isTaskDone } from '@/lib/taskStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
+import { getClientStatusInfo } from '@/lib/clientStatus';
+import { getProjectStatusInfo } from '@/lib/projectStatus';
 
 const clickableRow = "cursor-pointer hover:bg-muted/70 transition-colors";
+
+const eurFormatter = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+const formatEur = (n: number | null | undefined) => (n == null || isNaN(Number(n))) ? '—' : eurFormatter.format(Number(n));
+const formatNum = (n: number | null | undefined) => (n == null || isNaN(Number(n))) ? '—' : new Intl.NumberFormat('pt-PT').format(Number(n));
 
 // ─── helpers ───
 function getNpsRowColor(expectedDate: string, status: string) {
@@ -45,14 +51,20 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
   const monthPlanGoals = planning.allGoals.filter((g: any) => g.period === currentMonthName);
   const overdueMetrics = planning.allMetrics.filter((m: any) => planning.isMetricOverdue(m));
 
+  const CURRENCY_SOURCES = new Set(['commercial', 'bd_vendas', 'bd_despesas']);
+  const fmtGoalValue = (obj: any, v: number | null | undefined) =>
+    obj && CURRENCY_SOURCES.has(obj.value_source) ? formatEur(v) : formatNum(v);
+
   const openGoalDetail = (g: any) => {
     const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
+    const isCurrency = obj && CURRENCY_SOURCES.has(obj.value_source);
+    const fmt = (v: any) => isCurrency ? formatEur(Number(v)) : formatNum(Number(v));
     onOpenDetail(g.period || 'Meta', 'Meta', [
       { label: 'Objetivo Anual', value: obj?.title },
       { label: 'Período', value: g.period },
       { label: 'Status', value: planStatusLabel(g.status), badge: true, badgeVariant: g.status === 'atingido' ? 'default' : 'secondary' },
-      { label: 'Valor alvo', value: g.target_value },
-      { label: 'Valor real', value: g.actual_value },
+      { label: 'Valor alvo', value: g.target_value != null ? fmt(g.target_value) : '—' },
+      { label: 'Valor real', value: g.actual_value != null ? fmt(g.actual_value) : '—' },
     ]);
   };
 
@@ -72,16 +84,22 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
                   monthPlanGoals.map((g: any) => {
                     const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
                     const autoVal = obj ? planning.goalAutoValue(obj, g.period) : null;
-                    const actualValue = autoVal != null ? autoVal : Number(g.actual_value || 0);
-                    const targetValue = Number(g.target_value || 0);
-                    const dev = targetValue > 0 ? actualValue - targetValue : null;
+                    const actualValueRaw = autoVal != null
+                      ? Number(autoVal)
+                      : (g.actual_value != null ? Number(g.actual_value) : null);
+                    const targetValue = g.target_value != null ? Number(g.target_value) : null;
+                    const dev = (actualValueRaw != null && targetValue != null && targetValue > 0)
+                      ? actualValueRaw - targetValue
+                      : null;
                     return (
                       <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
                         <TableCell className="">{obj?.title || '—'}</TableCell>
                         <TableCell className="text-sm">{g.period}</TableCell>
-                        <TableCell className="">{targetValue || '—'}</TableCell>
-                        <TableCell className="">{actualValue || '—'}</TableCell>
-                        <TableCell className={` ${dev !== null && dev < 0 ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                        <TableCell className="">{fmtGoalValue(obj, targetValue)}</TableCell>
+                        <TableCell className="">{fmtGoalValue(obj, actualValueRaw)}</TableCell>
+                        <TableCell className={dev != null && dev < 0 ? 'text-destructive font-medium' : dev != null && dev >= 0 ? 'text-success font-medium' : ''}>
+                          {dev != null ? `${dev >= 0 ? '+' : ''}${fmtGoalValue(obj, dev)}` : '—'}
+                        </TableCell>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
                       </TableRow>
                     );
@@ -124,29 +142,58 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
 // ─── Section 2: Agenda do mês ───
 interface AgendaSectionProps {
   events: any[];
+  meetings?: any[];
+  contents?: any[];
   onOpenDetail: (title: string, subtitle: string, fields: DetailField[]) => void;
 }
 
-export function AgendaSection({ events, onOpenDetail }: AgendaSectionProps) {
-  const openEventDetail = (e: any) => onOpenDetail(e.title, 'Evento', [
-    { label: 'Data início', value: e.start_date?.slice(0, 10) },
-    { label: 'Data fim', value: e.end_date?.slice(0, 10) },
-    { label: 'Departamento', value: e.department },
-    { label: 'Cliente', value: e.client_name },
-    { label: 'Notas', value: e.notes },
-  ]);
+export function AgendaSection({ events, meetings = [], contents = [], onOpenDetail }: AgendaSectionProps) {
+  const openEventDetail = (e: any) => {
+    if (e._kind === 'meeting') {
+      onOpenDetail(e.title, 'Reunião', [
+        { label: 'Data', value: e.date_time?.slice(0, 16)?.replace('T', ' ') },
+        { label: 'Status', value: e.status, badge: true },
+      ]);
+      return;
+    }
+    if (e._kind === 'content') {
+      onOpenDetail(e.title, 'Conteúdo', [
+        { label: 'Data', value: e.scheduled_at?.slice(0, 10) },
+        { label: 'Status', value: e.status, badge: true },
+      ]);
+      return;
+    }
+    onOpenDetail(e.title, 'Evento', [
+      { label: 'Data início', value: e.start_date?.slice(0, 10) },
+      { label: 'Data fim', value: e.end_date?.slice(0, 10) },
+      { label: 'Departamento', value: e.department },
+      { label: 'Cliente', value: e.client_name },
+      { label: 'Notas', value: e.notes },
+    ]);
+  };
+
+  // Unificar eventos + reuniões + conteúdos por data ascendente
+  const combined = [
+    ...events.map((e) => ({ ...e, _kind: 'event' as const, _date: e.start_date, _label: e.title, _type: 'Evento' })),
+    ...meetings.map((m) => ({ ...m, _kind: 'meeting' as const, _date: m.date_time, _label: m.title, _type: 'Reunião' })),
+    ...contents.map((c) => ({ ...c, _kind: 'content' as const, _date: c.scheduled_at, _label: c.title, _type: 'Conteúdo' })),
+  ]
+    .filter((x) => x._date)
+    .sort((a, b) => String(a._date).localeCompare(String(b._date)));
 
   return (
     <section className="space-y-4">
-      <h2 className="text-base font-semibold">2 // Agenda do mês</h2>
+      <h2 className="text-base font-semibold">2 // Agenda da semana</h2>
       <Card><div className="overflow-x-auto">
         <Table>
-          <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Tipo</TableHead><TableHead>Título</TableHead></TableRow></TableHeader>
           <TableBody>
-            {events.length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
-              events.map(e => (
-                <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
-                  <TableCell className="">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
+            {combined.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
+              combined.map((e: any) => (
+                <TableRow key={`${e._kind}-${e.id}`} className={clickableRow} onClick={() => openEventDetail(e)}>
+                  <TableCell className="">{String(e._date).slice(0, 10)}</TableCell>
+                  <TableCell><Badge variant="secondary" className="text-[10px]">{e._type}</Badge></TableCell>
+                  <TableCell className="text-sm">{e._label}</TableCell>
                 </TableRow>
               ))
             }
@@ -313,17 +360,20 @@ export function ClientesSection({ onboardingClients, renewalClients }: ClientesS
       </TableRow></TableHeader>
       <TableBody>
         {data.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
-          data.map(c => (
-            <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
-              <TableCell className="">{c.client_id}</TableCell>
-              <TableCell className="">{c.start_date || '—'}</TableCell>
-              <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
-              <TableCell className="text-sm">{c.full_name}</TableCell>
-              <TableCell className="">{c.email || '—'}</TableCell>
-              <TableCell className="">{c.current_product || '—'}</TableCell>
-              <TableCell className="">{c.end_of_cycle || '—'}</TableCell>
-            </TableRow>
-          ))
+          data.map(c => {
+            const st = getClientStatusInfo(c.status);
+            return (
+              <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
+                <TableCell className="">{c.client_id || '—'}</TableCell>
+                <TableCell className="">{c.start_date || '—'}</TableCell>
+                <TableCell><span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium', st.color)}>{st.label}</span></TableCell>
+                <TableCell className="text-sm">{c.full_name}</TableCell>
+                <TableCell className="">{c.email || '—'}</TableCell>
+                <TableCell className="">{c.current_product || '—'}</TableCell>
+                <TableCell className="">{c.end_of_cycle || '—'}</TableCell>
+              </TableRow>
+            );
+          })
         }
       </TableBody></Table>
     </div></Card>
@@ -478,6 +528,24 @@ interface OperacaoSectionProps {
 export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeekDone, tasksWeekCount, meetingsWeekCount, contentWeekCount, onOpenDetail }: OperacaoSectionProps) {
   const navigate = useNavigate();
 
+  const { data: deptList = [] } = useQuery({
+    queryKey: ['departments-lookup'],
+    queryFn: async () => {
+      const { data } = await supabase.from('departments').select('value, label');
+      return (data || []) as { value: string; label: string }[];
+    },
+  });
+  const deptLabel = (v?: string | null) => {
+    if (!v) return null;
+    return deptList.find((d) => d.value === v)?.label || v;
+  };
+  const resolveDepartments = (p: any) => {
+    const arr = Array.isArray(p?.departments) ? p.departments.filter(Boolean) : [];
+    if (arr.length > 0) return arr.map(deptLabel).filter(Boolean).join(', ');
+    if (p?.department) return deptLabel(p.department) || '—';
+    return '—';
+  };
+
   const openTaskDetail = (t: any) => onOpenDetail(t.name, 'Tarefa', [
     { label: 'Status', value: t.status, badge: true },
     { label: 'Deadline', value: t.deadline },
@@ -522,18 +590,17 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
             <Table><TableHeader><TableRow>
               <TableHead>Status</TableHead><TableHead>Projeto</TableHead><TableHead>Departamento</TableHead><TableHead>Deadline</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{projects.slice(0, 10).map(p => (
+            <TableBody>{projects.slice(0, 10).map(p => {
+              const st = getProjectStatusInfo(p.status);
+              return (
               <TableRow key={p.id} className={clickableRow} onClick={() => navigate(`/hub/projetos/${p.id}`)}>
-                <TableCell><Badge variant="secondary" className="text-[10px]">{p.status}</Badge></TableCell>
+                <TableCell><span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-medium', st.color)}>{st.label}</span></TableCell>
                 <TableCell className="text-sm">{p.name}</TableCell>
-                <TableCell className="">{(() => {
-                  const arr = Array.isArray((p as any).departments) ? (p as any).departments.filter(Boolean) : [];
-                  if (arr.length > 0) return arr.join(', ');
-                  return p.department || '—';
-                })()}</TableCell>
-                <TableCell className="">{p.deadline || '—'}</TableCell>
+                <TableCell className="">{resolveDepartments(p)}</TableCell>
+                <TableCell className="">{p.deadline ? format(parseISO(p.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
               </TableRow>
-            ))}</TableBody></Table>
+              );
+            })}</TableBody></Table>
           </div>
         }
       </CardContent></Card>

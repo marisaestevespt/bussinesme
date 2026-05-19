@@ -221,9 +221,9 @@ export default function ExecutiveWeeklyAlign() {
         <Separator />
         <MetasSection planning={planning} currentMonth={wa.currentMonth} onOpenDetail={openDetail} />
         <Separator />
-        <MarketingGoalsSection currentMonth={wa.currentMonth} />
+        <MarketingGoalsSection currentMonth={wa.currentMonth} currentYear={wa.currentYear} />
         <Separator />
-        <AgendaSection events={wa.events} onOpenDetail={openDetail} />
+        <AgendaSection events={wa.events} meetings={wa.meetings} contents={wa.contents} onOpenDetail={openDetail} />
         <Separator />
         <VendasSection
           salesWeek={wa.salesWeek}
