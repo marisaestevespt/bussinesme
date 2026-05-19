@@ -142,29 +142,58 @@ export function MetasSection({ planning, currentMonth, onOpenDetail }: MetasSect
 // ─── Section 2: Agenda do mês ───
 interface AgendaSectionProps {
   events: any[];
+  meetings?: any[];
+  contents?: any[];
   onOpenDetail: (title: string, subtitle: string, fields: DetailField[]) => void;
 }
 
-export function AgendaSection({ events, onOpenDetail }: AgendaSectionProps) {
-  const openEventDetail = (e: any) => onOpenDetail(e.title, 'Evento', [
-    { label: 'Data início', value: e.start_date?.slice(0, 10) },
-    { label: 'Data fim', value: e.end_date?.slice(0, 10) },
-    { label: 'Departamento', value: e.department },
-    { label: 'Cliente', value: e.client_name },
-    { label: 'Notas', value: e.notes },
-  ]);
+export function AgendaSection({ events, meetings = [], contents = [], onOpenDetail }: AgendaSectionProps) {
+  const openEventDetail = (e: any) => {
+    if (e._kind === 'meeting') {
+      onOpenDetail(e.title, 'Reunião', [
+        { label: 'Data', value: e.date_time?.slice(0, 16)?.replace('T', ' ') },
+        { label: 'Status', value: e.status, badge: true },
+      ]);
+      return;
+    }
+    if (e._kind === 'content') {
+      onOpenDetail(e.title, 'Conteúdo', [
+        { label: 'Data', value: e.scheduled_at?.slice(0, 10) },
+        { label: 'Status', value: e.status, badge: true },
+      ]);
+      return;
+    }
+    onOpenDetail(e.title, 'Evento', [
+      { label: 'Data início', value: e.start_date?.slice(0, 10) },
+      { label: 'Data fim', value: e.end_date?.slice(0, 10) },
+      { label: 'Departamento', value: e.department },
+      { label: 'Cliente', value: e.client_name },
+      { label: 'Notas', value: e.notes },
+    ]);
+  };
+
+  // Unificar eventos + reuniões + conteúdos por data ascendente
+  const combined = [
+    ...events.map((e) => ({ ...e, _kind: 'event' as const, _date: e.start_date, _label: e.title, _type: 'Evento' })),
+    ...meetings.map((m) => ({ ...m, _kind: 'meeting' as const, _date: m.date_time, _label: m.title, _type: 'Reunião' })),
+    ...contents.map((c) => ({ ...c, _kind: 'content' as const, _date: c.scheduled_at, _label: c.title, _type: 'Conteúdo' })),
+  ]
+    .filter((x) => x._date)
+    .sort((a, b) => String(a._date).localeCompare(String(b._date)));
 
   return (
     <section className="space-y-4">
-      <h2 className="text-base font-semibold">2 // Agenda do mês</h2>
+      <h2 className="text-base font-semibold">2 // Agenda da semana</h2>
       <Card><div className="overflow-x-auto">
         <Table>
-          <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Tipo</TableHead><TableHead>Título</TableHead></TableRow></TableHeader>
           <TableBody>
-            {events.length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
-              events.map(e => (
-                <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
-                  <TableCell className="">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
+            {combined.length === 0 ? <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
+              combined.map((e: any) => (
+                <TableRow key={`${e._kind}-${e.id}`} className={clickableRow} onClick={() => openEventDetail(e)}>
+                  <TableCell className="">{String(e._date).slice(0, 10)}</TableCell>
+                  <TableCell><Badge variant="secondary" className="text-[10px]">{e._type}</Badge></TableCell>
+                  <TableCell className="text-sm">{e._label}</TableCell>
                 </TableRow>
               ))
             }
