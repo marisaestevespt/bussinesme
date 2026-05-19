@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EntitySection } from '@/components/layout/entity';
 import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
-import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { getTaskStatusInfo } from '@/lib/taskStatus';
 import { Handshake, CheckSquare, Plus, Video, ChevronRight, Clock } from 'lucide-react';
