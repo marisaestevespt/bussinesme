@@ -599,7 +599,8 @@ export function OperacaoSection({ projects, tasks, meetings, contents, tasksWeek
                 <TableCell className="">{resolveDepartments(p)}</TableCell>
                 <TableCell className="">{p.deadline ? format(parseISO(p.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
               </TableRow>
-            ))}</TableBody></Table>
+              );
+            })}</TableBody></Table>
           </div>
         }
       </CardContent></Card>
