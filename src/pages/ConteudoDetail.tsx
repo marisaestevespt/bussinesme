@@ -726,7 +726,7 @@ export default function ConteudoDetailPage() {
 
             <PropRow label="Responsável">
               <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
-                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 gap-2 min-w-[220px] w-auto">
+                <SelectTrigger className="h-9 border-0 hover:bg-muted/50 focus:ring-0 focus:ring-offset-0 px-2 -ml-2 gap-2 min-w-[220px] w-auto [&>span]:line-clamp-none [&>span]:flex [&>span]:items-center">
                   <SelectValue placeholder="Ninguém" asChild>
                     {(() => {
                       const p = profiles.find((x: any) => x.id === form.assigned_to);
