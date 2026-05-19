@@ -241,8 +241,18 @@ export default function ClientesPage() {
             {displayItems.length === 0 ? (
               <CollectionEmpty
                 icon={Users}
-                title={tab === 'ativos' ? 'Sem clientes ativos' : tab === 'arquivados' ? 'Sem clientes arquivados' : 'Sem clientes históricos'}
-                description={tab === 'ativos' ? 'Adiciona um novo cliente para começar.' : tab === 'arquivados' ? 'Quando arquivares clientes, aparecem aqui.' : 'Adiciona registos de clientes antigos para arquivo.'}
+                title={
+                  tab === 'ativos' ? 'Sem clientes ativos'
+                  : tab === 'renegociacao' ? 'Sem renegociações em curso'
+                  : tab === 'arquivados' ? 'Sem clientes arquivados'
+                  : 'Sem clientes históricos'
+                }
+                description={
+                  tab === 'ativos' ? 'Adiciona um novo cliente para começar.'
+                  : tab === 'renegociacao' ? 'Abre uma renegociação a partir da ficha de qualquer cliente (separador "Gestão do Cliente").'
+                  : tab === 'arquivados' ? 'Quando arquivares clientes, aparecem aqui.'
+                  : 'Adiciona registos de clientes antigos para arquivo.'
+                }
                 className="border-0"
               />
             ) : (
