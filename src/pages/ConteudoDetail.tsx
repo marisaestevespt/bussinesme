@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle, GripVertical, ArrowDownAZ } from 'lucide-react';
+import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle, GripVertical, ArrowDownAZ, Link2 } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { EntityHeroHeader, parseIcon } from '@/components/entity-icon';
 import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
@@ -309,6 +309,26 @@ export default function ConteudoDetailPage() {
   const deleteAttachment = async (attId: string) => {
     await supabase.from('content_attachments').delete().eq('id', attId);
     queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
+  };
+
+  const addLink = async () => {
+    if (!id) return;
+    const url = window.prompt('URL do link (ex: https://...):');
+    if (!url) return;
+    let normalizedUrl = url.trim();
+    if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = `https://${normalizedUrl}`;
+    const label = window.prompt('Nome a mostrar (opcional):', '')?.trim() || normalizedUrl;
+    const sameTypeAttachments = attachments.filter(a => a.file_type === 'file');
+    const nextOrder = sameTypeAttachments.length > 0
+      ? Math.max(...sameTypeAttachments.map(a => (a as any).sort_order ?? 0)) + 1
+      : 0;
+    const { error } = await supabase.from('content_attachments').insert({
+      content_id: id, file_url: normalizedUrl, file_name: label, file_type: 'file',
+      sort_order: nextOrder,
+    } as any);
+    if (error) { toast.error('Erro ao adicionar link'); return; }
+    queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
+    toast.success('Link adicionado');
   };
 
   const applyImageOrder = async (reordered: typeof images) => {
@@ -761,10 +781,12 @@ export default function ConteudoDetailPage() {
               <div className="py-1 space-y-1.5">
                 {files.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
-                    {files.map(f => (
+                    {files.map(f => {
+                      const isLink = !((f.file_url as string) || '').includes('/storage/v1/object/');
+                      return (
                       <div key={f.id} className="group inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md bg-muted/40 hover:bg-muted/70 border border-transparent hover:border-border/60 transition">
                         <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-foreground hover:text-primary truncate max-w-[220px]">
-                          <FileText className="h-3 w-3 shrink-0" />
+                          {isLink ? <Link2 className="h-3 w-3 shrink-0" /> : <FileText className="h-3 w-3 shrink-0" />}
                           <span className="truncate">{f.file_name}</span>
                         </a>
                         <button
@@ -776,14 +798,25 @@ export default function ConteudoDetailPage() {
                           <Trash2 className="h-3 w-3" />
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
-                <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition">
-                  <Upload className="h-3 w-3" />
-                  <span>{files.length > 0 ? 'Adicionar ficheiro' : 'Adicionar ficheiros'}</span>
-                  <input type="file" multiple className="hidden" onChange={e => uploadFiles(e, 'file')} disabled={uploading} />
-                </label>
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition">
+                    <Upload className="h-3 w-3" />
+                    <span>{files.length > 0 ? 'Adicionar ficheiro' : 'Adicionar ficheiros'}</span>
+                    <input type="file" multiple className="hidden" onChange={e => uploadFiles(e, 'file')} disabled={uploading} />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addLink}
+                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+                  >
+                    <Link2 className="h-3 w-3" />
+                    <span>Adicionar link</span>
+                  </button>
+                </div>
               </div>
             </PropRow>
           </div>
