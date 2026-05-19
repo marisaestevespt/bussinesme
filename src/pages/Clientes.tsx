@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { InfiniteScrollList } from '@/components/InfiniteScrollList';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -44,14 +44,29 @@ export default function ClientesPage() {
   const { clients } = useClients();
   const { products } = useProducts();
   const sectorConfig = useSectorConfig();
-  const [tab, setTab] = useState<'ativos' | 'arquivados' | 'historico'>('ativos');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as any) || 'ativos';
+  const [tab, setTab] = useState<'ativos' | 'renegociacao' | 'arquivados' | 'historico'>(initialTab);
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t && t !== tab) setTab(t as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   const [legacyDialogOpen, setLegacyDialogOpen] = useState(false);
 
   const items = clients.data || [];
   const legacyItems = useMemo(() => items.filter(c => (c as any).is_legacy === true), [items]);
   const activeItems = useMemo(() => items.filter(c => !(c as any).is_legacy && ACTIVE_STATUSES.includes(c.status)), [items]);
   const archivedItems = useMemo(() => items.filter(c => !(c as any).is_legacy && ARCHIVED_STATUSES.includes(c.status)), [items]);
-  const displayItems = tab === 'ativos' ? activeItems : tab === 'arquivados' ? archivedItems : legacyItems;
+  const renegotiatingItems = useMemo(
+    () => items.filter(c => !(c as any).is_legacy && (c as any).renegotiation_status === 'em_curso'),
+    [items],
+  );
+  const displayItems =
+    tab === 'ativos' ? activeItems
+    : tab === 'renegociacao' ? renegotiatingItems
+    : tab === 'arquivados' ? archivedItems
+    : legacyItems;
 
   // Cadeado por linha: precalcular permissão de abertura
   const ids = useMemo(() => displayItems.map((c: any) => c.id), [displayItems]);
@@ -187,9 +202,10 @@ export default function ClientesPage() {
         <CollectionToolbar
           trailing={
             <div className="flex items-center gap-2">
-              <EntityTabs value={tab} onValueChange={v => setTab(v as any)}>
+              <EntityTabs value={tab} onValueChange={v => { setTab(v as any); setSearchParams(v === 'ativos' ? {} : { tab: v }); }}>
                 <EntityTabsList>
                   <EntityTabsTrigger value="ativos">Ativos · {activeItems.length}</EntityTabsTrigger>
+                  <EntityTabsTrigger value="renegociacao">Em renegociação · {renegotiatingItems.length}</EntityTabsTrigger>
                   <EntityTabsTrigger value="arquivados">Arquivados · {archivedItems.length}</EntityTabsTrigger>
                   <EntityTabsTrigger value="historico">Histórico · {legacyItems.length}</EntityTabsTrigger>
                 </EntityTabsList>
