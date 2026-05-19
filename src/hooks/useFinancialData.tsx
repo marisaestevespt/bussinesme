@@ -233,7 +233,8 @@ export function useFinancialData(options?: FinancialDataOptions) {
 
       if (snap?.source_id && (snap.source_type === 'contract' || snap.source_type === 'subscription')) {
         const { error } = await supabase.from('financial_expenses').update({
-          status: 'cancelado',
+          status: 'tudo_ok',
+          description: `Oculto — ${snap.expense_name || snap.expense_id || 'pagamento mensal'}`,
           base_value: 0,
           vat_rate: 0,
           total_with_vat: 0,
