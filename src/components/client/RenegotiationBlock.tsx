@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Handshake, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
+import { Handshake, CheckCircle2, XCircle, RotateCcw, RefreshCw } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,9 +34,10 @@ interface Props {
   ownerId: string | undefined;
   notes: string | undefined;
   onChange: (field: string, value: any) => void;
+  onRenewCycle?: () => void;
 }
 
-export function RenegotiationBlock({ status, reason, startedAt, ownerId, notes, onChange }: Props) {
+export function RenegotiationBlock({ status, reason, startedAt, ownerId, notes, onChange, onRenewCycle }: Props) {
   const current = status || 'nenhuma';
   const isActive = current === 'em_curso';
   const isClosed = current === 'concluida_renovada' || current === 'concluida_perdida';
@@ -82,9 +83,16 @@ export function RenegotiationBlock({ status, reason, startedAt, ownerId, notes, 
             <Handshake className="h-4 w-4" />
             <span>Sem renegociação ativa com este cliente.</span>
           </div>
-          <Button size="sm" onClick={() => start()}>
-            <Handshake className="h-4 w-4 mr-1.5" /> Abrir renegociação
-          </Button>
+          <div className="flex items-center gap-2">
+            {onRenewCycle && (
+              <Button size="sm" variant="outline" onClick={onRenewCycle}>
+                <RefreshCw className="h-4 w-4 mr-1.5" /> Renovar ciclo
+              </Button>
+            )}
+            <Button size="sm" onClick={() => start()}>
+              <Handshake className="h-4 w-4 mr-1.5" /> Abrir renegociação
+            </Button>
+          </div>
         </div>
       </Card>
     );
@@ -168,6 +176,11 @@ export function RenegotiationBlock({ status, reason, startedAt, ownerId, notes, 
             <Button size="sm" variant="default" className="bg-success hover:bg-success/90 text-success-foreground" onClick={() => close('concluida_renovada')}>
               <CheckCircle2 className="h-4 w-4 mr-1.5" /> Marcar como renovada
             </Button>
+            {onRenewCycle && (
+              <Button size="sm" variant="outline" onClick={onRenewCycle}>
+                <RefreshCw className="h-4 w-4 mr-1.5" /> Renovar ciclo
+              </Button>
+            )}
             <Button size="sm" variant="destructive" onClick={() => close('concluida_perdida')}>
               <XCircle className="h-4 w-4 mr-1.5" /> Marcar como perdida
             </Button>
@@ -177,9 +190,16 @@ export function RenegotiationBlock({ status, reason, startedAt, ownerId, notes, 
           </>
         )}
         {isClosed && (
-          <Button size="sm" variant="outline" onClick={reopen}>
-            <RotateCcw className="h-4 w-4 mr-1.5" /> Reabrir
-          </Button>
+          <>
+            <Button size="sm" variant="outline" onClick={reopen}>
+              <RotateCcw className="h-4 w-4 mr-1.5" /> Reabrir
+            </Button>
+            {current === 'concluida_renovada' && onRenewCycle && (
+              <Button size="sm" onClick={onRenewCycle}>
+                <RefreshCw className="h-4 w-4 mr-1.5" /> Renovar ciclo
+              </Button>
+            )}
+          </>
         )}
       </div>
     </Card>
