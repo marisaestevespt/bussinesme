@@ -37,6 +37,7 @@ import { DEPARTMENTS } from '@/lib/departments';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
 import { ClientCustomerSuccessGallery } from '@/components/client/ClientCustomerSuccessGallery';
+import { RenegotiationBlock } from '@/components/client/RenegotiationBlock';
 import {
   EntityTitle,
   EntityTopBar,
@@ -1210,6 +1211,16 @@ function ClienteDetailPageInner() {
 
           {/* ─── Tab 2: Gestão do Cliente ──────────────────── */}
           <EntityTabsContent value="gestao" className="space-y-6 mt-4">
+            {!isNew && (
+              <RenegotiationBlock
+                status={(form as any).renegotiation_status}
+                reason={(form as any).renegotiation_reason}
+                startedAt={(form as any).renegotiation_started_at}
+                ownerId={(form as any).renegotiation_owner_id}
+                notes={(form as any).renegotiation_notes}
+                onChange={(f, v) => { update(f, v); setTimeout(() => save(), 0); }}
+              />
+            )}
             {/* Financial Health */}
             {!isNew && <ClientFinancialHealthCard clientName={form.full_name || ''} />}
             {/* Portal Health */}

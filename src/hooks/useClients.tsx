@@ -26,7 +26,7 @@ export function useClients() {
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('clients').select('id,client_id,full_name,email,status,current_product,current_product_id,start_date,end_of_cycle,conversion_date,dp,whatsapp,birthday,nif,fiscal_address,payment_method,observations,drive_folder_url,documents,whatsapp_group_url,created_at,updated_at,created_by,client_files,portal_deactivation_date,final_settlement_amount,final_settlement_notes,final_settlement_status,is_legacy,legacy_product_description', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+      const { data, error, count } = await supabase.from('clients').select('id,client_id,full_name,email,status,current_product,current_product_id,start_date,end_of_cycle,conversion_date,dp,whatsapp,birthday,nif,fiscal_address,payment_method,observations,drive_folder_url,documents,whatsapp_group_url,created_at,updated_at,created_by,client_files,portal_deactivation_date,final_settlement_amount,final_settlement_notes,final_settlement_status,is_legacy,legacy_product_description,renegotiation_status,renegotiation_reason,renegotiation_started_at', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
       if (error) throw error;
       return { data: (data || []) as Client[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
