@@ -28,7 +28,6 @@ const CATEGORY_MAP: Record<string, string> = {
   crm_followup: 'Comercial',
   routine_missed: 'Operação',
   recurring_expenses: 'Financeiro',
-  fiscal_tasks: 'Financeiro',
   access_revoke: 'Equipa',
 };
 
