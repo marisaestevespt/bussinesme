@@ -119,15 +119,6 @@ export function ProjectProcessosSection({
         )}
       </EntitySection>
 
-      {!isServicoMensal && (
-        <ProjectProcessosTab
-          projectId={projectId}
-          clientId={resolvedClientId}
-          productId={local.product_id}
-          projectStartDate={local.start_date}
-        />
-      )}
-
       <EntitySection
         title={reunioesLabel}
         icon={Video}
