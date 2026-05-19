@@ -11224,6 +11224,9 @@ export type Database = {
           id: string
           member_id: string | null
           project_id: string | null
+          source_meeting_id: string | null
+          source_participant_profile: string | null
+          source_timer_id: string | null
           task_id: string | null
           updated_at: string
         }
@@ -11242,6 +11245,9 @@ export type Database = {
           id?: string
           member_id?: string | null
           project_id?: string | null
+          source_meeting_id?: string | null
+          source_participant_profile?: string | null
+          source_timer_id?: string | null
           task_id?: string | null
           updated_at?: string
         }
@@ -11260,6 +11266,9 @@ export type Database = {
           id?: string
           member_id?: string | null
           project_id?: string | null
+          source_meeting_id?: string | null
+          source_participant_profile?: string | null
+          source_timer_id?: string | null
           task_id?: string | null
           updated_at?: string
         }
@@ -12449,6 +12458,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      member_id_from_profile: { Args: { _profile_id: string }; Returns: string }
+      member_id_from_user: { Args: { _user_id: string }; Returns: string }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -12674,6 +12685,10 @@ export type Database = {
           passed: boolean
           table_name: string
         }[]
+      }
+      upsert_meeting_time_entries: {
+        Args: { _meeting_id: string }
+        Returns: undefined
       }
       user_can_access_client: { Args: { _client_id: string }; Returns: boolean }
       user_can_access_portal: { Args: { _portal_id: string }; Returns: boolean }
