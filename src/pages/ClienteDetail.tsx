@@ -1029,18 +1029,18 @@ function ClienteDetailPageInner() {
               value={form.account_manager_id || 'none'}
               onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
             >
-              <SelectTrigger className={cn(inlineTriggerClass, 'min-w-0 [&>span]:!flex [&>span]:items-center [&>span]:gap-2 [&>span]:min-w-0')}>
+              <SelectTrigger className={cn(inlineTriggerClass, 'min-w-0')}>
                 {(() => {
                   const m = activeTeamMembers.find(x => x.id === form.account_manager_id);
                   if (!m) return <SelectValue placeholder="Sem responsável" />;
                   return (
-                    <>
+                    <span className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="h-5 w-5 shrink-0">
                         {m.photo_url && <AvatarImage src={m.photo_url} alt={m.full_name} />}
                         <AvatarFallback className="text-[9px]">{m.full_name?.[0] || '?'}</AvatarFallback>
                       </Avatar>
                       <span className="truncate">{m.full_name}</span>
-                    </>
+                    </span>
                   );
                 })()}
               </SelectTrigger>
