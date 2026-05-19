@@ -393,7 +393,13 @@ function TimeLogView({ entries, members, clients, projects, tasks }: { entries: 
                   <TableCell className="text-sm text-right font-medium">{Number(e.duration).toFixed(1)}h</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{catLabel(e.category)}</Badge></TableCell>
                   <TableCell className="text-muted-foreground max-w-[120px] truncate">{e.task_id ? taskName(e.task_id) : '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{e.client_id ? clientName(e.client_id) : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {e.client_id
+                      ? clientName(e.client_id)
+                      : e.category === 'interno'
+                        ? <Badge variant="outline" className="text-[10px]">Interno</Badge>
+                        : '—'}
+                  </TableCell>
                   <TableCell className="text-muted-foreground max-w-[150px] truncate">{e.description || '—'}</TableCell>
                   <TableCell><button onClick={() => deleteEntry.mutate(e.id)} className="text-muted-foreground hover:text-destructive"><Clock className="h-3 w-3" /></button></TableCell>
                 </TableRow>
