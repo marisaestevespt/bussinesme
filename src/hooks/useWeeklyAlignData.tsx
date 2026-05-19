@@ -131,7 +131,7 @@ export function useWeeklyAlignData(weekOffset: number) {
         supabase.from('commercial_sales_actions').select('id,action_name,status,start_date,end_date').in('status', ['em_curso', 'por_comecar']).order('start_date'),
         supabase.from('crm_leads').select('id,name,status,next_followup,estimated_value').not('status', 'in', '("ganho","perdido")').order('next_followup'),
         supabase.from('clients').select('id,client_id,full_name,status,start_date,end_of_cycle,current_product,email').order('start_date', { ascending: false }),
-        supabase.from('projects').select('id,name,status,deadline,client_name,department,departments').in('status', ['em_curso', 'em_ideia', 'em_pausa', 'em_revisao', 'em_onboarding', 'em_pausa']).order('deadline').is('archived_at', null),
+        supabase.from('projects').select('id,name,status,deadline,client_name,department,departments').in('status', ['em_curso', 'em_ideia', 'em_pausa', 'em_revisao', 'em_onboarding']).order('deadline').is('archived_at', null),
         supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').lt('expected_date', weekStartStr).neq('status', 'feito').order('expected_date'),
         supabase.from('member_contracts').select('*, team_members(id, full_name, role_title, department)').eq('status', 'ativo').not('end_date', 'is', null).lte('end_date', sixtyDaysAhead).order('end_date'),
         supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStartDate).lte('entry_date', monthEndDate),
