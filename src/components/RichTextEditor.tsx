@@ -86,6 +86,10 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
 
   useEffect(() => {
     if (!editor) return;
+    // Não sincronizar enquanto o utilizador está a editar — caso contrário
+    // o setContent reseta a seleção/marcas activas (ex.: negrito acabado de ativar)
+    // e obriga a clicar 2x para aplicar formatação.
+    if (editor.isFocused) return;
     if (normalizeEditorContent(editor.getHTML()) !== normalizeEditorContent(content)) {
       editor.commands.setContent(content || '', { emitUpdate: false });
     }
