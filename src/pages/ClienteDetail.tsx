@@ -689,8 +689,13 @@ function ClienteDetailPageInner() {
           filterFromCurrentMonth: false,
         });
         if (entries.length > 0) {
-          // Add product_id for ficheiro/sales linkage
-          const enriched = entries.map(e => ({ ...e, product_id: matchedProduct?.id || null }));
+          // Add product_id + client_id for ficheiro/sales linkage
+          // (client text is auto-synced from client_id via DB trigger)
+          const enriched = entries.map(e => ({
+            ...e,
+            product_id: matchedProduct?.id || null,
+            client_id: id,
+          }));
           const { error: salesErr } = await supabase.from('commercial_sales').insert(enriched);
           if (salesErr) throw salesErr;
         }
