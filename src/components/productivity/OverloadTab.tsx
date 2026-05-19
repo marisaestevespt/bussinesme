@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { startOfWeek, endOfWeek, subWeeks, format } from 'date-fns';
+import { AlertTriangle } from 'lucide-react';
+import { isTaskOpen } from '@/lib/taskStatus';
 
 export function OverloadTab({ entries, members, tasks }: { entries: any[]; members: any[]; tasks: any[] }) {
   const taskTime: Record<string, { hours: number; count: number }> = {};
@@ -41,8 +43,24 @@ export function OverloadTab({ entries, members, tasks }: { entries: any[]; membe
 
   const pctColor = (pct: number) => pct >= 120 ? 'text-destructive font-semibold' : pct >= 110 ? 'text-warning font-medium' : 'text-success';
 
+  const tasksMissingEstimate = tasks.filter((t: any) => isTaskOpen(t) && !(Number(t.estimated_minutes) > 0));
+
   return (
     <div className="space-y-6">
+      {tasksMissingEstimate.length > 0 && (
+        <Card className="border-warning/40 bg-warning/5">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium">{tasksMissingEstimate.length} tarefa{tasksMissingEstimate.length === 1 ? '' : 's'} aberta{tasksMissingEstimate.length === 1 ? '' : 's'} sem tempo estimado</p>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Sem <code>tempo estimado</code>, as análises de sobrecarga e capacidade ficam incompletas (aparece &quot;—&quot;). Preenche o campo &quot;tempo estimado&quot; nas tarefas para obter previsões fiáveis.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm">Tarefas que consomem mais tempo</CardTitle></CardHeader>
         <CardContent className="p-0">
