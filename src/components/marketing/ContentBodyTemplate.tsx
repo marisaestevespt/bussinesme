@@ -443,6 +443,66 @@ export const ContentBodyTemplate = memo(ContentBodyTemplateInner, (prev, next) =
   );
 });
 
+function SortableSlide({
+  id, label, canReorder, canRemove, onRemove, children,
+}: {
+  id: string;
+  label: string;
+  canReorder: boolean;
+  canRemove: boolean;
+  onRemove: () => void;
+  children: React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "rounded-lg border border-border/50 bg-background/40 p-3 space-y-2",
+        isDragging && "ring-1 ring-primary/40 shadow-md",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {canReorder && (
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+              title="Arrastar para reordenar"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+            {label}
+          </label>
+        </div>
+        {canRemove && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+            onClick={onRemove}
+            title="Remover slide"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function ImageBlock({
   label, value, onChange, editable,
 }: { label: string; value: string; onChange: (v: string) => void; editable: boolean }) {
