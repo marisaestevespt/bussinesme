@@ -105,11 +105,12 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     const db = b.payment_date || '';
     return da.localeCompare(db);
   }), [sales, currentYear, m]);
-  const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).sort((a, b) => {
+  const allMonthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).sort((a, b) => {
     const da = a.expense_date || '';
     const db = b.expense_date || '';
     return da.localeCompare(db);
   }), [expenses, currentYear, m]);
+  const monthExpenses = useMemo(() => allMonthExpenses.filter(e => e.status !== 'cancelado'), [allMonthExpenses]);
 
   const recurringExps = useMemo(() => fin.recurringExpenses.data || [], [fin.recurringExpenses.data]);
   const dueSubscriptions = useMemo(() => {
@@ -121,21 +122,30 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   // duplicar uma despesa já criada pelo backend (ver mem://features/recurring-expenses-dedup.md).
   const subExpenseMap = useMemo(() => {
     const map = new Map<string, Expense>();
-    monthExpenses.forEach(e => {
+    allMonthExpenses.forEach(e => {
       if (e.source_type === 'subscription' && e.source_id) map.set(e.source_id, e);
       else if (e.parent_expense_id) map.set(e.parent_expense_id, e);
     });
     return map;
-  }, [monthExpenses]);
+  }, [allMonthExpenses]);
 
   const contractExpenseMap = useMemo(() => {
     const map = new Map<string, Expense>();
-    monthExpenses.forEach(e => {
+    allMonthExpenses.forEach(e => {
       if (e.source_type === 'contract' && e.source_id) map.set(e.source_id, e);
       else if (e.parent_expense_id) map.set(e.parent_expense_id, e);
     });
     return map;
-  }, [monthExpenses]);
+  }, [allMonthExpenses]);
+
+  const visibleDueSubscriptions = useMemo(
+    () => dueSubscriptions.filter(sub => subExpenseMap.get(sub.id)?.status !== 'cancelado'),
+    [dueSubscriptions, subExpenseMap],
+  );
+  const visibleActiveContracts = useMemo(
+    () => activeContracts.filter(contract => contractExpenseMap.get(contract.id)?.status !== 'cancelado'),
+    [activeContracts, contractExpenseMap],
+  );
 
   // Auto-materialize recurring subscription & contract expenses for current/past months
   const autoMaterializeRef = useRef(new Set<string>());
