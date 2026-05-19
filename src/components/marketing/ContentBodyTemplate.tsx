@@ -467,19 +467,24 @@ function SortableSlide({
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          {canReorder && (
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
-              title="Arrastar para reordenar"
-              {...attributes}
-              {...listeners}
-            >
-              <GripVertical className="h-3.5 w-3.5" />
-            </button>
+        <div
+          className={cn(
+            "flex items-center gap-2 flex-1 min-w-0 py-1 -mx-1 px-1 rounded",
+            canReorder && "cursor-grab active:cursor-grabbing hover:bg-muted/40 select-none",
           )}
-          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+          {...(canReorder ? attributes : {})}
+          {...(canReorder ? listeners : {})}
+          title={canReorder ? "Arrastar para reordenar" : undefined}
+        >
+          {canReorder && (
+            <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          )}
+          <label
+            className={cn(
+              "text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block",
+              canReorder && "cursor-grab active:cursor-grabbing",
+            )}
+          >
             {label}
           </label>
         </div>
