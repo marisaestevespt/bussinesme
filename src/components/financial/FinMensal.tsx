@@ -110,7 +110,10 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     const db = b.expense_date || '';
     return da.localeCompare(db);
   }), [expenses, currentYear, m]);
-  const monthExpenses = useMemo(() => allMonthExpenses.filter(e => e.status !== 'cancelado'), [allMonthExpenses]);
+  const isHiddenOccurrence = useCallback((e: Expense | undefined) => (
+    !!e && e.description?.startsWith('Oculto —') && (e.total_with_vat || 0) === 0 && (e.base_value || 0) === 0
+  ), []);
+  const monthExpenses = useMemo(() => allMonthExpenses.filter(e => !isHiddenOccurrence(e)), [allMonthExpenses, isHiddenOccurrence]);
 
   const recurringExps = useMemo(() => fin.recurringExpenses.data || [], [fin.recurringExpenses.data]);
   const dueSubscriptions = useMemo(() => {
@@ -139,12 +142,12 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   }, [allMonthExpenses]);
 
   const visibleDueSubscriptions = useMemo(
-    () => dueSubscriptions.filter(sub => subExpenseMap.get(sub.id)?.status !== 'cancelado'),
-    [dueSubscriptions, subExpenseMap],
+    () => dueSubscriptions.filter(sub => !isHiddenOccurrence(subExpenseMap.get(sub.id))),
+    [dueSubscriptions, subExpenseMap, isHiddenOccurrence],
   );
   const visibleActiveContracts = useMemo(
-    () => activeContracts.filter(contract => contractExpenseMap.get(contract.id)?.status !== 'cancelado'),
-    [activeContracts, contractExpenseMap],
+    () => activeContracts.filter(contract => !isHiddenOccurrence(contractExpenseMap.get(contract.id))),
+    [activeContracts, contractExpenseMap, isHiddenOccurrence],
   );
 
   // Auto-materialize recurring subscription & contract expenses for current/past months
