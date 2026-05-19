@@ -4,8 +4,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ImageIcon, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { ImageIcon, Plus, Trash2, GripVertical } from 'lucide-react';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Template structures per format
 export type TemplateField = {
@@ -232,21 +240,32 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
     scheduleFlush();
   };
 
-  const moveSlide = (from: number, to: number) => {
+  const reorderSlides = (fromIdx: number, toIdx: number) => {
     if (!isVariableSlideFormat) return;
     const current = slideCount ?? 1;
-    if (from < 1 || to < 1 || from > current || to > current || from === to) return;
+    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= current || toIdx >= current) return;
     const keyAt = (n: number) => {
       if (format === 'carrossel') return n === 1 ? 'capa' : `imagem_${n}`;
       return `story_${n}`;
     };
+    const values = Array.from({ length: current }, (_, i) => dataRef.current[keyAt(i + 1)] ?? '');
+    const reordered = arrayMove(values, fromIdx, toIdx);
     const next = { ...dataRef.current };
-    const tmp = dataRef.current[keyAt(from)] ?? '';
-    next[keyAt(from)] = dataRef.current[keyAt(to)] ?? '';
-    next[keyAt(to)] = tmp;
+    reordered.forEach((v, i) => { next[keyAt(i + 1)] = v; });
     dataRef.current = next;
     setData(next);
     scheduleFlush();
+  };
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const from = slideFields.findIndex(f => f.key === active.id);
+    const to = slideFields.findIndex(f => f.key === over.id);
+    if (from < 0 || to < 0) return;
+    reorderSlides(from, to);
   };
 
   const toggleChecklistItem = (key: string, item: string) => {
@@ -356,54 +375,24 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
               </Button>
             )}
           </div>
-          <div className="space-y-3">
-            {slideFields.map((field, idx) => (
-              <div key={field.key} className="rounded-lg border border-border/50 bg-background/40 p-3 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-                    {field.label}
-                  </label>
-                  {isVariableSlideFormat && editable && slideFields.length > 1 && (
-                    <div className="flex items-center gap-0.5">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                        onClick={() => moveSlide(idx + 1, idx)}
-                        disabled={idx === 0}
-                        title="Mover para cima"
-                      >
-                        <ArrowUp className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                        onClick={() => moveSlide(idx + 1, idx + 2)}
-                        disabled={idx === slideFields.length - 1}
-                        title="Mover para baixo"
-                      >
-                        <ArrowDown className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeSlideAt(idx + 1)}
-                        title="Remover slide"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                {renderField(field)}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={slideFields.map(f => f.key)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-3">
+                {slideFields.map((field, idx) => (
+                  <SortableSlide
+                    key={field.key}
+                    id={field.key}
+                    label={field.label}
+                    canReorder={isVariableSlideFormat && editable && slideFields.length > 1}
+                    canRemove={isVariableSlideFormat && editable && slideFields.length > 1}
+                    onRemove={() => removeSlideAt(idx + 1)}
+                  >
+                    {renderField(field)}
+                  </SortableSlide>
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 
