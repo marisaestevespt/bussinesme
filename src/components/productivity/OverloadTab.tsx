@@ -4,8 +4,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { startOfWeek, endOfWeek, subWeeks, format } from 'date-fns';
 import { AlertTriangle } from 'lucide-react';
 import { isTaskOpen } from '@/lib/taskStatus';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export function OverloadTab({ entries, members, tasks }: { entries: any[]; members: any[]; tasks: any[] }) {
+  const profilesQ = useQuery({
+    queryKey: ['profiles_lookup'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name');
+      return (data || []) as any[];
+    },
+  });
+  const resolveAssignee = (id?: string | null) => {
+    if (!id) return '—';
+    const p = profilesQ.data?.find((x: any) => x.id === id);
+    if (p?.full_name) return p.full_name;
+    const m = members.find((x: any) => x.id === id || x.profile_id === id);
+    return m?.full_name || '—';
+  };
+
   const taskTime: Record<string, { hours: number; count: number }> = {};
   entries.forEach(e => {
     if (!e.task_id) return;
@@ -74,7 +91,7 @@ export function OverloadTab({ entries, members, tasks }: { entries: any[]; membe
               ) : taskRows.map(r => (
                 <TableRow key={r.tid}>
                   <TableCell className="text-sm font-medium">{r.name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{r.assigned || '—'}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{resolveAssignee(r.assigned)}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{r.department || '—'}</TableCell>
                   <TableCell className="text-sm text-right">{r.hours.toFixed(1)}h</TableCell>
                   <TableCell className="text-sm text-right">{r.count}</TableCell>
