@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ImageIcon, Plus, Trash2 } from 'lucide-react';
+import { ImageIcon, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
 // Template structures per format
@@ -232,6 +232,23 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
     scheduleFlush();
   };
 
+  const moveSlide = (from: number, to: number) => {
+    if (!isVariableSlideFormat) return;
+    const current = slideCount ?? 1;
+    if (from < 1 || to < 1 || from > current || to > current || from === to) return;
+    const keyAt = (n: number) => {
+      if (format === 'carrossel') return n === 1 ? 'capa' : `imagem_${n}`;
+      return `story_${n}`;
+    };
+    const next = { ...dataRef.current };
+    const tmp = dataRef.current[keyAt(from)] ?? '';
+    next[keyAt(from)] = dataRef.current[keyAt(to)] ?? '';
+    next[keyAt(to)] = tmp;
+    dataRef.current = next;
+    setData(next);
+    scheduleFlush();
+  };
+
   const toggleChecklistItem = (key: string, item: string) => {
     const current: string[] = dataRef.current[`${key}_checked`] || [];
     const updated = current.includes(item)
@@ -347,16 +364,40 @@ function ContentBodyTemplateInner({ format, value, onChange, editable = true }: 
                     {field.label}
                   </label>
                   {isVariableSlideFormat && editable && slideFields.length > 1 && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeSlideAt(idx + 1)}
-                      title="Remover slide"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-0.5">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        onClick={() => moveSlide(idx + 1, idx)}
+                        disabled={idx === 0}
+                        title="Mover para cima"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        onClick={() => moveSlide(idx + 1, idx + 2)}
+                        disabled={idx === slideFields.length - 1}
+                        title="Mover para baixo"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeSlideAt(idx + 1)}
+                        title="Remover slide"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   )}
                 </div>
                 {renderField(field)}
