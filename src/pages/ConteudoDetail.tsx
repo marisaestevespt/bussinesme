@@ -32,6 +32,9 @@ import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate'
 import { ContentComments } from '@/components/marketing/ContentComments';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { InlineLoader } from '@/components/ui/loading-skeletons';
+import { useDepartmentColors } from '@/hooks/useDepartmentColors';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +43,8 @@ export default function ConteudoDetailPage() {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const sectorConfig = useSectorConfig();
+  const { getBadgeClass } = useDepartmentColors();
+  const { getPhotoUrl } = useTeamPhotos();
 
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
