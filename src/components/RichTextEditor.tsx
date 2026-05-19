@@ -1,5 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -29,6 +29,11 @@ const COLORS = [
   '#a8c8a1', '#9bb8d9', '#b6a8d4', '#dba8c1', '#a89b8c',
   '#ffffff',
 ];
+
+const normalizeEditorContent = (html?: string) => {
+  const value = html || '';
+  return value === '<p></p>' ? '' : value;
+};
 
 interface RichTextEditorProps {
   content: string;
@@ -78,6 +83,13 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
       onChange(editor.getHTML());
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    if (normalizeEditorContent(editor.getHTML()) !== normalizeEditorContent(content)) {
+      editor.commands.setContent(content || '', { emitUpdate: false });
+    }
+  }, [content, editor]);
 
   if (!editor) return null;
 
