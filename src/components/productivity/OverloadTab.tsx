@@ -13,6 +13,18 @@ export function OverloadTab({ entries, members, tasks }: { entries: any[]; membe
       return (data || []) as any[];
     },
   });
+  const departmentsQ = useQuery({
+    queryKey: ['departments_lookup'],
+    queryFn: async () => {
+      const { data } = await supabase.from('departments').select('value, label');
+      return (data || []) as any[];
+    },
+  });
+  const resolveDepartment = (value?: string | null) => {
+    if (!value) return '—';
+    const d = departmentsQ.data?.find((x: any) => x.value === value);
+    return d?.label || value;
+  };
   const resolveAssignee = (id?: string | null) => {
     if (!id) return '—';
     const p = profilesQ.data?.find((x: any) => x.id === id);
@@ -74,7 +86,7 @@ export function OverloadTab({ entries, members, tasks }: { entries: any[]; membe
                 <TableRow key={r.tid}>
                   <TableCell className="text-sm font-medium">{r.name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{resolveAssignee(r.assigned)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{r.department || '—'}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{resolveDepartment(r.department)}</TableCell>
                   <TableCell className="text-sm text-right">{r.hours.toFixed(1)}h</TableCell>
                   <TableCell className="text-sm text-right">{r.count}</TableCell>
                 </TableRow>
