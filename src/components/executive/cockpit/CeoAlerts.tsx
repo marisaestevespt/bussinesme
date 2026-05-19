@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CalendarClock, Clock, FolderKanban, UserPlus, MessageSquareWarning, TrendingUp, ChevronRight, ShieldAlert, RefreshCw, Sparkles, Check, Eye, EyeOff, RotateCcw } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Clock, FolderKanban, UserPlus, MessageSquareWarning, TrendingUp, ChevronRight, ShieldAlert, RefreshCw, Sparkles, Check, Eye, EyeOff, RotateCcw, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { useCeoCockpit } from '@/hooks/useCeoCockpit';
 import { useDismissedAlerts } from '@/hooks/useDismissedAlerts';
@@ -61,9 +61,18 @@ function buildAlerts(derived: Derived): AlertItem[] {
   if (a.renewalClients.length > 0) {
     list.push({
       id: `renewal:${a.renewalClients.length}`, severity: 'warning', icon: RefreshCw,
-      title: 'Clientes em renovação',
-      detail: `${a.renewalClients.length} a renegociar`,
+      title: 'Em altura de renovação',
+      detail: `${a.renewalClients.length} cliente${a.renewalClients.length === 1 ? '' : 's'} no fim do ciclo — abrir renegociação?`,
       link: '/hub/clientes', count: a.renewalClients.length,
+    });
+  }
+  if ((a as any).renegotiatingClients && (a as any).renegotiatingClients.length > 0) {
+    const n = (a as any).renegotiatingClients.length;
+    list.push({
+      id: `renegotiating:${n}`, severity: 'critical', icon: Handshake,
+      title: 'Renegociações em curso',
+      detail: `${n} cliente${n === 1 ? '' : 's'} em renegociação ativa`,
+      link: '/hub/clientes?tab=renegociacao', count: n,
     });
   }
   if (a.detractors.length > 0) {
