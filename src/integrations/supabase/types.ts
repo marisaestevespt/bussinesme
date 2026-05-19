@@ -2085,6 +2085,11 @@ export type Database = {
           payment_method: string | null
           pending_renewal_project_id: string | null
           portal_deactivation_date: string | null
+          renegotiation_notes: string | null
+          renegotiation_owner_id: string | null
+          renegotiation_reason: string | null
+          renegotiation_started_at: string | null
+          renegotiation_status: string
           renewal_count: number
           start_date: string | null
           status: string
@@ -2123,6 +2128,11 @@ export type Database = {
           payment_method?: string | null
           pending_renewal_project_id?: string | null
           portal_deactivation_date?: string | null
+          renegotiation_notes?: string | null
+          renegotiation_owner_id?: string | null
+          renegotiation_reason?: string | null
+          renegotiation_started_at?: string | null
+          renegotiation_status?: string
           renewal_count?: number
           start_date?: string | null
           status?: string
@@ -2161,6 +2171,11 @@ export type Database = {
           payment_method?: string | null
           pending_renewal_project_id?: string | null
           portal_deactivation_date?: string | null
+          renegotiation_notes?: string | null
+          renegotiation_owner_id?: string | null
+          renegotiation_reason?: string | null
+          renegotiation_started_at?: string | null
+          renegotiation_status?: string
           renewal_count?: number
           start_date?: string | null
           status?: string
@@ -2195,6 +2210,20 @@ export type Database = {
             columns: ["pending_renewal_project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_renegotiation_owner_fk"
+            columns: ["renegotiation_owner_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_renegotiation_owner_fk"
+            columns: ["renegotiation_owner_id"]
+            isOneToOne: false
+            referencedRelation: "team_members_public"
             referencedColumns: ["id"]
           },
         ]
