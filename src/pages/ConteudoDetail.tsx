@@ -311,6 +311,26 @@ export default function ConteudoDetailPage() {
     queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
   };
 
+  const addLink = async () => {
+    if (!id) return;
+    const url = window.prompt('URL do link (ex: https://...):');
+    if (!url) return;
+    let normalizedUrl = url.trim();
+    if (!/^https?:\/\//i.test(normalizedUrl)) normalizedUrl = `https://${normalizedUrl}`;
+    const label = window.prompt('Nome a mostrar (opcional):', '')?.trim() || normalizedUrl;
+    const sameTypeAttachments = attachments.filter(a => a.file_type === 'file');
+    const nextOrder = sameTypeAttachments.length > 0
+      ? Math.max(...sameTypeAttachments.map(a => (a as any).sort_order ?? 0)) + 1
+      : 0;
+    const { error } = await supabase.from('content_attachments').insert({
+      content_id: id, file_url: normalizedUrl, file_name: label, file_type: 'file',
+      sort_order: nextOrder,
+    } as any);
+    if (error) { toast.error('Erro ao adicionar link'); return; }
+    queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
+    toast.success('Link adicionado');
+  };
+
   const applyImageOrder = async (reordered: typeof images) => {
     if (!id) return;
     // Optimistic UI update
