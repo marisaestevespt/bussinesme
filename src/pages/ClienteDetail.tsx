@@ -942,9 +942,10 @@ function ClienteDetailPageInner() {
                 {(() => {
                   const info = getClientStatusInfo(form.status);
                   return (
-                    <span className="flex items-center gap-2 min-w-0">
-                      <span className={cn('inline-block h-2 w-2 rounded-full shrink-0', info.color.split(' ')[0].replace('/15', ''))} />
-                      <span className="truncate">{info.label}</span>
+                    <span className="flex items-center min-w-0">
+                      <span className={cn('inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium truncate', info.color)}>
+                        {info.label}
+                      </span>
                     </span>
                   );
                 })()}
@@ -954,8 +955,7 @@ function ClienteDetailPageInner() {
                   const info = getClientStatusInfo(o.value);
                   return (
                     <SelectItem key={o.value} value={o.value}>
-                      <span className="flex items-center gap-2">
-                        <span className={cn('inline-block h-2 w-2 rounded-full', info.color.split(' ')[0].replace('/15', ''))} />
+                      <span className={cn('inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium', info.color)}>
                         {o.label}
                       </span>
                     </SelectItem>
@@ -975,29 +975,37 @@ function ClienteDetailPageInner() {
           </EntityProperty>
           <EntityProperty icon={Package} label="Produto Atual">
             <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
-              <SelectTrigger className={cn(inlineTriggerClass, '[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0')}>
+              <SelectTrigger className={cn(inlineTriggerClass, 'min-w-0')}>
                 {form.current_product ? (
-                  <span className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="inline-block h-2 w-2 rounded-full shrink-0"
-                      style={{ background: `hsl(${(form.current_product.split('').reduce((a,c)=>a+c.charCodeAt(0),0) * 47) % 360} 65% 55%)` }}
-                    />
-                    <span className="truncate">{form.current_product}</span>
-                  </span>
+                  (() => {
+                    const hue = (form.current_product.split('').reduce((a,c)=>a+c.charCodeAt(0),0) * 47) % 360;
+                    return (
+                      <span className="flex items-center min-w-0">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium truncate border"
+                          style={{ background: `hsl(${hue} 65% 55% / 0.15)`, color: `hsl(${hue} 65% 40%)`, borderColor: `hsl(${hue} 65% 55% / 0.3)` }}
+                        >
+                          {form.current_product}
+                        </span>
+                      </span>
+                    );
+                  })()
                 ) : <SelectValue placeholder="Selecionar" />}
               </SelectTrigger>
               <SelectContent>
-                {productList.map(p => (
-                  <SelectItem key={p.id} value={p.name}>
-                    <span className="flex items-center gap-2">
+                {productList.map(p => {
+                  const hue = (p.name.split('').reduce((a,c)=>a+c.charCodeAt(0),0) * 47) % 360;
+                  return (
+                    <SelectItem key={p.id} value={p.name}>
                       <span
-                        className="inline-block h-2 w-2 rounded-full"
-                        style={{ background: `hsl(${(p.name.split('').reduce((a,c)=>a+c.charCodeAt(0),0) * 47) % 360} 65% 55%)` }}
-                      />
-                      {p.name}
-                    </span>
-                  </SelectItem>
-                ))}
+                        className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border"
+                        style={{ background: `hsl(${hue} 65% 55% / 0.15)`, color: `hsl(${hue} 65% 40%)`, borderColor: `hsl(${hue} 65% 55% / 0.3)` }}
+                      >
+                        {p.name}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </EntityProperty>
@@ -1021,18 +1029,18 @@ function ClienteDetailPageInner() {
               value={form.account_manager_id || 'none'}
               onValueChange={(v) => update('account_manager_id' as any, v === 'none' ? null : v)}
             >
-              <SelectTrigger className={cn(inlineTriggerClass, '[&>span]:truncate [&>span]:block [&>span]:max-w-full min-w-0')}>
+              <SelectTrigger className={cn(inlineTriggerClass, 'min-w-0 [&>span]:!flex [&>span]:items-center [&>span]:gap-2 [&>span]:min-w-0')}>
                 {(() => {
                   const m = activeTeamMembers.find(x => x.id === form.account_manager_id);
                   if (!m) return <SelectValue placeholder="Sem responsável" />;
                   return (
-                    <span className="flex items-center gap-2 min-w-0">
+                    <>
                       <Avatar className="h-5 w-5 shrink-0">
                         {m.photo_url && <AvatarImage src={m.photo_url} alt={m.full_name} />}
                         <AvatarFallback className="text-[9px]">{m.full_name?.[0] || '?'}</AvatarFallback>
                       </Avatar>
                       <span className="truncate">{m.full_name}</span>
-                    </span>
+                    </>
                   );
                 })()}
               </SelectTrigger>
