@@ -11,6 +11,13 @@ import { ObjectiveDialog } from './ObjectiveDialog';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveCascadeRow } from './ObjectiveCascadeRow';
 
+function formatValue(v: number | null | undefined, unit?: string | null) {
+  if (v == null || isNaN(Number(v))) return '—';
+  const n = Number(v);
+  const formatted = Math.abs(n) >= 1000 ? n.toLocaleString('pt-PT') : String(n);
+  return unit ? `${formatted} ${unit}` : formatted;
+}
+
 export function PlanningObjectivesTab({
   planning,
   showHeaderButton = true,
@@ -77,6 +84,10 @@ export function PlanningObjectivesTab({
         <div className={gridClass}>
           {objs.map((obj: any) => {
             const prog = planning.objectiveProgress(obj);
+            const current = planning.objectiveCurrentValue?.(obj);
+            const target = obj.target_value ? Number(obj.target_value) : null;
+            const unit = obj.target_unit || '';
+            const krs = (planning.allMetrics || []).filter((m: any) => m.objective_id === obj.id);
             if (compact) {
               return (
                 <Card
@@ -84,14 +95,64 @@ export function PlanningObjectivesTab({
                   className="cursor-pointer hover:shadow-md hover:border-primary/40 hq-transition"
                   onClick={() => setDetailObj(obj)}
                 >
-                  <CardContent className="p-4 space-y-2">
-                    <h3 className="font-semibold text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
-                      {obj.title}
-                    </h3>
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-lg font-bold tabular-nums">{prog}%</span>
+                  <CardContent className="p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-sm leading-snug line-clamp-2 flex-1">
+                        {obj.title}
+                      </h3>
+                      <Badge variant="outline" className="text-[9px] shrink-0 uppercase tracking-wider">
+                        {planAreaLabel(obj.area)}
+                      </Badge>
                     </div>
+
+                    {obj.objective_type === 'quantitativo' && target ? (
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-lg font-bold tabular-nums text-foreground">
+                          {formatValue(current ?? 0, unit)}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                          / {formatValue(target, unit)}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-lg font-bold tabular-nums">{prog}%</span>
+                        <span className="text-[10px] text-muted-foreground">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</span>
+                      </div>
+                    )}
+
                     <Progress value={prog} className="h-1.5" />
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span className="tabular-nums font-medium">{prog}%</span>
+                      <span>{planStatusLabel(obj.status)}</span>
+                    </div>
+
+                    {krs.length > 0 && (
+                      <div className="pt-1.5 border-t border-border/50 space-y-1">
+                        <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
+                          {krs.length} Key Result{krs.length === 1 ? '' : 's'}
+                        </p>
+                        {krs.slice(0, 3).map((m: any) => {
+                          const mt = Number(m.target_value || 0);
+                          const mc = Number(m.current_value || 0);
+                          const mp = mt > 0 ? Math.min(100, Math.round((mc / mt) * 100)) : 0;
+                          return (
+                            <div key={m.id} className="space-y-0.5">
+                              <div className="flex items-baseline justify-between gap-2 text-[10px]">
+                                <span className="truncate text-muted-foreground">{m.name}</span>
+                                <span className="tabular-nums shrink-0 text-foreground font-medium">
+                                  {formatValue(mc, m.target_unit)} {mt > 0 ? `/ ${formatValue(mt, m.target_unit)}` : ''}
+                                </span>
+                              </div>
+                              {mt > 0 && <Progress value={mp} className="h-1" />}
+                            </div>
+                          );
+                        })}
+                        {krs.length > 3 && (
+                          <p className="text-[9px] text-muted-foreground">+ {krs.length - 3} mais</p>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
