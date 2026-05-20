@@ -23,7 +23,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     queryFn: async () => {
       const { data } = await supabase
         .from('commercial_sales')
-        .select('invoice_total,product,product_id')
+        .select('invoice_total,product,product_id,sale_month')
         .eq('sale_year', year)
         .in('sale_month', months);
       return data || [];
@@ -36,8 +36,52 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     queryFn: async () => {
       const { data } = await supabase
         .from('crm_leads')
-        .select('id,potential_product_id,potential_product,created_at')
+        .select('id,potential_product_id,potential_product,created_at,added_at,updated_at,status,next_followup')
         .eq('status', 'ganho')
+        .gte('created_at', start)
+        .lte('created_at', endTs);
+      return data || [];
+    },
+    ...CACHE,
+  });
+
+  // All leads in period (for conversion rates and tempo de fecho)
+  const allLeads = useQuery({
+    queryKey: ['kpi-auto-all-leads', year, startMonth, endMonth],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('crm_leads')
+        .select('id,status,added_at,updated_at,next_followup,potential_product_id')
+        .gte('added_at', start)
+        .lte('added_at', end);
+      return data || [];
+    },
+    ...CACHE,
+  });
+
+  // Pendentes globais (overdue follow-ups) — não dependem do período
+  const pendingFollowups = useQuery({
+    queryKey: ['kpi-auto-pending-followups'],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { count } = await supabase
+        .from('crm_leads')
+        .select('id', { count: 'exact', head: true })
+        .not('next_followup', 'is', null)
+        .lte('next_followup', today)
+        .not('status', 'in', '(ganho,perdido)');
+      return count ?? 0;
+    },
+    ...CACHE,
+  });
+
+  // Quotes (propostas) criadas no período
+  const quotes = useQuery({
+    queryKey: ['kpi-auto-quotes', year, startMonth, endMonth],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('product_quotes')
+        .select('id,lead_id,product_id,created_at')
         .gte('created_at', start)
         .lte('created_at', endTs);
       return data || [];
@@ -53,6 +97,32 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
         .select('id', { count: 'exact', head: true })
         .eq('status', 'ativo');
       return count ?? 0;
+    },
+    ...CACHE,
+  });
+
+  // Clientes com fase / produto / renovação
+  const clientsFull = useQuery({
+    queryKey: ['kpi-auto-clients-full'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('clients')
+        .select('id,status,current_product_id,renewal_count');
+      return data || [];
+    },
+    ...CACHE,
+  });
+
+  // Atividades de ciclo (renovações)
+  const renewals = useQuery({
+    queryKey: ['kpi-auto-renewals', year, startMonth, endMonth],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_renewals')
+        .select('client_id,cycle_number,completed,due_date')
+        .gte('due_date', start)
+        .lte('due_date', end);
+      return data || [];
     },
     ...CACHE,
   });
@@ -75,11 +145,28 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
-        .select('id,department,updated_at')
+        .select('id,department,updated_at,deadline,assigned_to,original_assignee,priority,status')
         .eq('status', 'done')
         .gte('updated_at', start)
         .lte('updated_at', endTs);
       return data || [];
+    },
+    ...CACHE,
+  });
+
+  // Tarefas P1/P2 (alta/media) em atraso — global
+  const overdueTasks = useQuery({
+    queryKey: ['kpi-auto-overdue-tasks'],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { count } = await supabase
+        .from('tasks')
+        .select('id', { count: 'exact', head: true })
+        .in('priority', ['alta', 'media'])
+        .neq('status', 'done')
+        .not('deadline', 'is', null)
+        .lt('deadline', today);
+      return count ?? 0;
     },
     ...CACHE,
   });
@@ -96,12 +183,12 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     ...CACHE,
   });
 
-  const followers = useQuery({
+  const channelMetrics = useQuery({
     queryKey: ['kpi-auto-followers', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('channel_monthly_metrics')
-        .select('followers,channel_id,month')
+        .select('followers,channel_id,month,ig_accounts_reached,yt_total_views,ig_avg_saves')
         .eq('year', year)
         .in('month', months);
       return data || [];
@@ -127,6 +214,20 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     queryKey: ['kpi-auto-content-channels'],
     queryFn: async () => {
       const { data } = await supabase.from('content_channels').select('content_id,channel_id');
+      return data || [];
+    },
+    ...CACHE,
+  });
+
+  // Content metrics (saves/shares/impressions) no período
+  const contentMetrics = useQuery({
+    queryKey: ['kpi-auto-content-metrics', year, startMonth, endMonth],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('content_metrics')
+        .select('saves,shares,impressions,reach,views,month,year')
+        .eq('year', year)
+        .in('month', months);
       return data || [];
     },
     ...CACHE,
@@ -165,9 +266,64 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     queryFn: async () => {
       const { data } = await supabase
         .from('financial_expenses')
-        .select('total_with_vat,category')
+        .select('total_with_vat,category,monthly_equivalent,is_recurring,status,renewal_date')
         .gte('expense_date', start)
         .lte('expense_date', end);
+      return data || [];
+    },
+    ...CACHE,
+  });
+
+  // Pagamentos em atraso — global (despesas com status pendente vencidas)
+  const overdueExpenses = useQuery({
+    queryKey: ['kpi-auto-overdue-expenses'],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { count } = await supabase
+        .from('financial_expenses')
+        .select('id', { count: 'exact', head: true })
+        .neq('status', 'pago')
+        .not('renewal_date', 'is', null)
+        .lt('renewal_date', today);
+      return count ?? 0;
+    },
+    ...CACHE,
+  });
+
+  // SOPs ativos — global
+  const activeSops = useQuery({
+    queryKey: ['kpi-auto-active-sops'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('sops')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'ativo');
+      return count ?? 0;
+    },
+    ...CACHE,
+  });
+
+  // Produtos recorrentes (para MRR)
+  const productsRecurring = useQuery({
+    queryKey: ['kpi-auto-products-recurring'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id,name,cycle_renewable,base_price');
+      return data || [];
+    },
+    ...CACHE,
+  });
+
+  // Projetos com deadline (para "no prazo")
+  const activeProjects = useQuery({
+    queryKey: ['kpi-auto-active-projects'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id,status,deadline,archived_at')
+        .is('archived_at', null)
+        .in('status', ['em_curso', 'agendado']);
       return data || [];
     },
     ...CACHE,
@@ -216,7 +372,74 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       if (sf.product_id) rows = rows.filter((r) => r.potential_product_id === sf.product_id);
       return rows.length;
     }
+    // === CRM avançado ===
+    if (src === 'bd_crm_conv_sessao') {
+      // % leads que receberam proposta = quotes únicos / leads adicionados no período
+      const totalLeads = (allLeads.data || []).length;
+      if (totalLeads === 0) return 0;
+      const uniq = new Set((quotes.data || []).map((q: any) => q.lead_id).filter(Boolean));
+      return Math.round((uniq.size / totalLeads) * 1000) / 10;
+    }
+    if (src === 'bd_crm_conv_proposta') {
+      // % leads ganhos / leads com proposta
+      const uniqQuotes = new Set((quotes.data || []).map((q: any) => q.lead_id).filter(Boolean));
+      if (uniqQuotes.size === 0) return 0;
+      const won = (allLeads.data || []).filter((l: any) => l.status === 'ganho' && uniqQuotes.has(l.id)).length
+        + (crm.data || []).filter((l: any) => uniqQuotes.has(l.id)).length;
+      // crm já filtra status='ganho' no período; usar união
+      const wonIds = new Set([
+        ...((allLeads.data || []) as any[]).filter((l) => l.status === 'ganho').map((l) => l.id),
+        ...((crm.data || []) as any[]).map((l) => l.id),
+      ]);
+      const numerator = Array.from(wonIds).filter((id) => uniqQuotes.has(id)).length;
+      return Math.round((numerator / uniqQuotes.size) * 1000) / 10;
+    }
+    if (src === 'bd_crm_tempo_fecho') {
+      // Média dias entre added_at e updated_at para leads ganhos no período
+      const rows = (crm.data || []) as any[];
+      const days = rows
+        .map((r) => {
+          const a = r.added_at ? new Date(r.added_at) : (r.created_at ? new Date(r.created_at) : null);
+          const u = r.updated_at ? new Date(r.updated_at) : null;
+          if (!a || !u) return null;
+          return (u.getTime() - a.getTime()) / (1000 * 60 * 60 * 24);
+        })
+        .filter((x): x is number => x !== null && x >= 0);
+      if (days.length === 0) return null;
+      return Math.round((days.reduce((s, d) => s + d, 0) / days.length) * 10) / 10;
+    }
+    if (src === 'bd_crm_followups') {
+      // Follow-ups pendentes (vencidos) — quanto menor, melhor
+      return pendingFollowups.data ?? 0;
+    }
+
     if (src === 'bd_clientes') return activeClients.data ?? null;
+    if (src === 'bd_clientes_fase_media') {
+      // Média do cycle_number atual (max por cliente) entre clientes ativos
+      const active = new Set(
+        ((clientsFull.data || []) as any[]).filter((c) => c.status === 'ativo').map((c) => c.id),
+      );
+      if (active.size === 0) return null;
+      const byClient: Record<string, number> = {};
+      for (const r of (renewals.data || []) as any[]) {
+        if (!active.has(r.client_id)) continue;
+        const cur = byClient[r.client_id] || 0;
+        byClient[r.client_id] = Math.max(cur, Number(r.cycle_number || 0));
+      }
+      const vals = Object.values(byClient);
+      // Para clientes sem renewals registadas, assumir ciclo 1
+      const missing = active.size - vals.length;
+      const total = vals.reduce((s, v) => s + v, 0) + missing * 1;
+      return Math.round((total / active.size) * 10) / 10;
+    }
+    if (src === 'bd_clientes_renovacao') {
+      // % de atividades de renovação concluídas no período
+      const rows = (renewals.data || []) as any[];
+      if (rows.length === 0) return null;
+      const done = rows.filter((r) => r.completed).length;
+      return Math.round((done / rows.length) * 1000) / 10;
+    }
+
     if (src === 'bd_tempo') {
       let rows = (timeEntries.data || []) as any[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
@@ -228,12 +451,53 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
+    if (src === 'bd_tarefas_p1p2_atraso') {
+      return overdueTasks.data ?? 0;
+    }
+
     if (src === 'bd_equipa') return team.data ?? null;
+    if (src === 'bd_equipa_execucao_autonoma') {
+      // % tarefas done que não foram reatribuídas (assigned_to == original_assignee ou original null)
+      const rows = (tasksDone.data || []) as any[];
+      if (rows.length === 0) return null;
+      const auton = rows.filter(
+        (r) => !r.original_assignee || r.original_assignee === r.assigned_to,
+      ).length;
+      return Math.round((auton / rows.length) * 1000) / 10;
+    }
+    if (src === 'bd_equipa_entregas_a_tempo') {
+      // % tarefas done concluídas até deadline
+      const rows = ((tasksDone.data || []) as any[]).filter((r) => r.deadline);
+      if (rows.length === 0) return null;
+      const onTime = rows.filter((r) => new Date(r.updated_at) <= new Date(r.deadline + 'T23:59:59')).length;
+      return Math.round((onTime / rows.length) * 1000) / 10;
+    }
+
     if (src === 'bd_marketing') {
-      let rows = (followers.data || []) as any[];
+      let rows = (channelMetrics.data || []) as any[];
       if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
       return rows.reduce((s, r) => s + Number(r.followers || 0), 0);
     }
+    if (src === 'bd_mkt_alcance_ig') {
+      let rows = (channelMetrics.data || []) as any[];
+      if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
+      return rows.reduce((s, r) => s + Number(r.ig_accounts_reached || 0), 0);
+    }
+    if (src === 'bd_mkt_views_youtube') {
+      let rows = (channelMetrics.data || []) as any[];
+      if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
+      return rows.reduce((s, r) => s + Number(r.yt_total_views || 0), 0);
+    }
+    if (src === 'bd_mkt_save_share') {
+      // (saves + shares) / impressions × 100
+      const rows = (contentMetrics.data || []) as any[];
+      const saves = rows.reduce((s, r) => s + Number(r.saves || 0), 0);
+      const shares = rows.reduce((s, r) => s + Number(r.shares || 0), 0);
+      const impr = rows.reduce((s, r) => s + Number(r.impressions || r.reach || 0), 0);
+      if (impr === 0) return null;
+      return Math.round(((saves + shares) / impr) * 1000) / 10;
+    }
+
     if (src === 'bd_conteudos') {
       let rows = (content.data || []) as any[];
       if (sf.channel_id) {
@@ -265,12 +529,111 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       if (sf.type) rows = rows.filter((r) => r.type === sf.type);
       return rows.length;
     }
+    if (src === 'bd_projetos_no_prazo') {
+      const rows = (activeProjects.data || []) as any[];
+      if (rows.length === 0) return null;
+      const today = new Date().toISOString().slice(0, 10);
+      const onTime = rows.filter((r) => !r.deadline || r.deadline >= today).length;
+      return Math.round((onTime / rows.length) * 1000) / 10;
+    }
+
+    // === Financeiro ===
+    if (src === 'bd_fin_mrr') {
+      // Soma de vendas no período cujo produto é recorrente (cycle_renewable=true)
+      const recurringIds = new Set(
+        ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
+      );
+      const rows = ((sales.data || []) as any[]).filter((s) => recurringIds.has(s.product_id));
+      const total = rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      // MRR mensal médio no intervalo
+      const monthSpan = endMonth - startMonth + 1;
+      return Math.round((total / monthSpan) * 100) / 100;
+    }
+    if (src === 'bd_fin_receita_variavel') {
+      const recurringIds = new Set(
+        ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
+      );
+      const rows = ((sales.data || []) as any[]).filter((s) => !recurringIds.has(s.product_id));
+      return Math.round(rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0) * 100) / 100;
+    }
+    if (src === 'bd_fin_custos_ratio') {
+      const totalRev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      if (totalRev === 0) return null;
+      const fixed = ((expenses.data || []) as any[])
+        .filter((e) => e.is_recurring)
+        .reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+      return Math.round((fixed / totalRev) * 1000) / 10;
+    }
+    if (src === 'bd_fin_breakeven') {
+      const rev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const cost = ((expenses.data || []) as any[]).reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+      return Math.round((rev - cost) * 100) / 100;
+    }
+    if (src === 'bd_fin_pagamentos_atraso') {
+      return overdueExpenses.data ?? 0;
+    }
+
+    // === Operação ===
+    if (src === 'bd_ops_sops_ativos') {
+      return activeSops.data ?? 0;
+    }
+
+    // === Produtos ===
+    if (src === 'bd_produtos_assinaturas') {
+      // Clientes ativos com produto recorrente
+      const recurringIds = new Set(
+        ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
+      );
+      const rows = ((clientsFull.data || []) as any[]).filter(
+        (c) => c.status === 'ativo' && recurringIds.has(c.current_product_id),
+      );
+      if (sf.product_id) {
+        return rows.filter((c) => c.current_product_id === sf.product_id).length;
+      }
+      return rows.length;
+    }
+    if (src === 'bd_produtos_ticket_medio') {
+      let rows = (sales.data || []) as any[];
+      if (sf.product_id) rows = rows.filter((r) => r.product_id === sf.product_id);
+      if (rows.length === 0) return null;
+      const avg = rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0) / rows.length;
+      return Math.round(avg * 100) / 100;
+    }
+
+    // === Geral ===
+    if (src === 'bd_geral_mrr_ratio') {
+      const recurringIds = new Set(
+        ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
+      );
+      const totalRev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      if (totalRev === 0) return null;
+      const mrr = ((sales.data || []) as any[])
+        .filter((s) => recurringIds.has(s.product_id))
+        .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      return Math.round((mrr / totalRev) * 1000) / 10;
+    }
+    if (src === 'bd_geral_velocidade_mrr') {
+      // Variação MRR primeiro mês vs último mês do range (€)
+      if (months.length < 2) return 0;
+      const recurringIds = new Set(
+        ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
+      );
+      const rows = ((sales.data || []) as any[]).filter((s) => recurringIds.has(s.product_id));
+      const first = rows
+        .filter((r) => r.sale_month === startMonth)
+        .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const last = rows
+        .filter((r) => r.sale_month === endMonth)
+        .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      return Math.round((last - first) * 100) / 100;
+    }
+
     return null;
   };
 
   const isLoading =
     sales.isLoading || crm.isLoading || activeClients.isLoading || timeEntries.isLoading ||
-    tasksDone.isLoading || team.isLoading || followers.isLoading || content.isLoading ||
+    tasksDone.isLoading || team.isLoading || channelMetrics.isLoading || content.isLoading ||
     meetings.isLoading || nps.isLoading || expenses.isLoading || projectsDone.isLoading;
 
   return { resolve, isLoading };
