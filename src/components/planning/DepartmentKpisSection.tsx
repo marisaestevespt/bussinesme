@@ -150,6 +150,10 @@ function KpiForm({
   const [unit, setUnit] = useState(initial.unit || '');
   const [target, setTarget] = useState(initial.target_value != null ? String(initial.target_value) : '');
   const [current, setCurrent] = useState(initial.current_value != null ? String(initial.current_value) : '');
+  const [valueSource, setValueSource] = useState<string>(initial.value_source || 'manual');
+  const [sourceFilter, setSourceFilter] = useState<Record<string, string>>(
+    (initial.source_filter as Record<string, string>) || {},
+  );
 
   const submit = () => {
     if (!name.trim()) return;
@@ -161,7 +165,8 @@ function KpiForm({
       unit: unit || null,
       target_value: target ? Number(target) : null,
       current_value: current ? Number(current) : 0,
-      value_source: 'manual',
+      value_source: valueSource,
+      source_filter: sourceFilter,
       is_active: true,
     });
   };
