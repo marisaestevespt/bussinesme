@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.refresh_absence_coverage_status() FROM PUBLIC, anon, authenticated;

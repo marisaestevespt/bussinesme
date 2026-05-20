@@ -12654,6 +12654,7 @@ export type Database = {
           task_status: string
         }[]
       }
+      refresh_absence_coverage_status: { Args: never; Returns: undefined }
       renew_recurring_cycles: { Args: never; Returns: number }
       resolve_deliverable_assignee: {
         Args: { _deliverable_id: string }
