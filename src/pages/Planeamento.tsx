@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import {
   ChevronLeft, ChevronRight, Compass, Target, CalendarRange,
-  CalendarDays, Flame, HelpCircle,
+  CalendarDays, Flame, HelpCircle, X, CheckCircle2, ArrowRight,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePlanningData } from '@/hooks/usePlanningData';
@@ -104,6 +104,13 @@ export default function PlaneamentoPage() {
         <PageHeader
           title="Planeamento"
           subtitle="Visão → Ano → Trimestre → Mês → Semana"
+        />
+        <OnboardingStrip
+          year={year}
+          objectivesCount={stats.totalObjs}
+          goalsCount={stats.totalGoals}
+          activeNivel={nivel}
+          onGoTo={(n) => setNivel(n)}
         />
         <div className="flex items-center justify-end gap-1 text-muted-foreground -mt-2">
           <GlossaryButton />
