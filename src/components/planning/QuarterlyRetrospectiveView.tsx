@@ -4,11 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2, XCircle, Lightbulb, Plus, Trash2, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, Target } from 'lucide-react';
 import { PLAN_AREAS, planAreaLabel } from '@/hooks/usePlanningData';
 import { useQuarterlyPlan, type QuarterStr } from '@/hooks/useQuarterlyPlan';
 import { confirmDestructive } from '@/lib/confirmDestructive';
+import { InlineEditableText } from '@/components/ui/inline-editable-text';
 
 const AREA_ICONS: Record<string, any> = {
   comercial: Briefcase, marketing: Megaphone, financeiro: Wallet,
@@ -100,9 +100,12 @@ export function QuarterlyRetrospectiveView({ planning, year, quarter }: Props) {
                 ) : (
                   <Progress value={stats.pct} className="h-1.5" />
                 )}
-                <RetroSummary
-                  area={area} year={year} quarter={quarter}
+                <InlineEditableText
                   value={plan?.retrospective || ''}
+                  multiline
+                  rows={3}
+                  placeholder="O que correu bem? O que falhou? Porquê?"
+                  emptyText="Adicionar resumo retrospetivo"
                   onSave={(v) => upsertPlan.mutate({ area, year, quarter, retrospective: v })}
                 />
               </div>
@@ -126,23 +129,6 @@ export function QuarterlyRetrospectiveView({ planning, year, quarter }: Props) {
         );
       })}
     </div>
-  );
-}
-
-function RetroSummary({ area, year, quarter, value, onSave }: {
-  area: string; year: number; quarter: QuarterStr; value: string;
-  onSave: (v: string) => void;
-}) {
-  const [v, setV] = useState(value);
-  return (
-    <Textarea
-      value={v}
-      onChange={(e) => setV(e.target.value)}
-      onBlur={() => { if (v !== value) onSave(v); }}
-      placeholder="O que correu bem? O que falhou? Porquê?"
-      rows={3}
-      className="text-xs"
-    />
   );
 }
 
