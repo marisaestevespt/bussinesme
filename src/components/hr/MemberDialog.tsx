@@ -530,7 +530,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                             setTimeout(applyOwnerDefaults, 0);
                           } else if (newRole) {
                             // Aplica preset associado ao cargo (se existir).
-                            const preset = CARGO_PRESETS[newRole.toLowerCase().trim()];
+                            const preset = CARGO_PRESETS[normalizeCargo(newRole)];
                             if (preset) {
                               set('system_role', preset.system_role);
                               set('departments', preset.depts);
