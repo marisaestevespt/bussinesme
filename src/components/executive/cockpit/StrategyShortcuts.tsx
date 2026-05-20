@@ -5,7 +5,7 @@ import { Lightbulb, Calculator, FileText, MessageSquareHeart, CalendarCheck, Tar
 const SHORTCUTS = [
   { to: '/executive/weekly-align', icon: CalendarCheck, label: 'Weekly Align', desc: 'Ritual semanal de revisão',
     iconColor: 'text-accent-violet', color: 'from-accent-violet/10 to-accent-violet/5 hover:from-accent-violet/20 hover:to-accent-violet/10' },
-  { to: '/executive/planeamento', icon: Target, label: 'Planeamento', desc: 'Objetivos e metas do ano',
+  { to: '/planeamento', icon: Target, label: 'Planeamento', desc: 'Visão → Ano → Trimestre → Mês → Semana',
     iconColor: 'text-accent', color: 'from-accent/15 to-accent/5 hover:from-accent/25 hover:to-accent/10' },
   { to: '/executive/innovation', icon: Lightbulb, label: 'Desenvolvimento & Inovação', desc: 'Ideias e roadmap',
     iconColor: 'text-warning', color: 'from-warning/10 to-warning/5 hover:from-warning/20 hover:to-warning/10' },
