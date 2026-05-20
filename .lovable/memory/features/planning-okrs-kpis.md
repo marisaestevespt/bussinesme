@@ -1,25 +1,21 @@
 ---
-name: Planning OKRs vs KPIs
-description: KPIs permanentes vivem em department_kpis (por departamento). KRs vivem em objective_metrics (com linked_kpi_id opcional). Metas de período (T1-T4 / mês) em planning_goals com metric_id opcional para ligar a KR específico.
+name: Planning Metas (renamed from KPIs/KRs)
+description: Fase 1 UI rename: KPI/KPR/Key Result → "Meta". Uma Meta = indicador permanente do dept com alvos anual/trimestral/mensal. Objetivos anuais associam Metas existentes (linked_kpi_id). Sem mudança de schema.
 type: feature
 ---
 
-## Conceito
-- **KPI** (department_kpis): métrica permanente do departamento (NPS, taxa de conversão...). Visível em /planeamento/dep/:dep via `<DepartmentKpisSection />`.
-- **KR** (objective_metrics): Key Result mensurável dentro de um objetivo anual. Pode ter `linked_kpi_id` para puxar valor automaticamente de um KPI.
-- **Meta de período** (planning_goals): target/actual para um período (T1, T2, Janeiro, ...). `metric_id` opcional liga a um KR específico em vez de só ao objetivo.
+## Linguagem na UI (importante)
+- "KPIs do departamento" → **"Metas do departamento"**
+- "Key Results" → **"Metas"** (associadas a objetivos)
+- "Novo KPI" → **"Nova Meta"**
+- "via KPI: X" → **"via Meta: X"**
 
-## Tabelas (migration 2026-05-20)
-- `department_kpis` (RLS: leitura authenticated, escrita owner/admin)
-- `objective_metrics.linked_kpi_id` → department_kpis(id) ON DELETE SET NULL
-- `planning_goals.metric_id` → objective_metrics(id) ON DELETE CASCADE
+## Schema (inalterado nesta fase)
+- `department_kpis` continua a ser a tabela das Metas
+- `objective_metrics.linked_kpi_id` continua a ligar KR↔Meta
+- `planning_goals.metric_id` continua a ligar metas trimestrais a KRs específicos
 
-## UI
-- /planeamento?nivel=ano: cards mostram valor/target + lista compacta de KRs (PlanningObjectivesTab compact mode).
-- /planeamento?nivel=trimestre: `QuarterlyObjectivesList` (lista por área → objetivos → KRs + metas trimestrais editáveis inline). Substituiu QuarterlyGallery.
-- /planeamento/dep/:dep: `DepartmentKpisSection` no topo (CRUD inline).
-
-## A fazer (próximo passe)
-- Permitir escolher um KPI ao criar um KR (selector `linked_kpi_id`).
-- Redesign do nível mensal + reparar métricas partidas (capacidade equipa, horas/cliente, entregas).
-- Auto-sync `objective_metrics.current_value` quando `linked_kpi_id` definido.
+## Roadmap fase 2 (futuro, não feito ainda)
+- Forçar ligação a Meta existente ao criar KR (esconder fluxo standalone)
+- Esconder meta mensal em planning_goals quando há linked_kpi_id (vem do dept)
+- Eventualmente: migrar KRs órfãos → Metas e dropar campos duplicados
