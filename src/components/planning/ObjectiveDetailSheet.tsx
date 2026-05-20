@@ -267,6 +267,11 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
               <div className="rounded-lg border p-3">
                 <p className="text-xs text-muted-foreground">Fonte</p>
                 <p className="text-sm font-medium">{VALUE_SOURCES.find(s => s.value === obj.value_source)?.label || 'Manual'}</p>
+                {obj.value_source === 'manual' && objMetrics.some((m: any) => m.linked_kpi_id || (m.source && m.source !== 'manual')) && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {objMetrics.filter((m: any) => m.linked_kpi_id || (m.source && m.source !== 'manual')).length} meta(s) associada(s) com fonte automática
+                  </p>
+                )}
                 {obj.product_id && objProductName && (
                   <p className="text-xs text-muted-foreground mt-1">Produto: {objProductName}</p>
                 )}
