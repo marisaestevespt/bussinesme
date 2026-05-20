@@ -23,9 +23,9 @@ export function BlockMonthlyKRs({ year }: { year: number; month: number }) {
   if (krs.length === 0) {
     return (
       <div className="text-xs text-muted-foreground space-y-1">
-        <p>Ainda não há <strong>Key Results</strong> com meta definida.</p>
+        <p>Ainda não há <strong>Key Results</strong> ligados a este mês.</p>
         <p className="text-[11px]">
-          Os KRs vivem dentro de cada objetivo anual — abre Planeamento → Ano → escolhe um objetivo e adiciona as métricas (target + fonte). Aparecem aqui para acompanhares o progresso mês a mês. Não confundir com os KPIs do departamento (esses são permanentes e geridos por área).
+          Os Key Results vivem dentro de cada objetivo anual e podem ligar-se a uma <strong>Meta do departamento</strong> para puxar valores automaticamente. Abre Planeamento → Ano → escolhe um objetivo e associa uma meta existente (ou cria uma nova em Planeamento → Departamento).
         </p>
       </div>
     );
@@ -54,7 +54,7 @@ export function BlockMonthlyKRs({ year }: { year: number; month: number }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-medium truncate">{m.name}</span>
                 {obj && <Badge variant="outline" className="text-[10px]">{obj.title}</Badge>}
-                {linkedKpi && <Badge variant="secondary" className="text-[10px]">via KPI: {linkedKpi.name}</Badge>}
+                {linkedKpi && <Badge variant="secondary" className="text-[10px]">via Meta: {linkedKpi.name}</Badge>}
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
