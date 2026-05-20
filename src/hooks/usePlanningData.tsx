@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 
 // cleanPayload imported from utils — aliased as `clean` for minimal diff
 import { cleanPayload as clean } from '@/lib/utils';
-import { sumRevenue } from '@/lib/salesCalculations';
 import type {
   PlanningFormPayload,
   ObjectiveRow,
@@ -13,20 +12,11 @@ import type {
   MetricRow,
   MetricHistoryRow,
   ActionRow,
-  AutoSalesRow,
-  AutoCrmRow,
-  AutoTimeEntryRow,
-  AutoTaskRow,
-  AutoMarketingFollowersRow,
-  AutoContentItemRow,
-  AutoContentChannelRow,
-  AutoMeetingRow,
-  AutoNpsRow,
-  AutoExpenseRow,
-  AutoProjectRow,
   ProductLite,
 } from '@/types/planning';
 import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
+import { useKpiAutoValueRange } from './useKpiAutoValue';
+import type { DepartmentKpi } from './useDepartmentKpis';
 
 const currentYear = new Date().getFullYear();
 
