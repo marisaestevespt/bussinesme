@@ -3,6 +3,7 @@ import { useDepartmentKpis } from '@/hooks/useDepartmentKpis';
 import { useDepartmentKpiMonthly } from '@/hooks/useDepartmentKpiMonthly';
 import { useKpiAutoValueRange, quarterRange } from '@/hooks/useKpiAutoValue';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Gauge, Zap } from 'lucide-react';
 import { InlineEditableText } from '@/components/ui/inline-editable-text';
@@ -83,7 +84,7 @@ export function KPRsInline({ area, year, month, period: initialPeriod = 'month',
       <div className="grid grid-cols-[1fr_90px_90px_70px_1.5fr] gap-2 px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-medium border-t border-border/40">
         <span>KPR</span>
         <span className="text-right">Meta {periodLabel}</span>
-        <span className="text-right">Valor</span>
+        <span className="text-right">Real</span>
         <span className="text-right">Δ</span>
         <span>Análise</span>
       </div>
@@ -131,35 +132,32 @@ export function KPRsInline({ area, year, month, period: initialPeriod = 'month',
                       upsert.mutate({ kpi_id: k.id, year, month, target_value: v, actual_value: row?.actual_value ?? null });
                     }
                   }}
-                  className="h-7 text-xs text-right tabular-nums"
+                  className="h-7 text-xs text-right tabular-nums border-0 bg-transparent shadow-none px-1 focus-visible:ring-1 focus-visible:ring-ring/40 hover:bg-muted/40"
                   placeholder="—"
                 />
               ) : (
-                <div className="h-7 px-2 flex items-center justify-end text-xs tabular-nums text-muted-foreground bg-muted/10 rounded">
+                <div className="h-7 px-2 flex items-center justify-end text-xs tabular-nums text-muted-foreground">
                   {target != null ? Number(target).toLocaleString('pt-PT') : '—'}
                 </div>
               )}
-              {isManual ? (
-                period === 'month' ? (
-                  <Input
-                    type="number"
-                    defaultValue={row?.actual_value ?? ''}
-                    onBlur={(e) => {
-                      const v = e.target.value === '' ? null : Number(e.target.value);
-                      if (v !== (row?.actual_value ?? null)) {
-                        upsert.mutate({ kpi_id: k.id, year, month, actual_value: v, target_value: monthlyTarget ?? null });
-                      }
-                    }}
-                    className="h-7 text-xs text-right tabular-nums"
-                    placeholder="—"
-                  />
-                ) : (
-                  <div className="h-7 px-2 flex items-center justify-end text-xs tabular-nums text-foreground bg-muted/20 rounded">
-                    {actual != null ? Number(actual).toLocaleString('pt-PT') : '—'}
-                  </div>
-                )
+              {isManual && period === 'month' ? (
+                <Input
+                  type="number"
+                  defaultValue={row?.actual_value ?? ''}
+                  onBlur={(e) => {
+                    const v = e.target.value === '' ? null : Number(e.target.value);
+                    if (v !== (row?.actual_value ?? null)) {
+                      upsert.mutate({ kpi_id: k.id, year, month, actual_value: v, target_value: monthlyTarget ?? null });
+                    }
+                  }}
+                  className={cn(
+                    'h-7 text-xs text-right tabular-nums font-medium border-0 bg-transparent shadow-none px-1',
+                    'focus-visible:ring-1 focus-visible:ring-ring/40 hover:bg-muted/40',
+                  )}
+                  placeholder="—"
+                />
               ) : (
-                <div className="h-7 px-2 flex items-center justify-end text-xs tabular-nums text-foreground bg-muted/20 rounded">
+                <div className="h-7 px-2 flex items-center justify-end text-xs tabular-nums font-medium text-foreground">
                   {actual != null ? Number(actual).toLocaleString('pt-PT') : '—'}
                 </div>
               )}
