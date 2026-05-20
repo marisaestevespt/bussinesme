@@ -541,8 +541,11 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold">Métricas de Acompanhamento</h3>
-        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Métrica</Button>
+        <div>
+          <h3 className="text-sm font-semibold">Metas associadas</h3>
+          <p className="text-[10px] text-muted-foreground">Liga este objetivo às Metas do departamento (recomendado) ou cria uma métrica ad-hoc.</p>
+        </div>
+        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Associar Meta</Button>
       </div>
       {metrics.length === 0 ? <EmptyHint>Sem métricas definidas</EmptyHint> : (
         <Table>
@@ -608,27 +611,48 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
       {/* New metric dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Nova Métrica</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Associar Meta</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
+            {kpisList.length > 0 && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <Label className="text-xs font-semibold">Meta do departamento (recomendado)</Label>
+                <Select value={form.linked_kpi_id || 'none'} onValueChange={v => {
+                  const id = v === 'none' ? '' : v;
+                  const kpi = id ? kpisList.find((k: any) => k.id === id) : null;
+                  setForm(p => ({
+                    ...p,
+                    linked_kpi_id: id,
+                    name: kpi ? kpi.name : p.name,
+                    target_unit: kpi?.unit || p.target_unit,
+                    target_value: kpi?.target_value != null ? String(kpi.target_value) : p.target_value,
+                  }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Escolher meta existente…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— criar métrica ad-hoc (não recomendado) —</SelectItem>
+                    {kpisList.map((k: any) => (
+                      <SelectItem key={k.id} value={k.id}>{k.name} {k.unit ? `(${k.unit})` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  {form.linked_kpi_id
+                    ? 'Valor real, unidade e alvo são lidos automaticamente desta Meta. Edita-os em Planeamento → Departamento.'
+                    : 'Liga a uma Meta existente para evitar duplicação. Se não houver, cria primeiro em Planeamento → Departamento.'}
+                </p>
+              </div>
+            )}
+            <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} disabled={!!form.linked_kpi_id} /></div>
+            {!form.linked_kpi_id && (<>
             <div><Label>Tipo de medição</Label>
               <Select value={form.measurement_type || 'acumulativo'} onValueChange={v => setForm(p => ({ ...p, measurement_type: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                {form.measurement_type === 'progressivo'
-                  ? 'Valor absoluto atual (ex: seguidores, clientes ativos)'
-                  : 'Soma de registos no período (ex: faturação, vendas)'}
-              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor objetivo</Label><Input type="number" value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
               <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => setForm(p => ({ ...p, target_unit: e.target.value }))} /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>% "No caminho"</Label><Input type="number" value={form.green_threshold} onChange={e => setForm(p => ({ ...p, green_threshold: e.target.value }))} /></div>
-              <div><Label>% "Atenção"</Label><Input type="number" value={form.yellow_threshold} onChange={e => setForm(p => ({ ...p, yellow_threshold: e.target.value }))} /></div>
             </div>
             <div><Label>Cadência</Label>
               <Select value={form.cadence} onValueChange={v => setForm(p => ({ ...p, cadence: v }))}>
@@ -642,20 +666,6 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            {kpisList.length > 0 && (
-              <div><Label>Ligar a Meta do departamento (opcional)</Label>
-                <Select value={form.linked_kpi_id || 'none'} onValueChange={v => setForm(p => ({ ...p, linked_kpi_id: v === 'none' ? '' : v }))}>
-                  <SelectTrigger><SelectValue placeholder="Não ligado" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Não ligado</SelectItem>
-                    {kpisList.map((k: any) => (
-                      <SelectItem key={k.id} value={k.id}>{k.name} {k.unit ? `(${k.unit})` : ''}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente da Meta ligada (recomendado — evita duplicação).</p>
-              </div>
-            )}
             {(form.source === 'bd_vendas' || form.source === 'bd_crm') && (
               <div><Label>Produto associado</Label>
                 <Select value={form.product_id || 'none'} onValueChange={v => setForm(p => ({ ...p, product_id: v === 'none' ? '' : v }))}>
@@ -667,6 +677,7 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
                 </Select>
               </div>
             )}
+            </>)}
             <Button className="w-full" onClick={handleSaveNew} disabled={!form.name.trim()}>Guardar</Button>
           </div>
         </DialogContent>

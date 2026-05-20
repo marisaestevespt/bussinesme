@@ -15,7 +15,12 @@ type: feature
 - `objective_metrics.linked_kpi_id` continua a ligar KR↔Meta
 - `planning_goals.metric_id` continua a ligar metas trimestrais a KRs específicos
 
-## Roadmap fase 2 (futuro, não feito ainda)
-- Forçar ligação a Meta existente ao criar KR (esconder fluxo standalone)
-- Esconder meta mensal em planning_goals quando há linked_kpi_id (vem do dept)
-- Eventualmente: migrar KRs órfãos → Metas e dropar campos duplicados
+## Fase 2 (feito — UI)
+- Diálogo "Associar Meta" (antes "Nova Métrica") em ObjectiveDetailSheet: seletor de Meta do dept no topo, em destaque
+- Ao selecionar Meta: nome/unidade/alvo pré-preenchidos e bloqueados; cadência/fonte/produto/thresholds escondidos (vêm da Meta)
+- Opção "criar métrica ad-hoc" continua disponível mas marcada como "não recomendado"
+- Header da secção renomeado "Métricas de Acompanhamento" → "Metas associadas"
+
+## Roadmap fase 3 (futuro)
+- Esconder meta mensal em planning_goals quando objetivo tem Meta ligada (vem do dept)
+- Migrar KRs órfãos → Metas e dropar campos duplicados
