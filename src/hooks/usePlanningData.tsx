@@ -550,9 +550,7 @@ export function usePlanningData(year = currentYear) {
   // Helper: compute objective progress
   const objectiveProgress = (obj: ObjectiveRow & { product_name?: string | null; source_filter?: Record<string, string> | null }) => {
     if (obj.objective_type === 'quantitativo') {
-      const pName = obj.product_name ?? resolveProductName(obj.product_id);
-      const sf = obj.source_filter || null;
-      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName, obj.primary_metric_id, sf) ?? 0);
+      const cv = objectiveCurrentValue(obj);
       const tv = Number(obj.target_value || 0);
       if (tv <= 0) return 0;
       return Math.min(100, Math.round((cv / tv) * 100));
@@ -563,9 +561,23 @@ export function usePlanningData(year = currentYear) {
     return Math.round((crits.filter((c) => c.completed).length / crits.length) * 100);
   };
 
-  // Helper: current value for objective
+  // Helper: aggregate current_value from auto-sourced linked metrics (if any)
+  const aggregatedFromMetrics = (objectiveId: string): number | null => {
+    const linked = (metrics.data || []).filter(
+      (m: any) => m.objective_id === objectiveId && (m.linked_kpi_id || (m.source && m.source !== 'manual')),
+    );
+    if (linked.length === 0) return null;
+    return linked.reduce((acc: number, m: any) => acc + Number(m.current_value || 0), 0);
+  };
+
+  // Helper: current value for objective.
+  // When source = 'manual' but there are auto-sourced linked metrics, aggregate from them.
   const objectiveCurrentValue = (obj: ObjectiveRow & { product_name?: string | null; source_filter?: Record<string, string> | null }) => {
-    if (obj.value_source === 'manual') return Number(obj.current_value || 0);
+    if (obj.value_source === 'manual') {
+      const auto = aggregatedFromMetrics(obj.id);
+      if (auto !== null) return auto;
+      return Number(obj.current_value || 0);
+    }
     const pName = obj.product_name ?? resolveProductName(obj.product_id);
     const sf = obj.source_filter || null;
     return getAutoValue(obj.value_source, pName, obj.primary_metric_id, sf) ?? 0;
