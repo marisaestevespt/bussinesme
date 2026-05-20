@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronDown, ChevronRight, Plus, Pencil, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
+import { planAreaLabel, planStatusLabel, PLAN_AREAS } from '@/hooks/usePlanningData';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 
 const QUARTER_MONTHS: Record<string, string[]> = {
@@ -45,15 +45,17 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
   const goals = planning.allGoals || [];
   const qMonths = QUARTER_MONTHS[quarter];
 
-  // Group objectives by area
+  // Group objectives by area — render ALL 8 canonical areas, even empty ones,
+  // so o utilizador pode planear/criar objetivos por área diretamente daqui.
   const byArea = useMemo(() => {
     const map: Record<string, any[]> = {};
+    for (const a of PLAN_AREAS) map[a.value] = [];
     for (const o of objectives) {
       const k = o.area || 'geral';
       if (!map[k]) map[k] = [];
       map[k].push(o);
     }
-    return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+    return PLAN_AREAS.map((a) => [a.value, map[a.value] || []] as [string, any[]]);
   }, [objectives]);
 
   const goalsForObj = (objId: string) =>
@@ -61,7 +63,9 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
 
   const krsForObj = (objId: string) => metrics.filter((m: any) => m.objective_id === objId);
 
-  const isAreaOpen = (a: string) => openAreas[a] !== false; // default open
+  // Default: only non-empty areas are expanded; empty ones colapsam para reduzir scroll.
+  const isAreaOpen = (a: string, hasItems: boolean) =>
+    openAreas[a] !== undefined ? openAreas[a] : hasItems;
 
   return (
     <div className="space-y-4">
@@ -74,7 +78,7 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
       )}
 
       {byArea.map(([area, objs]) => {
-        const open = isAreaOpen(area);
+        const open = isAreaOpen(area, objs.length > 0);
         return (
           <Card key={area} className="hq-card overflow-hidden">
             <button
@@ -91,6 +95,14 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
 
             {open && (
               <div className="divide-y divide-border/40">
+                {objs.length === 0 && (
+                  <div className="px-4 py-6 text-center text-xs text-muted-foreground space-y-2">
+                    <p>Sem objetivos para esta área neste ano.</p>
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setDetailObj({ area, year, objective_type: 'quantitativo' })}>
+                      <Plus className="h-3 w-3 mr-1" /> Criar objetivo de {planAreaLabel(area)}
+                    </Button>
+                  </div>
+                )}
                 {objs.map((obj: any) => {
                   const expanded = !!openObj[obj.id];
                   const krs = krsForObj(obj.id);
