@@ -15,6 +15,7 @@ import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { HorizonsView } from '@/components/planning/HorizonsView';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
+import { QuarterlyObjectivesList } from '@/components/planning/QuarterlyObjectivesList';
 import { MonthlyCockpit } from '@/components/planning/cockpit/MonthlyCockpit';
 import { StrategicSection } from '@/components/planning/StrategicSection';
 import { BusinessPlanCanvas } from '@/components/planning/BusinessPlanCanvas';
@@ -194,19 +195,28 @@ export default function PlaneamentoPage() {
                 const p = quarterProgress[i];
                 const isActive = i === activeQuarterIdx;
                 return (
-                  <Card key={q.short} className={cn('hq-card', isActive && 'border-primary/60 ring-1 ring-primary/30')}>
-                    <CardContent className="p-3 space-y-1.5">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{q.short}</span>
-                        <span className="text-sm font-bold tabular-nums">{p.pct}%</span>
-                      </div>
-                      <Progress value={p.pct} className="h-1" />
-                    </CardContent>
-                  </Card>
+                  <button
+                    key={q.short}
+                    onClick={() => setMonth(year, q.monthIdx[0] + 1)}
+                    className={cn(
+                      'text-left rounded-lg border p-3 space-y-1.5 hq-transition hover:border-primary/40',
+                      isActive ? 'border-primary/60 ring-1 ring-primary/30 bg-primary/5' : 'border-border/60'
+                    )}
+                  >
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{q.short}</span>
+                      <span className="text-sm font-bold tabular-nums">{p.pct}%</span>
+                    </div>
+                    <Progress value={p.pct} className="h-1" />
+                  </button>
                 );
               })}
             </div>
-            <QuarterlyGallery planning={planning} year={year} initialQuarter={activeQuarterIdx} />
+            <QuarterlyObjectivesList
+              planning={planning}
+              year={year}
+              quarter={(['T1','T2','T3','T4'] as const)[activeQuarterIdx]}
+            />
           </TabsContent>
 
           {/* MÊS */}
