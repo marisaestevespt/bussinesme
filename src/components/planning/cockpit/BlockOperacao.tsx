@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { getProjectStatusInfo, isProjectOverdue } from '@/lib/projectStatus';
 import { isTaskDone, isTaskOverdue, getTaskPriorityInfo } from '@/lib/taskStatus';
 import { monthlyCapacity, OVERLOAD_THRESHOLD } from '@/lib/memberCapacity';
+import { KPRsInline } from './KPRsInline';
 
 export function BlockOperacao({ year, month }: { year: number; month: number }) {
   const [projectSearch, setProjectSearch] = useState('');
@@ -122,6 +123,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
 
   return (
     <div className="space-y-4">
+      <KPRsInline area="operacao" year={year} month={month} />
       {/* KPIs compactos */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {[

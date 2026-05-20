@@ -8,6 +8,7 @@ import { CalendarDays, Megaphone, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ContentCalendar } from '@/components/marketing/ContentCalendar';
 import type { ContentItem, MarketingChannel, ContentChannelLink } from '@/lib/marketing-constants';
+import { KPRsInline } from './KPRsInline';
 
 export function BlockMarketing({ year, month }: { year: number; month: number }) {
   const { data, isLoading } = useQuery({
@@ -64,6 +65,7 @@ export function BlockMarketing({ year, month }: { year: number; month: number })
 
   return (
     <div className="space-y-4">
+      <KPRsInline area="marketing" year={year} month={month} />
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Link to="/hub/comercial?tab=pipeline" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block" target="_blank" rel="noopener noreferrer">

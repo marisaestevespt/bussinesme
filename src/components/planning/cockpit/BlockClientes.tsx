@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { KPRsInline } from './KPRsInline';
 
 const STATUS_TONE: Record<string, string> = {
   ativo: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
@@ -109,6 +110,7 @@ export function BlockClientes({ year, month }: { year: number; month: number }) 
 
   return (
     <div className="space-y-4">
+      <KPRsInline area="clientes" year={year} month={month} />
       {/* KPIs compactos */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
         {[
