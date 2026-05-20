@@ -99,11 +99,6 @@ export function ObjectiveCascadeRow({ objective, planning }: { objective: any; p
     );
   };
 
-  const semesters = ['S1', 'S2'].map((k) => {
-    const override = pickPeriodOverride(k);
-    const agg = aggregateFor(SEMESTER_MONTHS[k]);
-    return { key: k, target: override?.target ?? agg?.target ?? null, actual: agg?.actual ?? override?.actual ?? null };
-  });
   const quarters = ['T1','T2','T3','T4'].map((k) => {
     const override = pickPeriodOverride(k);
     const agg = aggregateFor(QUARTER_MONTHS[k]);
@@ -119,8 +114,6 @@ export function ObjectiveCascadeRow({ objective, planning }: { objective: any; p
         </span>
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        {semesters.map((s) => <Cell key={s.key} label={s.key} target={s.target} actual={s.actual} />)}
-        <span className="text-muted-foreground/40 px-0.5">·</span>
         {quarters.map((q) => <Cell key={q.key} label={q.key} target={q.target} actual={q.actual} />)}
       </div>
     </div>
