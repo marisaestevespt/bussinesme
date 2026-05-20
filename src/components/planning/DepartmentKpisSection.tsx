@@ -54,27 +54,27 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
               <Gauge className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-base font-semibold">KPIs do departamento</p>
+              <p className="text-base font-semibold">Metas do departamento</p>
               <p className="text-xs text-muted-foreground">
                 Métricas permanentes de produtividade e sucesso{departmentLabel ? ` para ${departmentLabel}` : ''}.
               </p>
             </div>
           </div>
           <Button size="sm" variant="outline" onClick={() => setDialogState('new')}>
-            <Plus className="h-4 w-4 mr-1" /> Novo KPI
+            <Plus className="h-4 w-4 mr-1" /> Nova Meta
           </Button>
         </div>
 
         {list.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">
-            Ainda sem KPIs definidos. Cria o primeiro para começar a medir.
+            Ainda sem metas definidas. Cria a primeira para começar a medir.
           </p>
         ) : (
           <div className="overflow-x-auto -mx-1">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border/50">
-                  <th className="font-medium px-2 py-2">KPI</th>
+                  <th className="font-medium px-2 py-2">Meta</th>
                   <th className="font-medium px-2 py-2 text-right">Atual</th>
                   <th className="font-medium px-2 py-2 text-right">Meta mensal</th>
                   <th className="font-medium px-2 py-2 text-right">Trimestral</th>
@@ -118,7 +118,7 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
                         className="h-6 w-6 text-destructive"
                         onClick={async (e) => {
                           e.stopPropagation();
-                          if (await confirmDestructive({ title: 'Remover KPI?', description: 'Esta ação não pode ser desfeita.' })) {
+                          if (await confirmDestructive({ title: 'Remover meta?', description: 'Esta ação não pode ser desfeita.' })) {
                             remove.mutate(k.id);
                           }
                         }}
@@ -137,7 +137,7 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
         <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) setDialogState(null); }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingKpi ? 'Editar KPI' : 'Novo KPI'}</DialogTitle>
+              <DialogTitle>{editingKpi ? 'Editar Meta' : 'Nova Meta'}</DialogTitle>
               <DialogDescription>
                 Define como medimos esta métrica e qual é a meta a atingir.
               </DialogDescription>
