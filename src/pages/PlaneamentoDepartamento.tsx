@@ -151,6 +151,7 @@ export default function PlaneamentoDepartamento() {
             year={year}
             planAreaKey={planAreaKey}
             label={label}
+            embedded
           />
         </section>
 
