@@ -121,7 +121,7 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
                 <CardContent className="pt-5">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-base font-semibold">Objetivos &amp; Key Results</p>
+                      <p className="text-base font-semibold">Objetivos &amp; Metas</p>
                       <p className="text-xs text-muted-foreground">Metas anuais com progresso por {quarter}.</p>
                     </div>
                   </div>
@@ -190,7 +190,7 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
                         <div className="pl-6 pt-2 space-y-3">
                           {/* Key Results */}
                           <div className="space-y-1.5">
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Key Results</p>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Metas associadas</p>
                             {krs.length === 0 && (
                               <p className="text-[11px] text-muted-foreground italic">Sem KRs. Abre o objetivo para adicionar.</p>
                             )}
