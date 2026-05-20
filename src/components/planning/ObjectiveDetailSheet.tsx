@@ -19,6 +19,8 @@ import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCE
 import { useTeamData } from '@/hooks/useTeamData';
 import { useProducts } from '@/hooks/useProducts';
 import { useDepartmentKpis } from '@/hooks/useDepartmentKpis';
+import { useDepartmentKpiMonthly } from '@/hooks/useDepartmentKpiMonthly';
+import { Link as RouterLink } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -277,7 +279,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
           )}
 
           <Separator />
-          <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} parentObjective={obj} />
+          <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} parentObjective={obj} metrics={objMetrics} />
           <Separator />
           <MetricsSection objectiveId={obj.id} objectiveArea={obj.area} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
           <Separator />
