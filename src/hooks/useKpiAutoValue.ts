@@ -5,30 +5,34 @@ import type { DepartmentKpi } from './useDepartmentKpis';
 const CACHE = { staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
 /**
- * Resolves auto value for monthly KPRs, scoped to a (year, month).
- * Mirrors the source codes used in usePlanningData (VALUE_SOURCES) but per-month.
+ * Resolves auto value for KPRs across a [startMonth, endMonth] window in a year.
+ * - month=N → useKpiAutoValue(year, N) (start=end=N)
+ * - quarter Q → range (Q*3-2, Q*3)
+ * - year → range (1, 12)
  */
-export function useKpiAutoValue(year: number, month: number) {
-  const start = `${year}-${String(month).padStart(2, '0')}-01`;
-  const endDay = new Date(year, month, 0).getDate();
-  const end = `${year}-${String(month).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+export function useKpiAutoValueRange(year: number, startMonth: number, endMonth: number) {
+  const start = `${year}-${String(startMonth).padStart(2, '0')}-01`;
+  const endDay = new Date(year, endMonth, 0).getDate();
+  const end = `${year}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
   const endTs = end + 'T23:59:59';
+  const months: number[] = [];
+  for (let m = startMonth; m <= endMonth; m++) months.push(m);
 
   const sales = useQuery({
-    queryKey: ['kpi-auto-sales', year, month],
+    queryKey: ['kpi-auto-sales', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('commercial_sales')
         .select('invoice_total,product,product_id')
         .eq('sale_year', year)
-        .eq('sale_month', month);
+        .in('sale_month', months);
       return data || [];
     },
     ...CACHE,
   });
 
   const crm = useQuery({
-    queryKey: ['kpi-auto-crm', year, month],
+    queryKey: ['kpi-auto-crm', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('crm_leads')
@@ -54,20 +58,20 @@ export function useKpiAutoValue(year: number, month: number) {
   });
 
   const timeEntries = useQuery({
-    queryKey: ['kpi-auto-time', year, month],
+    queryKey: ['kpi-auto-time', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('time_entries')
         .select('duration,category,client_id')
         .eq('entry_year', year)
-        .eq('entry_month', month);
+        .in('entry_month', months);
       return data || [];
     },
     ...CACHE,
   });
 
   const tasksDone = useQuery({
-    queryKey: ['kpi-auto-tasks', year, month],
+    queryKey: ['kpi-auto-tasks', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
@@ -93,20 +97,20 @@ export function useKpiAutoValue(year: number, month: number) {
   });
 
   const followers = useQuery({
-    queryKey: ['kpi-auto-followers', year, month],
+    queryKey: ['kpi-auto-followers', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('channel_monthly_metrics')
-        .select('followers,channel_id')
+        .select('followers,channel_id,month')
         .eq('year', year)
-        .eq('month', month);
+        .in('month', months);
       return data || [];
     },
     ...CACHE,
   });
 
   const content = useQuery({
-    queryKey: ['kpi-auto-content', year, month],
+    queryKey: ['kpi-auto-content', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('content_items')
@@ -129,7 +133,7 @@ export function useKpiAutoValue(year: number, month: number) {
   });
 
   const meetings = useQuery({
-    queryKey: ['kpi-auto-meetings', year, month],
+    queryKey: ['kpi-auto-meetings', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('meetings')
@@ -143,7 +147,7 @@ export function useKpiAutoValue(year: number, month: number) {
   });
 
   const nps = useQuery({
-    queryKey: ['kpi-auto-nps', year, month],
+    queryKey: ['kpi-auto-nps', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('client_nps_records')
@@ -157,7 +161,7 @@ export function useKpiAutoValue(year: number, month: number) {
   });
 
   const expenses = useQuery({
-    queryKey: ['kpi-auto-expenses', year, month],
+    queryKey: ['kpi-auto-expenses', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('financial_expenses')
@@ -170,7 +174,7 @@ export function useKpiAutoValue(year: number, month: number) {
   });
 
   const projectsDone = useQuery({
-    queryKey: ['kpi-auto-projects', year, month],
+    queryKey: ['kpi-auto-projects', year, startMonth, endMonth],
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
@@ -270,4 +274,15 @@ export function useKpiAutoValue(year: number, month: number) {
     meetings.isLoading || nps.isLoading || expenses.isLoading || projectsDone.isLoading;
 
   return { resolve, isLoading };
+}
+
+/** Backwards-compatible monthly wrapper */
+export function useKpiAutoValue(year: number, month: number) {
+  return useKpiAutoValueRange(year, month, month);
+}
+
+/** Helpers */
+export function quarterRange(quarter: number): [number, number] {
+  const start = (quarter - 1) * 3 + 1;
+  return [start, start + 2];
 }

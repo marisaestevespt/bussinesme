@@ -15,6 +15,7 @@ import { WeeklyKpiCards, CapacityFinancialCards } from '@/components/executive/W
 import { WeeklyStrategicMetrics } from '@/components/executive/WeeklyStrategicMetrics';
 import { MetasSection, AgendaSection, VendasSection, LeadsSection, ClientesSection, NpsSection, ExpiringContractsSection, OperacaoSection, MarketingGoalsSection } from '@/components/executive/WeeklyAlignSections';
 import { RoutinesSection } from '@/components/executive/WeeklyAlignRoutines';
+import { WeeklyAlignKprs } from '@/components/executive/WeeklyAlignKprs';
 import { ChevronLeft, ChevronRight, Save, CalendarCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeeklyAlignData } from '@/hooks/useWeeklyAlignData';
@@ -220,6 +221,8 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
         <MetasSection planning={planning} currentMonth={wa.currentMonth} onOpenDetail={openDetail} />
+        <Separator />
+        <WeeklyAlignKprs year={wa.currentYear} month={wa.currentMonth} />
         <Separator />
         <MarketingGoalsSection currentMonth={wa.currentMonth} currentYear={wa.currentYear} />
         <Separator />

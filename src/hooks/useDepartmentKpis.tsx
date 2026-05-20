@@ -16,6 +16,9 @@ export interface DepartmentKpi {
   sort_order: number;
   notes: string | null;
   last_updated_at: string | null;
+  objective_id?: string | null;
+  quarterly_target?: number | null;
+  annual_target?: number | null;
 }
 
 export function useDepartmentKpis(department?: string) {

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Plus, Pencil, Trash2, Save, X, Gauge, Zap } from 'lucide-react';
 import { useDepartmentKpis, type DepartmentKpi } from '@/hooks/useDepartmentKpis';
-import { VALUE_SOURCES } from '@/hooks/usePlanningData';
+import { VALUE_SOURCES, usePlanningData } from '@/hooks/usePlanningData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SourceFilterFields } from './SourceFilterFields';
 import { confirmDestructive } from '@/lib/confirmDestructive';
@@ -60,6 +60,7 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
         {adding && (
           <KpiForm
             initial={{ department }}
+            year={new Date().getFullYear()}
             onCancel={() => setAdding(false)}
             onSave={(payload) => {
               upsert.mutate(payload, { onSuccess: () => setAdding(false) });
@@ -80,6 +81,7 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
                 <div key={k.id} className="col-span-full">
                   <KpiForm
                     initial={k}
+                    year={new Date().getFullYear()}
                     onCancel={() => setEditing(null)}
                     onSave={(payload) => upsert.mutate(payload, { onSuccess: () => setEditing(null) })}
                   />
@@ -143,10 +145,12 @@ function KpiForm({
   initial,
   onCancel,
   onSave,
+  year,
 }: {
   initial: Partial<DepartmentKpi> & { department: string };
   onCancel: () => void;
   onSave: (payload: Partial<DepartmentKpi> & { department: string; name: string }) => void;
+  year: number;
 }) {
   const [name, setName] = useState(initial.name || '');
   const [description, setDescription] = useState(initial.description || '');
@@ -156,6 +160,17 @@ function KpiForm({
   const [valueSource, setValueSource] = useState<string>(initial.value_source || 'manual');
   const [sourceFilter, setSourceFilter] = useState<Record<string, string>>(
     (initial.source_filter as Record<string, string>) || {},
+  );
+  const [objectiveId, setObjectiveId] = useState<string>(initial.objective_id ?? '');
+  const [quarterlyTarget, setQuarterlyTarget] = useState<string>(
+    initial.quarterly_target != null ? String(initial.quarterly_target) : '',
+  );
+  const [annualTarget, setAnnualTarget] = useState<string>(
+    initial.annual_target != null ? String(initial.annual_target) : '',
+  );
+  const planning = usePlanningData(year);
+  const objectives = (planning.objectives.data || []).filter(
+    (o: any) => !o.area || o.area === initial.department || o.area === 'geral',
   );
 
   const submit = () => {
@@ -171,6 +186,9 @@ function KpiForm({
       value_source: valueSource,
       source_filter: sourceFilter,
       is_active: true,
+      objective_id: objectiveId || null,
+      quarterly_target: quarterlyTarget === '' ? null : Number(quarterlyTarget),
+      annual_target: annualTarget === '' ? null : Number(annualTarget),
     });
   };
 
@@ -196,9 +214,32 @@ function KpiForm({
           <Input type="number" value={current} onChange={(e) => setCurrent(e.target.value)} />
         </div>
         <div>
-          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Target</label>
+          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Meta mensal</label>
           <Input type="number" value={target} onChange={(e) => setTarget(e.target.value)} />
         </div>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div>
+          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Meta trimestral</label>
+          <Input type="number" value={quarterlyTarget} onChange={(e) => setQuarterlyTarget(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Meta anual</label>
+          <Input type="number" value={annualTarget} onChange={(e) => setAnnualTarget(e.target.value)} />
+        </div>
+      </div>
+      <div>
+        <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Objetivo anual associado</label>
+        <Select value={objectiveId || '__none__'} onValueChange={(v) => setObjectiveId(v === '__none__' ? '' : v)}>
+          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="(nenhum)" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">— Sem ligação —</SelectItem>
+            {objectives.map((o: any) => (
+              <SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-[10px] text-muted-foreground mt-1">Quando ligado, valores mensais alimentam o objetivo no Planeamento.</p>
       </div>
       <div className="space-y-2 rounded border border-border/40 bg-background p-3">
         <div className="flex items-center gap-1.5">
