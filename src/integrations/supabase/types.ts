@@ -3740,6 +3740,53 @@ export type Database = {
         }
         Relationships: []
       }
+      department_kpi_monthly: {
+        Row: {
+          actual_value: number | null
+          analysis: string | null
+          auto_analysis: string | null
+          created_at: string
+          id: string
+          kpi_id: string
+          month: number
+          target_value: number | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          actual_value?: number | null
+          analysis?: string | null
+          auto_analysis?: string | null
+          created_at?: string
+          id?: string
+          kpi_id: string
+          month: number
+          target_value?: number | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          actual_value?: number | null
+          analysis?: string | null
+          auto_analysis?: string | null
+          created_at?: string
+          id?: string
+          kpi_id?: string
+          month?: number
+          target_value?: number | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_kpi_monthly_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "department_kpis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       department_kpis: {
         Row: {
           created_at: string
