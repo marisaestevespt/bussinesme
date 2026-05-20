@@ -1,0 +1,1 @@
+DELETE FROM public.team_members WHERE id = '71468814-79f0-4b8f-84d3-0f3a67880203';
