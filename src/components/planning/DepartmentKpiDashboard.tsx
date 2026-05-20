@@ -278,9 +278,9 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
                           })}
                           <td className="px-3 py-1.5" rowSpan={2}>
                             <Textarea
-                              className="text-xs min-h-[3.5rem]"
+                              className="text-xs min-h-[3.5rem] border-0 bg-transparent shadow-none resize-none px-2 py-1 focus-visible:ring-1 focus-visible:ring-ring/40 hover:bg-muted/40 text-muted-foreground"
                               rows={2}
-                              placeholder={focusRow?.auto_analysis || 'Análise…'}
+                              placeholder={focusRow?.auto_analysis || '—'}
                               value={analysisVal}
                               onChange={(e) => setAnalysisDraft({ ...analysisDraft, [draftKey]: e.target.value })}
                               onBlur={(e) => {
@@ -288,9 +288,6 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
                                 if (e.target.value !== prev) saveAnalysis(k, focusMonth, e.target.value);
                               }}
                             />
-                            {focusRow?.auto_analysis && (
-                              <Badge variant="outline" className="text-[9px] mt-1">{MONTHS[focusMonth-1]}: {focusRow.auto_analysis}</Badge>
-                            )}
                           </td>
                         </tr>
                         {/* Linha REAL */}
