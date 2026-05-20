@@ -25,7 +25,7 @@ const PAGE_META: Record<string, { title: string; icon: string }> = {
   '/hub/produtos': { title: 'Produtos', icon: 'Package' },
   '/hub/recursos-humanos': { title: 'Pessoas', icon: 'UsersRound' },
   '/executive': { title: 'Executive Room', icon: 'Crown' },
-  '/executive/planeamento': { title: 'Planeamento', icon: 'Target' },
+  '/planeamento': { title: 'Planeamento', icon: 'Target' },
   '/executive/weekly-align': { title: 'Weekly Align', icon: 'CalendarCheck' },
   '/executive/productivity': { title: 'Produtividade & Capacidade', icon: 'Clock' },
   '/executive/business-plan': { title: 'Plano de Negócio', icon: 'Rocket' },
