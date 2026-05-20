@@ -78,7 +78,9 @@ export function DepartmentQuarterlyPlanning({ planning, year, planAreaKey, label
               <section className="space-y-2">
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-xs font-semibold uppercase tracking-wider">Programação · {next.quarter} {next.year}</h3>
-                  <span className="text-[10px] text-muted-foreground">Próximo trimestre</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {next.year !== year ? 'Próximo ano' : 'Próximo trimestre'}
+                  </span>
                 </div>
                 <QuarterlyProgrammingView year={next.year} quarter={next.quarter} onlyArea={planAreaKey} />
               </section>
