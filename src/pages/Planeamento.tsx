@@ -320,7 +320,7 @@ function QuarterlySubTabs({ planning, year, quarter }: { planning: any; year: nu
         <section className="space-y-2">
           <div className="flex items-baseline justify-between">
             <h3 className="text-sm font-semibold uppercase tracking-wider">Estado · {quarter} {year}</h3>
-            <span className="text-[10px] text-muted-foreground">KPIs e Key Results do trimestre vigente</span>
+            <span className="text-[10px] text-muted-foreground">Metas do trimestre vigente</span>
           </div>
           <QuarterlyObjectivesList planning={planning} year={year} quarter={quarter} />
         </section>
