@@ -553,14 +553,19 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
             const overdue = planning.isMetricOverdue(m);
             const dueToday = planning.isMetricDueToday(m);
             const metricProductName = getProductName(m.product_id);
+            const linkedKpi = m.linked_kpi_id ? kpiById.get(m.linked_kpi_id) : null;
             const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null;
-            const displayVal = m.source === 'manual' ? m.current_value : autoVal;
+            const displayVal = linkedKpi ? linkedKpi.current_value
+              : (m.source === 'manual' ? m.current_value : autoVal);
             const status = getMetricStatus(m);
             return (
               <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-destructive/15' : dueToday ? 'bg-warning/15' : ''}`} onClick={() => setEditMetric(m)}>
                 <TableCell className="text-sm font-medium">{m.name}</TableCell>
                 <TableCell className="">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                <TableCell className="">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell className="">
+                  {displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || linkedKpi?.unit || ''}` : '—'}
+                  {linkedKpi && <div className="text-[10px] text-muted-foreground">via KPI: {linkedKpi.name}</div>}
+                </TableCell>
                 <TableCell className="">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
