@@ -18,6 +18,7 @@ import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
 import { useProducts } from '@/hooks/useProducts';
+import { useDepartmentKpis } from '@/hooks/useDepartmentKpis';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -278,7 +279,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
           <Separator />
           <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} parentObjective={obj} />
           <Separator />
-          <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
+          <MetricsSection objectiveId={obj.id} objectiveArea={obj.area} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
           <Separator />
           <ActionsSection objectiveId={obj.id} actions={objActions} planning={planning} />
         </div>
@@ -467,14 +468,17 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
 }
 
 // ─── Metrics ─────────────
-function MetricsSection({ objectiveId, metrics, planning, productsList, getProductName }: any) {
+function MetricsSection({ objectiveId, objectiveArea, metrics, planning, productsList, getProductName }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
   const [editMetric, setEditMetric] = useState<any>(null);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo' });
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo', linked_kpi_id: '' });
   const [editForm, setEditForm] = useState<any>({});
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
+  const departmentKpis = useDepartmentKpis(objectiveArea);
+  const kpisList = departmentKpis.list || [];
+  const kpiById = new Map(kpisList.map((k: any) => [k.id, k]));
 
   useEffect(() => {
     if (editMetric) {
@@ -484,14 +488,18 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
         target_unit: editMetric.target_unit || '', green_threshold: editMetric.green_threshold ?? 90,
         yellow_threshold: editMetric.yellow_threshold ?? 60, product_id: editMetric.product_id || '',
         measurement_type: editMetric.measurement_type || 'acumulativo',
+        linked_kpi_id: editMetric.linked_kpi_id || '',
       });
     }
   }, [editMetric]);
 
   const getMetricStatus = (m: any) => {
     const metricProductName = getProductName(m.product_id);
-    const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null;
-    const current = m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0);
+    const kpi = m.linked_kpi_id ? kpiById.get(m.linked_kpi_id) : null;
+    const autoVal = kpi ? Number(kpi.current_value || 0)
+      : (m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null);
+    const current = kpi ? Number(kpi.current_value || 0)
+      : (m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0));
     const target = Number(m.target_value || 0);
     if (!target) return 'neutral';
     const pct = (current / target) * 100;
@@ -501,9 +509,9 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
   };
 
   const handleSaveNew = () => {
-    planning.upsertMetric.mutate({ ...form, product_id: form.product_id || null, measurement_type: form.measurement_type || 'acumulativo', target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
+    planning.upsertMetric.mutate({ ...form, product_id: form.product_id || null, linked_kpi_id: form.linked_kpi_id || null, measurement_type: form.measurement_type || 'acumulativo', target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
     setDialogOpen(false);
-    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo' });
+    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo', linked_kpi_id: '' });
   };
 
   const handleSaveEdit = () => {
@@ -511,6 +519,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
     planning.upsertMetric.mutate({
       id: editMetric.id, objective_id: objectiveId, ...editForm,
       product_id: editForm.product_id || null,
+      linked_kpi_id: editForm.linked_kpi_id || null,
       measurement_type: editForm.measurement_type || 'acumulativo',
       target_value: editForm.target_value ? Number(editForm.target_value) : null,
       green_threshold: Number(editForm.green_threshold), yellow_threshold: Number(editForm.yellow_threshold),
@@ -544,14 +553,19 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
             const overdue = planning.isMetricOverdue(m);
             const dueToday = planning.isMetricDueToday(m);
             const metricProductName = getProductName(m.product_id);
+            const linkedKpi = m.linked_kpi_id ? kpiById.get(m.linked_kpi_id) : null;
             const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null;
-            const displayVal = m.source === 'manual' ? m.current_value : autoVal;
+            const displayVal = linkedKpi ? linkedKpi.current_value
+              : (m.source === 'manual' ? m.current_value : autoVal);
             const status = getMetricStatus(m);
             return (
               <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-destructive/15' : dueToday ? 'bg-warning/15' : ''}`} onClick={() => setEditMetric(m)}>
                 <TableCell className="text-sm font-medium">{m.name}</TableCell>
                 <TableCell className="">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                <TableCell className="">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell className="">
+                  {displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || linkedKpi?.unit || ''}` : '—'}
+                  {linkedKpi && <div className="text-[10px] text-muted-foreground">via KPI: {linkedKpi.name}</div>}
+                </TableCell>
                 <TableCell className="">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -628,6 +642,20 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {kpisList.length > 0 && (
+              <div><Label>Ligar a KPI do departamento (opcional)</Label>
+                <Select value={form.linked_kpi_id || 'none'} onValueChange={v => setForm(p => ({ ...p, linked_kpi_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Não ligado" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Não ligado</SelectItem>
+                    {kpisList.map((k: any) => (
+                      <SelectItem key={k.id} value={k.id}>{k.name} {k.unit ? `(${k.unit})` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente do KPI ligado.</p>
+              </div>
+            )}
             {(form.source === 'bd_vendas' || form.source === 'bd_crm') && (
               <div><Label>Produto associado</Label>
                 <Select value={form.product_id || 'none'} onValueChange={v => setForm(p => ({ ...p, product_id: v === 'none' ? '' : v }))}>
@@ -684,6 +712,20 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {kpisList.length > 0 && (
+              <div><Label>Ligar a KPI do departamento (opcional)</Label>
+                <Select value={editForm.linked_kpi_id || 'none'} onValueChange={v => setEditForm((p: any) => ({ ...p, linked_kpi_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Não ligado" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Não ligado</SelectItem>
+                    {kpisList.map((k: any) => (
+                      <SelectItem key={k.id} value={k.id}>{k.name} {k.unit ? `(${k.unit})` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente do KPI ligado.</p>
+              </div>
+            )}
             {(editForm.source === 'bd_vendas' || editForm.source === 'bd_crm') && (
               <div><Label>Produto associado</Label>
                 <Select value={editForm.product_id || 'none'} onValueChange={v => setEditForm((p: any) => ({ ...p, product_id: v === 'none' ? '' : v }))}>

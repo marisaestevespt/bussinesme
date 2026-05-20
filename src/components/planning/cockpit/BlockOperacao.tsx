@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { getProjectStatusInfo, isProjectOverdue } from '@/lib/projectStatus';
 import { isTaskDone, isTaskOverdue, getTaskPriorityInfo } from '@/lib/taskStatus';
+import { monthlyCapacity, OVERLOAD_THRESHOLD } from '@/lib/memberCapacity';
 
 export function BlockOperacao({ year, month }: { year: number; month: number }) {
   const [projectSearch, setProjectSearch] = useState('');
@@ -23,7 +24,7 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
         supabase.from('projects').select('id, name, status, deadline, progress, client_id, type').neq('status', 'concluido').neq('status', 'arquivado'),
         supabase.from('project_deliverables').select('id, name, deadline, completed_at, project_id').gte('deadline', start).lte('deadline', end),
         supabase.from('tasks').select('id, name, status, priority, deadline, department, assigned_to, project_id, client_id').gte('deadline', start).lte('deadline', end),
-        supabase.from('team_members').select('id, name, status').eq('status', 'ativo'),
+        supabase.from('team_members').select('id, name, status, expected_weekly_hours, weekly_hours').eq('status', 'ativo'),
         supabase.from('task_time_entries').select('task_id, user_id, duration_minutes, started_at').gte('started_at', start).lte('started_at', end + 'T23:59:59'),
         supabase.from('clients').select('id, full_name'),
       ]);
@@ -52,7 +53,10 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
         if (t?.project_id) hoursByProject[t.project_id] = (hoursByProject[t.project_id] || 0) + h;
       });
 
-      const overloaded = (members.data || []).filter((m: any) => (hoursByMember[m.id] || 0) > 144).length;
+      const overloaded = (members.data || []).filter((m: any) => {
+        const cap = monthlyCapacity(m);
+        return cap > 0 && (hoursByMember[m.id] || 0) / cap > OVERLOAD_THRESHOLD;
+      }).length;
       const clientById = new Map((clients.data || []).map((c: any) => [c.id, c.full_name]));
       const memberById = new Map((members.data || []).map((m: any) => [m.id, m.name]));
 
@@ -271,14 +275,17 @@ export function BlockOperacao({ year, month }: { year: number; month: number }) 
             <ul className="space-y-2">
               {data.members.map((m: any) => {
                 const hours = data.hoursByMember[m.id] || 0;
-                const pct = Math.min(100, (hours / 160) * 100);
-                const overload = hours > 144;
+                const cap = monthlyCapacity(m);
+                const pct = cap > 0 ? Math.min(100, (hours / cap) * 100) : 0;
+                const overload = cap > 0 && hours / cap > OVERLOAD_THRESHOLD;
                 return (
                   <li key={m.id} className="text-xs space-y-1">
                     <Link to={`/hub/equipa/${m.id}`} className="block hover:bg-accent/30 rounded px-1 py-0.5" target="_blank" rel="noopener noreferrer">
                       <div className="flex justify-between">
                         <span className="truncate">{m.name}</span>
-                        <span className={cn('tabular-nums', overload ? 'text-destructive font-medium' : 'text-muted-foreground')}>{hours.toFixed(0)}h</span>
+                        <span className={cn('tabular-nums', overload ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+                          {hours.toFixed(0)}h{cap > 0 && <span className="text-muted-foreground"> / {cap.toFixed(0)}h</span>}
+                        </span>
                       </div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div className={cn('h-full', overload ? 'bg-destructive' : pct > 80 ? 'bg-warning' : 'bg-primary')} style={{ width: `${pct}%` }} />
