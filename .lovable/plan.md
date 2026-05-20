@@ -1,99 +1,41 @@
-# Refactor do Planeamento (anual / trimestral / mensal)
+## Objetivo
 
-## Conceito unificado
+1. **Eliminar** o bloco separado "KPRs por área" do cockpit mensal.
+2. **Inserir uma sub-secção "KPRs" dentro de cada bloco de área** — Comercial+Produtos, Marketing, Clientes, Operação — e **criar os blocos em falta** (Financeiro, Equipa, Geral) para que todas as 8 áreas tenham casa.
+3. **Valor atual automático**: cada KPR resolve o `actual_value` a partir do `value_source` configurado na ficha (faturação, leads, clientes ativos, horas, tarefas, etc.), filtrado ao mês. Edição manual só onde `value_source = 'manual'`.
+4. **Meta**: continua editável inline, mas reforçamos que pode também ser definida no dashboard do dept ou no Planeamento anual/trimestral (já existe; nenhuma migração necessária agora).
 
-```
-Departamento ──tem──► KPIs permanentes (medição contínua: produtividade, sucesso)
-                          ▲
-                          │ pode ser referenciado como
-                          │
-Objetivo Anual ──tem──► Key Results (3-5, mensuráveis, com target anual)
-                          │
-                          ├─► distribui target por Q1/Q2/Q3/Q4 (metas trimestrais)
-                          ├─► distribui target por mês (metas mensais)
-                          └─► pode gerar foco semanal (Weekly Align)
-```
+## Mudanças
 
-- **KPI** = métrica permanente do departamento (ex.: NPS, tempo médio de resposta, taxa de ocupação). Vive em /equipa ou /planeamento → Departamentos.
-- **KR** = resultado mensurável com prazo, dentro de um objetivo. Pode "puxar" um KPI existente (auto-tracking) ou ser standalone.
-- **Meta trimestral/mensal** = fatia do target do KR nesse período.
+### Cockpit mensal — estrutura
+- `MonthlyCockpit.tsx`: remover `<CockpitSection>` do `BlockKPRs`. Renomear "Comercial e Produtos" para apenas "Comercial" e adicionar bloco **Produtos** separado. Adicionar blocos **Financeiro**, **Equipa**, **Geral**. Ordem final: Objetivos → Comercial → Produtos → Marketing → Clientes → Operação → Financeiro → Equipa → Geral → Agenda → Reflexão.
 
-## Schema (migration)
+### Novos blocks (mínimos, só com KPRs por enquanto)
+- `BlockFinanceiro.tsx`, `BlockEquipa.tsx`, `BlockGeral.tsx`, `BlockProdutos.tsx`: cada um renderiza apenas `<KPRsInline area="..." />` por agora (placeholders para conteúdos futuros como faturação detalhada, capacidade, etc.).
 
-1. **`department_kpis`** (novo)
-   - `department` (text), `name`, `description`, `unit`, `target`, `value_source` (manual | tabela existente), `source_filter` (jsonb), `is_active`
-2. **`objective_key_results`** (novo) — promoção do conceito atual de "criteria + metric"
-   - `objective_id` FK, `title`, `target_value`, `current_value`, `unit`, `value_source`, `source_filter`, `linked_kpi_id` FK opcional, `sort_order`
-3. **`key_result_periods`** (novo) — target dividido por período
-   - `key_result_id`, `period_type` ('trimestre' | 'mes' | 'semana'), `period_key` (ex.: '2026-Q1', '2026-03', '2026-W12'), `target`, `actual`
-4. Manter `objective_metrics`/`objective_criteria` por compatibilidade, marcar deprecated em código.
+### Componente partilhado `KPRsInline`
+- `src/components/planning/cockpit/KPRsInline.tsx`: recebe `area`, `year`, `month`.
+- Lista KPRs do departamento (`useDepartmentKpis(area)`).
+- Para cada KPR: mostra **Meta** (editável), **Valor** (auto ou input se manual), **Δ%**, **Análise** (auto + override manual).
+- Cabeçalho compacto "Indicadores · X KPRs" + chevron se quisermos colapsar.
 
-## UI — Tab Anual
+### Resolver automático mensal
+- Novo hook `useKpiAutoValue(year, month)` em `src/hooks/useKpiAutoValue.ts`:
+  - Reutiliza a infra de `usePlanningData.getAutoValue` mas com queries filtradas ao mês corrente.
+  - Resolve fontes já existentes: `bd_vendas`, `bd_crm`, `bd_clientes`, `bd_tempo`, `bd_tarefas`, `bd_equipa`, `bd_marketing`, `bd_conteudos`, `bd_reunioes`, `bd_nps`, `bd_despesas`, `bd_projetos`, `metrica`.
+  - Devolve função `resolve(kpi) → number | null`.
+- Cada `<KPRsInline>` chama o hook e passa o valor resolvido. Se diferente do `actual_value` em DB, faz upsert silencioso (cache da fonte para análise/sparklines).
 
-- Cards de objetivo passam a mostrar, abaixo do título:
-  - **Valor atual / target** (ex.: `€42k / €120k`) com unidade
-  - Lista compacta dos KRs (até 3 visíveis, "+N" se mais)
-  - Progresso por KR em mini-barras
-- Drawer continua a abrir detalhe completo + edição inline.
+### Insertion em blocos de área existentes
+- `BlockComercial.tsx`, `BlockMarketing.tsx`, `BlockClientes.tsx`, `BlockOperacao.tsx`: adicionar no topo `<KPRsInline area="X" year={year} month={month} />` antes do conteúdo atual.
 
-## UI — Tab Trimestral
+### Limpeza
+- Apagar `BlockKPRs.tsx` (substituído por `KPRsInline`).
+- Remover import e secção em `MonthlyCockpit.tsx`.
 
-- Remove a grelha por área atual.
-- **Lista vertical**, um bloco por objetivo anual:
-  ```
-  ▸ Objetivo: Triplicar receita recorrente          [Q2 2026]
-    ├─ KR1  MRR > €15k          [████████░░] €12k/€15k
-    ├─ KR2  Churn < 4%          [██████░░░░]   5.2%/4%
-    └─ KR3  10 novos clientes   [█████████░]      9/10
-    [+ Nova meta trimestral]   [Editar]   [Notas]
-  ```
-- KRs do trimestre vêm de `key_result_periods` (period_type='trimestre').
-- Header do trimestre: stats agregadas + seletor Q1-Q4.
+## Notas técnicas
+- `department_kpis.value_source` já existe com default `'manual'`. Na ficha do KPR (`DepartmentKpisSection.tsx`/`DepartmentKpiDashboard.tsx`) já se pode editar — vamos garantir que mostra o select de `VALUE_SOURCES`.
+- Sem migrações de schema; só código de leitura/cache.
+- Sem alterar tabela `department_kpi_monthly` — continua a guardar target manual + actual em cache (atualizado pelo resolver).
 
-## UI — Tab Mensal
-
-- Mantém-se como cockpit mas:
-  - **Cada secção por área é editável in-place** (não só leitura). Inputs para target/actual, link directo para tarefas/reuniões dessa área.
-  - O drawer não fecha o cockpit — abre lateralmente (sheet), sem perder o scroll do mês.
-  - Cards redesenhados: hierarquia clara (valor grande, label pequeno, sparkline quando faz sentido).
-- Corrigir métricas partidas:
-  - **Capacidade equipa** — usar `teamMonthlyCapacitySummary` (lib já existe), filtrar entries do mês correcto
-  - **Horas por cliente** — agregação de `time_entries` por client_id no mês
-  - **Entregas no mês** — `deliverables` com due_date no mês + status
-- Adicionar bloco **Key Results do mês** no topo (vindos de `key_result_periods` period_type='mes').
-
-## UI — Departamentos (novo separador)
-
-- Nova subpágina `/planeamento/dep/:dep` (a página já existe, vamos enriquecer):
-  - Bloco **KPIs do departamento** no topo: lista editável, valor actual, target, tendência.
-  - Bloco **Objetivos com KRs ligados a este departamento** (via `linked_kpi_id`).
-
-## Implementação (passos)
-
-1. **Migration** — criar 3 tabelas (`department_kpis`, `objective_key_results`, `key_result_periods`) com RLS (mesmas regras de leitura/escrita de `executive_objectives`).
-2. **Hook `usePlanningData`** — adicionar leitura/mutações para KRs e period targets; manter API de objetivos compatível.
-3. **Hook `useDepartmentKpis`** — novo, para CRUD de KPIs por departamento.
-4. **Anual** — atualizar `PlanningObjectivesTab` card para mostrar valor/target/KRs inline (modo `showKRsInline`).
-5. **Trimestral** — substituir grelha de áreas por `<QuarterObjectiveList />` nova; mantém botão "Nova meta trimestral" mas agora cria KR-period.
-6. **Mensal** — redesign `MonthlyCockpit`:
-   - Substituir Cards por secções editáveis (`<EditableAreaSection />`)
-   - Usar `<Sheet />` lateral em vez de drawer cheio para detalhe
-   - Adicionar bloco "KRs do mês"
-   - Reparar `BlockOperacao` (capacidade + horas por cliente) e `BlockProjetos` (entregas)
-7. **Departamento** — adicionar tab "KPIs" em `PlaneamentoDepartamento.tsx`.
-8. **Migrar dados existentes** (best-effort): `objective_metrics` → `objective_key_results` (trigger one-shot via SQL na migration).
-
-## Fora deste plano (para depois)
-
-- Fundir Mensal com Weekly Align (decidiste manter separado, só redesign).
-- Visão 5 anos (já está OK).
-- Cron de auto-status (continua a funcionar nos novos KRs).
-
-## O que vais ver no fim
-
-- Cards anuais com números reais, não só %.
-- Trimestre como lista clara objetivo→KRs com progresso por trimestre.
-- Mês com secções editáveis por área (não cards estáticos), drawer lateral, métricas a funcionar.
-- KPIs vivem em cada departamento; OKRs (com KRs) vivem em cada objetivo; KRs podem puxar KPIs.
-
-Confirma se avanço — vou começar pela migration.
+Confirmas que avanço assim?

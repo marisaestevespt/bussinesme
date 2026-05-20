@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, ArrowDownRight, ArrowUpRight, TrendingUp, Package, Users, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { KPRsInline } from './KPRsInline';
 
 function fmtEur(n: number) {
   return n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
@@ -89,6 +90,7 @@ export function BlockComercial({ year, month }: { year: number; month: number })
 
   return (
     <div className="space-y-4">
+      <KPRsInline area="comercial" year={year} month={month} />
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Link to="/hub/comercial" className="hq-surface-sunken rounded-lg p-3 hover:bg-accent/40 hq-transition block" target="_blank" rel="noopener noreferrer">

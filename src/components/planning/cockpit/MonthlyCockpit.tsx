@@ -3,17 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ChevronLeft, ChevronRight, Target, Calendar, Briefcase,
-  Megaphone, Users, Settings2, NotebookPen, CheckCircle2, Gauge,
+  Megaphone, Users, Settings2, NotebookPen, CheckCircle2,
+  Package, Wallet, UserCog, Sparkles,
 } from 'lucide-react';
 import { CockpitSection } from './CockpitSection';
 import { BlockObjetivos } from './BlockObjetivos';
 import { BlockMonthlyKRs } from './BlockMonthlyKRs';
-import { BlockKPRs } from './BlockKPRs';
 import { BlockAgenda } from './BlockAgenda';
 import { BlockComercial } from './BlockComercial';
 import { BlockMarketing } from './BlockMarketing';
 import { BlockClientes } from './BlockClientes';
 import { BlockOperacao } from './BlockOperacao';
+import { BlockProdutos } from './BlockProdutos';
+import { BlockFinanceiro } from './BlockFinanceiro';
+import { BlockEquipa } from './BlockEquipa';
+import { BlockGeral } from './BlockGeral';
 import { MonthlyReflectionCard } from '../MonthlyReflectionCard';
 import { MONTH_NAMES_PT, useMonthState, STATE_LABELS, STATE_TONES } from './useMonthState';
 import { cn } from '@/lib/utils';
@@ -100,15 +104,6 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
       </CockpitSection>
 
       <CockpitSection
-        storageKey={`b1b:${year}-${month}`}
-        icon={<Gauge className="h-4 w-4" />}
-        title="KPRs por área"
-        subtitle="Indicadores-chave mensais por departamento — meta, valor, desvio e análise"
-      >
-        <BlockKPRs year={year} month={month} />
-      </CockpitSection>
-
-      <CockpitSection
         storageKey={`b2:${year}-${month}`}
         icon={<Calendar className="h-4 w-4" />}
         title="Agenda do mês"
@@ -122,17 +117,26 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
       <CockpitSection
         storageKey={`b3:${year}-${month}`}
         icon={<Briefcase className="h-4 w-4" />}
-        title="Comercial e Produtos"
-        subtitle="KPIs, vendas por produto, pipeline e portefólio ativo"
+        title="Comercial"
+        subtitle="KPRs, vendas, pipeline e portefólio ativo"
       >
         <BlockComercial year={year} month={month} />
+      </CockpitSection>
+
+      <CockpitSection
+        storageKey={`b3b:${year}-${month}`}
+        icon={<Package className="h-4 w-4" />}
+        title="Produtos"
+        subtitle="KPRs por produto e desempenho do portefólio"
+      >
+        <BlockProdutos year={year} month={month} />
       </CockpitSection>
 
       <CockpitSection
         storageKey={`b4:${year}-${month}`}
         icon={<Megaphone className="h-4 w-4" />}
         title="Marketing"
-        subtitle="KPIs, calendário de conteúdo, funis e campanhas"
+        subtitle="KPRs, calendário de conteúdo, funis e campanhas"
       >
         <BlockMarketing year={year} month={month} />
       </CockpitSection>
@@ -141,7 +145,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b5:${year}-${month}`}
         icon={<Users className="h-4 w-4" />}
         title="Clientes"
-        subtitle="Portefólio, renovações, onboardings e alertas"
+        subtitle="KPRs, portefólio, renovações, onboardings e alertas"
       >
         <BlockClientes year={year} month={month} />
       </CockpitSection>
@@ -150,9 +154,36 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b6:${year}-${month}`}
         icon={<Settings2 className="h-4 w-4" />}
         title="Operação"
-        subtitle="Projetos, capacidade, análise por área/cliente e tarefas atrasadas"
+        subtitle="KPRs, projetos, capacidade e tarefas atrasadas"
       >
         <BlockOperacao year={year} month={month} />
+      </CockpitSection>
+
+      <CockpitSection
+        storageKey={`b6b:${year}-${month}`}
+        icon={<Wallet className="h-4 w-4" />}
+        title="Financeiro"
+        subtitle="KPRs financeiros — faturação, MRR, custos, break-even"
+      >
+        <BlockFinanceiro year={year} month={month} />
+      </CockpitSection>
+
+      <CockpitSection
+        storageKey={`b6c:${year}-${month}`}
+        icon={<UserCog className="h-4 w-4" />}
+        title="Equipa"
+        subtitle="KPRs da equipa — capacidade, ocupação, rotação"
+      >
+        <BlockEquipa year={year} month={month} />
+      </CockpitSection>
+
+      <CockpitSection
+        storageKey={`b6d:${year}-${month}`}
+        icon={<Sparkles className="h-4 w-4" />}
+        title="Geral do negócio"
+        subtitle="KPRs transversais — MRR/faturação, capacidade, OKRs, referências"
+      >
+        <BlockGeral year={year} month={month} />
       </CockpitSection>
 
       <div ref={reflectionRef}>
