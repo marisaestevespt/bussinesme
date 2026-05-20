@@ -83,6 +83,10 @@ export function NewAbsenceDialog({ open, onClose, members }: { open: boolean; on
       toast.error('Preencha membro e datas');
       return;
     }
+    if (endDate < startDate) {
+      toast.error('A data de fim não pode ser anterior à data de início');
+      return;
+    }
 
     if (coverId && coverId !== 'none') {
       // Fetch affected tasks and show confirmation
@@ -96,8 +100,8 @@ export function NewAbsenceDialog({ open, onClose, members }: { open: boolean; on
   }
 
   async function saveAbsence(reassign: boolean) {
+    if (saving) return;
     setSaving(true);
-    try {
       const sStr = format(startDate!, 'yyyy-MM-dd');
       const eStr = format(endDate!, 'yyyy-MM-dd');
       const sub = coverId && coverId !== 'none' ? coverId : null;
@@ -141,13 +145,14 @@ export function NewAbsenceDialog({ open, onClose, members }: { open: boolean; on
           toast.success('Ausência registada');
           qc.invalidateQueries({ queryKey: ['absence-coverage'] });
           qc.invalidateQueries({ queryKey: ['tasks_list'] });
+          setSaving(false);
           resetAndClose();
         },
-        onError: () => toast.error('Não consegui guardar a ausência. Tenta novamente.'),
+        onError: () => {
+          toast.error('Não consegui guardar a ausência. Tenta novamente.');
+          setSaving(false);
+        },
       });
-    } finally {
-      setSaving(false);
-    }
   }
 
   function resetAndClose() {
