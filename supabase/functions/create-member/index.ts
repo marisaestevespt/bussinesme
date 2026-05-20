@@ -309,8 +309,35 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Welcome email intentionally not sent — onboarding is handled in person.
-      const welcome_email_sent = false;
+      if (invite_url) {
+        const firstName = full_name.trim().split(/\s+/)[0] || full_name;
+        const welcomeSend = await sendTransactionalEmail({
+          templateName: "welcome-member",
+          recipientEmail: email,
+          idempotencyKey: `welcome-member-${newUser.user.id}-${Date.now()}`,
+          templateData: {
+            memberName: firstName,
+            fullName: full_name,
+            roleTitle: role_title || undefined,
+            inviteUrl: invite_url,
+            businessName: bizSettings?.business_name || undefined,
+            whatsappTeamUrl: whatsapp_team_url || undefined,
+            whatsappDeptUrl: whatsapp_dept_url || undefined,
+            departmentName: department_name || undefined,
+            primaryColor: bizSettings?.primary_color || undefined,
+            primaryForeground: "0 0% 100%",
+            textColor: bizSettings?.text_color || undefined,
+            accentColor: bizSettings?.accent_color || undefined,
+            fontDisplay: bizSettings?.font_display || undefined,
+            fontBody: bizSettings?.font_body || undefined,
+            logoUrl: bizSettings?.logo_url || undefined,
+          },
+        });
+        email_sent = welcomeSend.ok;
+        welcome_email_error = welcomeSend.ok ? null : welcomeSend.details;
+      }
+
+      const welcome_email_sent = email_sent;
 
       return new Response(
         JSON.stringify({
@@ -320,7 +347,7 @@ Deno.serve(async (req) => {
           invite_url,
           email_sent,
           welcome_email_sent,
-          invite_error: resetError?.message ?? null,
+          invite_error: welcome_email_error,
           onboarding_created,
           onboarding_warning,
           whatsapp_team_url,
