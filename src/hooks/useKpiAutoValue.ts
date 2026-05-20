@@ -4,42 +4,54 @@ import type { DepartmentKpi } from './useDepartmentKpis';
 
 const CACHE = { staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
+// ── Helpers shared by all branches ────────────────────────────────────────
+const monthOf = (v: string | number | null | undefined): number | null => {
+  if (v == null) return null;
+  if (typeof v === 'number') return v;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.getMonth() + 1;
+};
+const inMonths = (months: number[], dateField: string) => (r: Record<string, unknown>) => {
+  const mm = monthOf(r[dateField] as string | number | null);
+  return mm !== null && months.includes(mm);
+};
+
 /**
  * Resolves auto value for KPRs across a [startMonth, endMonth] window in a year.
- * - month=N → useKpiAutoValue(year, N) (start=end=N)
- * - quarter Q → range (Q*3-2, Q*3)
- * - year → range (1, 12)
+ * Internally fetches **year-wide** data once (so all callers — monthly, quarterly,
+ * annual — share the same TanStack cache entries) and filters by month at
+ * resolve-time. `resolve(kpi, monthsOverride?)` allows callers (e.g. goals on
+ * arbitrary periods) to override the default range without re-fetching.
  */
 export function useKpiAutoValueRange(year: number, startMonth: number, endMonth: number) {
-  const start = `${year}-${String(startMonth).padStart(2, '0')}-01`;
-  const endDay = new Date(year, endMonth, 0).getDate();
-  const end = `${year}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
-  const endTs = end + 'T23:59:59';
-  const months: number[] = [];
-  for (let m = startMonth; m <= endMonth; m++) months.push(m);
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+  const yearEndTs = `${yearEnd}T23:59:59`;
+  const defaultMonths: number[] = [];
+  for (let m = startMonth; m <= endMonth; m++) defaultMonths.push(m);
 
   const sales = useQuery({
-    queryKey: ['kpi-auto-sales', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-sales', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('commercial_sales')
         .select('invoice_total,product,product_id,sale_month')
-        .eq('sale_year', year)
-        .in('sale_month', months);
+        .eq('sale_year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const crm = useQuery({
-    queryKey: ['kpi-auto-crm', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-crm', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('crm_leads')
         .select('id,potential_product_id,potential_product,created_at,added_at,updated_at,status,next_followup')
         .eq('status', 'ganho')
-        .gte('created_at', start)
-        .lte('created_at', endTs);
+        .gte('created_at', yearStart)
+        .lte('created_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -47,13 +59,13 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // All leads in period (for conversion rates and tempo de fecho)
   const allLeads = useQuery({
-    queryKey: ['kpi-auto-all-leads', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-all-leads', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('crm_leads')
         .select('id,status,added_at,updated_at,next_followup,potential_product_id')
-        .gte('added_at', start)
-        .lte('added_at', end);
+        .gte('added_at', yearStart)
+        .lte('added_at', yearEnd);
       return data || [];
     },
     ...CACHE,
@@ -77,13 +89,13 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // Quotes (propostas) criadas no período
   const quotes = useQuery({
-    queryKey: ['kpi-auto-quotes', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-quotes', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('product_quotes')
         .select('id,lead_id,product_id,created_at')
-        .gte('created_at', start)
-        .lte('created_at', endTs);
+        .gte('created_at', yearStart)
+        .lte('created_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -115,40 +127,39 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // Atividades de ciclo (renovações)
   const renewals = useQuery({
-    queryKey: ['kpi-auto-renewals', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-renewals', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('client_renewals')
         .select('client_id,cycle_number,completed,due_date')
-        .gte('due_date', start)
-        .lte('due_date', end);
+        .gte('due_date', yearStart)
+        .lte('due_date', yearEnd);
       return data || [];
     },
     ...CACHE,
   });
 
   const timeEntries = useQuery({
-    queryKey: ['kpi-auto-time', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-time', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('time_entries')
-        .select('duration,category,client_id')
-        .eq('entry_year', year)
-        .in('entry_month', months);
+        .select('duration,entry_month,category,client_id')
+        .eq('entry_year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const tasksDone = useQuery({
-    queryKey: ['kpi-auto-tasks', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-tasks', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
         .select('id,department,updated_at,deadline,assigned_to,original_assignee,priority,status')
         .eq('status', 'done')
-        .gte('updated_at', start)
-        .lte('updated_at', endTs);
+        .gte('updated_at', yearStart)
+        .lte('updated_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -226,27 +237,26 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
   });
 
   const channelMetrics = useQuery({
-    queryKey: ['kpi-auto-followers', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-followers', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('channel_monthly_metrics')
         .select('followers,channel_id,month,ig_accounts_reached,yt_total_views,ig_avg_saves')
-        .eq('year', year)
-        .in('month', months);
+        .eq('year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const content = useQuery({
-    queryKey: ['kpi-auto-content', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-content', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('content_items')
         .select('id,scheduled_at')
         .eq('status', 'publicado')
-        .gte('scheduled_at', start)
-        .lte('scheduled_at', endTs);
+        .gte('scheduled_at', yearStart)
+        .lte('scheduled_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -263,54 +273,53 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // Content metrics (saves/shares/impressions) no período
   const contentMetrics = useQuery({
-    queryKey: ['kpi-auto-content-metrics', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-content-metrics', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('content_metrics')
         .select('saves,shares,impressions,reach,views,month,year')
-        .eq('year', year)
-        .in('month', months);
+        .eq('year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const meetings = useQuery({
-    queryKey: ['kpi-auto-meetings', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-meetings', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('meetings')
         .select('id,department,client_id,date_time')
         .in('status', ['terminada', 'confirmada'])
-        .gte('date_time', start + 'T00:00:00')
-        .lte('date_time', endTs);
+        .gte('date_time', yearStart + 'T00:00:00')
+        .lte('date_time', yearEndTs);
       return data || [];
     },
     ...CACHE,
   });
 
   const nps = useQuery({
-    queryKey: ['kpi-auto-nps', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-nps', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('client_nps_records')
-        .select('nps_score,client_id')
+        .select('nps_score,client_id,actual_date')
         .not('nps_score', 'is', null)
-        .gte('actual_date', start)
-        .lte('actual_date', end);
+        .gte('actual_date', yearStart)
+        .lte('actual_date', yearEnd);
       return data || [];
     },
     ...CACHE,
   });
 
   const expenses = useQuery({
-    queryKey: ['kpi-auto-expenses', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-expenses', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('financial_expenses')
-        .select('total_with_vat,category,monthly_equivalent,is_recurring,status,renewal_date')
-        .gte('expense_date', start)
-        .lte('expense_date', end);
+        .select('total_with_vat,category,monthly_equivalent,is_recurring,status,renewal_date,expense_date')
+        .gte('expense_date', yearStart)
+        .lte('expense_date', yearEnd);
       return data || [];
     },
     ...CACHE,
@@ -372,15 +381,15 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
   });
 
   const projectsDone = useQuery({
-    queryKey: ['kpi-auto-projects', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-projects', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
         .select('id,type,updated_at')
         .eq('status', 'concluido')
         .is('archived_at', null)
-        .gte('updated_at', start)
-        .lte('updated_at', endTs);
+        .gte('updated_at', yearStart)
+        .lte('updated_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -395,50 +404,68 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     ...CACHE,
   });
 
-  const resolve = (kpi: DepartmentKpi): number | null => {
+  const resolve = (kpi: DepartmentKpi, monthsOverride?: number[]): number | null => {
     const src = kpi.value_source;
     const sf = (kpi.source_filter as Record<string, string> | null) || {};
     if (!src || src === 'manual') return null;
+
+    // Effective month window for this resolve call.
+    const M = monthsOverride && monthsOverride.length > 0 ? monthsOverride : defaultMonths;
+    const mStart = M[0];
+    const mEnd = M[M.length - 1];
+    // Filter year-wide datasets to the requested window.
+    const inM = (field: string) => inMonths(M, field);
+    const salesIn = ((sales.data || []) as Record<string, unknown>[]).filter(inM('sale_month'));
+    const crmIn = ((crm.data || []) as Record<string, unknown>[]).filter(inM('created_at'));
+    const allLeadsIn = ((allLeads.data || []) as Record<string, unknown>[]).filter(inM('added_at'));
+    const quotesIn = ((quotes.data || []) as Record<string, unknown>[]).filter(inM('created_at'));
+    const renewalsIn = ((renewals.data || []) as Record<string, unknown>[]).filter(inM('due_date'));
+    const timeEntriesIn = ((timeEntries.data || []) as Record<string, unknown>[]).filter(inM('entry_month'));
+    const tasksDoneIn = ((tasksDone.data || []) as Record<string, unknown>[]).filter(inM('updated_at'));
+    const channelMetricsIn = ((channelMetrics.data || []) as Record<string, unknown>[]).filter(inM('month'));
+    const contentIn = ((content.data || []) as Record<string, unknown>[]).filter(inM('scheduled_at'));
+    const contentMetricsIn = ((contentMetrics.data || []) as Record<string, unknown>[]).filter(inM('month'));
+    const meetingsIn = ((meetings.data || []) as Record<string, unknown>[]).filter(inM('date_time'));
+    const npsIn = ((nps.data || []) as Record<string, unknown>[]).filter(inM('actual_date'));
+    const expensesIn = ((expenses.data || []) as Record<string, unknown>[]).filter(inM('expense_date'));
+    const projectsDoneIn = ((projectsDone.data || []) as Record<string, unknown>[]).filter(inM('updated_at'));
 
     if (src === 'metrica') {
       const m = (metrics.data || []).find((x: any) => x.id === (sf.metric_id || ''));
       return m ? Number((m as any).current_value || 0) : null;
     }
     if (src === 'bd_vendas' || src === 'commercial') {
-      let rows = (sales.data || []) as any[];
+      let rows = salesIn as any[];
       if (sf.product_id) rows = rows.filter((r) => r.product_id === sf.product_id);
       return rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0);
     }
     if (src === 'bd_crm') {
-      let rows = (crm.data || []) as any[];
+      let rows = crmIn as any[];
       if (sf.product_id) rows = rows.filter((r) => r.potential_product_id === sf.product_id);
       return rows.length;
     }
     // === CRM avançado ===
     if (src === 'bd_crm_conv_sessao') {
       // % leads que receberam proposta = quotes únicos / leads adicionados no período
-      const totalLeads = (allLeads.data || []).length;
+      const totalLeads = allLeadsIn.length;
       if (totalLeads === 0) return 0;
-      const uniq = new Set((quotes.data || []).map((q: any) => q.lead_id).filter(Boolean));
+      const uniq = new Set(quotesIn.map((q: any) => q.lead_id).filter(Boolean));
       return Math.round((uniq.size / totalLeads) * 1000) / 10;
     }
     if (src === 'bd_crm_conv_proposta') {
       // % leads ganhos / leads com proposta
-      const uniqQuotes = new Set((quotes.data || []).map((q: any) => q.lead_id).filter(Boolean));
+      const uniqQuotes = new Set(quotesIn.map((q: any) => q.lead_id).filter(Boolean));
       if (uniqQuotes.size === 0) return 0;
-      const won = (allLeads.data || []).filter((l: any) => l.status === 'ganho' && uniqQuotes.has(l.id)).length
-        + (crm.data || []).filter((l: any) => uniqQuotes.has(l.id)).length;
-      // crm já filtra status='ganho' no período; usar união
       const wonIds = new Set([
-        ...((allLeads.data || []) as any[]).filter((l) => l.status === 'ganho').map((l) => l.id),
-        ...((crm.data || []) as any[]).map((l) => l.id),
+        ...(allLeadsIn as any[]).filter((l) => l.status === 'ganho').map((l) => l.id),
+        ...(crmIn as any[]).map((l) => l.id),
       ]);
       const numerator = Array.from(wonIds).filter((id) => uniqQuotes.has(id)).length;
       return Math.round((numerator / uniqQuotes.size) * 1000) / 10;
     }
     if (src === 'bd_crm_tempo_fecho') {
       // Média dias entre added_at e updated_at para leads ganhos no período
-      const rows = (crm.data || []) as any[];
+      const rows = crmIn as any[];
       const days = rows
         .map((r) => {
           const a = r.added_at ? new Date(r.added_at) : (r.created_at ? new Date(r.created_at) : null);
@@ -463,7 +490,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       );
       if (active.size === 0) return null;
       const byClient: Record<string, number> = {};
-      for (const r of (renewals.data || []) as any[]) {
+      for (const r of renewalsIn as any[]) {
         if (!active.has(r.client_id)) continue;
         const cur = byClient[r.client_id] || 0;
         byClient[r.client_id] = Math.max(cur, Number(r.cycle_number || 0));
@@ -476,20 +503,20 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
     if (src === 'bd_clientes_renovacao') {
       // % de atividades de renovação concluídas no período
-      const rows = (renewals.data || []) as any[];
+      const rows = renewalsIn as any[];
       if (rows.length === 0) return null;
       const done = rows.filter((r) => r.completed).length;
       return Math.round((done / rows.length) * 1000) / 10;
     }
 
     if (src === 'bd_tempo') {
-      let rows = (timeEntries.data || []) as any[];
+      let rows = timeEntriesIn as any[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       return rows.reduce((s, r) => s + Number(r.duration || 0), 0);
     }
     if (src === 'bd_tarefas') {
-      let rows = (tasksDone.data || []) as any[];
+      let rows = tasksDoneIn as any[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
@@ -500,9 +527,9 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     if (src === 'bd_equipa') return team.data ?? null;
     if (src === 'bd_capacidade_disponivel') {
       const weeklyTotal = teamCapacity.data ?? 0;
-      const weeks = ((endMonth - startMonth + 1) * 4.33);
+      const weeks = (M.length * 4.33);
       const available = weeklyTotal * weeks;
-      const logged = ((timeEntries.data || []) as any[]).reduce(
+      const logged = (timeEntriesIn as any[]).reduce(
         (s, r) => s + Number(r.duration || 0),
         0,
       );
@@ -510,7 +537,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
     if (src === 'bd_equipa_execucao_autonoma') {
       // % tarefas done que não foram reatribuídas (assigned_to == original_assignee ou original null)
-      const rows = (tasksDone.data || []) as any[];
+      const rows = tasksDoneIn as any[];
       if (rows.length === 0) return null;
       const auton = rows.filter(
         (r) => !r.original_assignee || r.original_assignee === r.assigned_to,
@@ -519,30 +546,34 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
     if (src === 'bd_equipa_entregas_a_tempo') {
       // % tarefas done concluídas até deadline
-      const rows = ((tasksDone.data || []) as any[]).filter((r) => r.deadline);
+      const rows = (tasksDoneIn as any[]).filter((r) => r.deadline);
       if (rows.length === 0) return null;
       const onTime = rows.filter((r) => new Date(r.updated_at) <= new Date(r.deadline + 'T23:59:59')).length;
       return Math.round((onTime / rows.length) * 1000) / 10;
     }
 
     if (src === 'bd_marketing') {
-      let rows = (channelMetrics.data || []) as any[];
+      // Para "seguidores" usar snapshot do último mês do período (não somar meses).
+      let rows = channelMetricsIn as any[];
+      if (rows.length === 0) return 0;
+      const latestMonth = Math.max(...rows.map((r) => Number(r.month || 0)));
+      rows = rows.filter((r) => Number(r.month) === latestMonth);
       if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
       return rows.reduce((s, r) => s + Number(r.followers || 0), 0);
     }
     if (src === 'bd_mkt_alcance_ig') {
-      let rows = (channelMetrics.data || []) as any[];
+      let rows = channelMetricsIn as any[];
       if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
       return rows.reduce((s, r) => s + Number(r.ig_accounts_reached || 0), 0);
     }
     if (src === 'bd_mkt_views_youtube') {
-      let rows = (channelMetrics.data || []) as any[];
+      let rows = channelMetricsIn as any[];
       if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
       return rows.reduce((s, r) => s + Number(r.yt_total_views || 0), 0);
     }
     if (src === 'bd_mkt_save_share') {
       // (saves + shares) / impressions × 100
-      const rows = (contentMetrics.data || []) as any[];
+      const rows = contentMetricsIn as any[];
       const saves = rows.reduce((s, r) => s + Number(r.saves || 0), 0);
       const shares = rows.reduce((s, r) => s + Number(r.shares || 0), 0);
       const impr = rows.reduce((s, r) => s + Number(r.impressions || r.reach || 0), 0);
@@ -551,7 +582,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
 
     if (src === 'bd_conteudos') {
-      let rows = (content.data || []) as any[];
+      let rows = contentIn as any[];
       if (sf.channel_id) {
         const links = (contentChannels.data || []) as any[];
         const ids = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
@@ -560,24 +591,24 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       return rows.length;
     }
     if (src === 'bd_reunioes') {
-      let rows = (meetings.data || []) as any[];
+      let rows = meetingsIn as any[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
     if (src === 'bd_nps') {
-      let rows = (nps.data || []) as any[];
+      let rows = npsIn as any[];
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       if (rows.length === 0) return null;
       const sum = rows.reduce((s, r) => s + Number(r.nps_score), 0);
       return Math.round((sum / rows.length) * 10) / 10;
     }
     if (src === 'bd_despesas') {
-      let rows = (expenses.data || []) as any[];
+      let rows = expensesIn as any[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       return rows.reduce((s, r) => s + Number(r.total_with_vat || 0), 0);
     }
     if (src === 'bd_projetos') {
-      let rows = (projectsDone.data || []) as any[];
+      let rows = projectsDoneIn as any[];
       if (sf.type) rows = rows.filter((r) => r.type === sf.type);
       return rows.length;
     }
@@ -595,30 +626,30 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const rows = ((sales.data || []) as any[]).filter((s) => recurringIds.has(s.product_id));
+      const rows = (salesIn as any[]).filter((s) => recurringIds.has(s.product_id));
       const total = rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       // MRR mensal médio no intervalo
-      const monthSpan = endMonth - startMonth + 1;
+      const monthSpan = M.length;
       return Math.round((total / monthSpan) * 100) / 100;
     }
     if (src === 'bd_fin_receita_variavel') {
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const rows = ((sales.data || []) as any[]).filter((s) => !recurringIds.has(s.product_id));
+      const rows = (salesIn as any[]).filter((s) => !recurringIds.has(s.product_id));
       return Math.round(rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0) * 100) / 100;
     }
     if (src === 'bd_fin_custos_ratio') {
-      const totalRev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const totalRev = (salesIn as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       if (totalRev === 0) return null;
-      const fixed = ((expenses.data || []) as any[])
+      const fixed = (expensesIn as any[])
         .filter((e) => e.is_recurring)
         .reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
       return Math.round((fixed / totalRev) * 1000) / 10;
     }
     if (src === 'bd_fin_breakeven') {
-      const rev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
-      const cost = ((expenses.data || []) as any[]).reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+      const rev = (salesIn as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const cost = (expensesIn as any[]).reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
       return Math.round((rev - cost) * 100) / 100;
     }
     if (src === 'bd_fin_pagamentos_atraso') {
@@ -645,7 +676,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       return rows.length;
     }
     if (src === 'bd_produtos_ticket_medio') {
-      let rows = (sales.data || []) as any[];
+      let rows = salesIn as any[];
       if (sf.product_id) rows = rows.filter((r) => r.product_id === sf.product_id);
       if (rows.length === 0) return null;
       const avg = rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0) / rows.length;
@@ -680,25 +711,25 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const totalRev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const totalRev = (salesIn as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       if (totalRev === 0) return null;
-      const mrr = ((sales.data || []) as any[])
+      const mrr = (salesIn as any[])
         .filter((s) => recurringIds.has(s.product_id))
         .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       return Math.round((mrr / totalRev) * 1000) / 10;
     }
     if (src === 'bd_geral_velocidade_mrr') {
       // Variação MRR primeiro mês vs último mês do range (€)
-      if (months.length < 2) return 0;
+      if (M.length < 2) return 0;
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const rows = ((sales.data || []) as any[]).filter((s) => recurringIds.has(s.product_id));
+      const rows = (salesIn as any[]).filter((s) => recurringIds.has(s.product_id));
       const first = rows
-        .filter((r) => r.sale_month === startMonth)
+        .filter((r) => r.sale_month === mStart)
         .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       const last = rows
-        .filter((r) => r.sale_month === endMonth)
+        .filter((r) => r.sale_month === mEnd)
         .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       return Math.round((last - first) * 100) / 100;
     }
