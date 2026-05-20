@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   ChevronLeft, ChevronRight, Target, Calendar, Briefcase,
-  Megaphone, Users, Settings2, NotebookPen, CheckCircle2,
+  Megaphone, Users, Settings2, NotebookPen, CheckCircle2, Gauge,
 } from 'lucide-react';
 import { CockpitSection } from './CockpitSection';
 import { BlockObjetivos } from './BlockObjetivos';
 import { BlockMonthlyKRs } from './BlockMonthlyKRs';
+import { BlockKPRs } from './BlockKPRs';
 import { BlockAgenda } from './BlockAgenda';
 import { BlockComercial } from './BlockComercial';
 import { BlockMarketing } from './BlockMarketing';
@@ -96,6 +97,15 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         subtitle="Metas mensais por área (8) com semáforo automático"
       >
         <BlockObjetivos year={year} month={month} />
+      </CockpitSection>
+
+      <CockpitSection
+        storageKey={`b1b:${year}-${month}`}
+        icon={<Gauge className="h-4 w-4" />}
+        title="KPRs por área"
+        subtitle="Indicadores-chave mensais por departamento — meta, valor, desvio e análise"
+      >
+        <BlockKPRs year={year} month={month} />
       </CockpitSection>
 
       <CockpitSection
