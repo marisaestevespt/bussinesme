@@ -299,19 +299,15 @@ function QuarterlySubTabs({ planning, year, quarter }: { planning: any; year: nu
   const next = shiftQuarter(year, quarter, 1);
 
   return (
-    <Tabs defaultValue="estado" className="space-y-4">
-      <TabsList className="grid grid-cols-3 w-full h-auto p-1">
+    <Tabs defaultValue="atual" className="space-y-4">
+      <TabsList className="grid grid-cols-2 w-full h-auto p-1">
         <TabsTrigger value="retro" className="py-2 text-xs">
           <span className="font-semibold">Retrospetiva</span>
           <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{prev.quarter} · {prev.year}</span>
         </TabsTrigger>
-        <TabsTrigger value="estado" className="py-2 text-xs">
-          <span className="font-semibold">Estado</span>
-          <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{quarter} · {year}</span>
-        </TabsTrigger>
-        <TabsTrigger value="programa" className="py-2 text-xs">
-          <span className="font-semibold">Programação</span>
-          <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{next.quarter} · {next.year}</span>
+        <TabsTrigger value="atual" className="py-2 text-xs">
+          <span className="font-semibold">Em curso & próximo</span>
+          <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{quarter} · {year} → {next.quarter} · {next.year}</span>
         </TabsTrigger>
       </TabsList>
 
@@ -322,18 +318,22 @@ function QuarterlySubTabs({ planning, year, quarter }: { planning: any; year: nu
         <QuarterlyRetrospectiveView planning={planning} year={prev.year} quarter={prev.quarter} />
       </TabsContent>
 
-      <TabsContent value="estado" className="mt-4">
-        <p className="text-[11px] text-muted-foreground mb-3">
-          KPIs e Key Results do trimestre vigente, por área.
-        </p>
-        <QuarterlyObjectivesList planning={planning} year={year} quarter={quarter} />
-      </TabsContent>
+      <TabsContent value="atual" className="mt-4 space-y-8">
+        <section className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wider">Estado · {quarter} {year}</h3>
+            <span className="text-[10px] text-muted-foreground">KPIs e Key Results do trimestre vigente</span>
+          </div>
+          <QuarterlyObjectivesList planning={planning} year={year} quarter={quarter} />
+        </section>
 
-      <TabsContent value="programa" className="mt-4">
-        <p className="text-[11px] text-muted-foreground mb-3">
-          Programar o próximo trimestre: tema, prioridades, marcos, riscos, capacidade e financeiro.
-        </p>
-        <QuarterlyProgrammingView year={next.year} quarter={next.quarter} />
+        <section className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wider">Programação · {next.quarter} {next.year}</h3>
+            <span className="text-[10px] text-muted-foreground">Tema, prioridades, marcos, riscos, capacidade e financeiro</span>
+          </div>
+          <QuarterlyProgrammingView year={next.year} quarter={next.quarter} />
+        </section>
       </TabsContent>
     </Tabs>
   );
