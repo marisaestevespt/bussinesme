@@ -68,6 +68,29 @@ const SENSITIVE_DEFAULTS_BY_ROLE: Record<string, string[]> = {
   viewer:      [],
 };
 
+// Mapa de presets por cargo → preenche automaticamente departamentos,
+// função no sistema e modo de trabalho com clientes. Se o cargo não
+// estiver aqui (ex: cargo personalizado criado pelo Owner), nada é
+// auto-preenchido e o utilizador escolhe manualmente.
+const CARGO_PRESETS: Record<string, { system_role: string; depts: string[]; wwc: boolean }> = {
+  'contabilista':       { system_role: 'accountant',  depts: ['financeiro'],     wwc: false },
+  'marketer':           { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'marketing':          { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'designer':           { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'comercial':          { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
+  'vendedor':           { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
+  'vendedora':          { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
+  'customer success':   { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
+  'gestor de cliente':  { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
+  'gestora de cliente': { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
+  'administrativa':     { system_role: 'admin_staff', depts: ['administrativo'], wwc: false },
+  'administrativo':     { system_role: 'admin_staff', depts: ['administrativo'], wwc: false },
+  'recursos humanos':   { system_role: 'hr',          depts: ['administrativo'], wwc: false },
+  'rh':                 { system_role: 'hr',          depts: ['administrativo'], wwc: false },
+  'administrador':      { system_role: 'admin',       depts: [],                 wwc: false },
+  'administradora':     { system_role: 'admin',       depts: [],                 wwc: false },
+};
+
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'mbway', label: 'MB WAY' },
@@ -477,7 +500,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             {/* Função */}
             <div className="space-y-2">
               <span className="text-xs text-muted-foreground font-medium">Cargo</span>
-              <p className="text-[10px] text-muted-foreground">Título descritivo (ex: Designer, Gestora). Não controla permissões — isso é a "Função no sistema" mais abaixo.</p>
+              <p className="text-[10px] text-muted-foreground">Escolhe o cargo — preenche automaticamente departamento, acessos e modo de trabalho. Podes ajustar depois.</p>
               <div className="flex flex-wrap gap-2">
                 {rolePresets.map((r: any) => {
                   const isSelected = f.role_title === r.label;
@@ -490,6 +513,22 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                           set('role_color', r.color);
                           if (newRole === 'Owner') {
                             setTimeout(applyOwnerDefaults, 0);
+                          } else if (newRole) {
+                            // Aplica preset associado ao cargo (se existir).
+                            const preset = CARGO_PRESETS[newRole.toLowerCase().trim()];
+                            if (preset) {
+                              set('system_role', preset.system_role);
+                              set('departments', preset.depts);
+                              set('works_with_clients', preset.wwc);
+                              const defaults = SENSITIVE_DEFAULTS_BY_ROLE[preset.system_role] || [];
+                              if (defaults.length > 0) {
+                                setF((prev: any) => {
+                                  const current = { ...(prev.sensitiveAccess || {}) };
+                                  defaults.forEach(k => { if (current[k] === undefined) current[k] = true; });
+                                  return { ...prev, sensitiveAccess: current };
+                                });
+                              }
+                            }
                           }
                         }}
                         className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
@@ -595,31 +634,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 O que faz</h3>
                 <div>
-                  <span className="text-xs text-muted-foreground font-medium">Perfil rápido</span>
-                  <p className="text-[10px] text-muted-foreground">Aplica em 1 clique departamento(s) + modo de trabalho típico. Podes ajustar depois.</p>
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    {[
-                      { key: 'contabilista',     label: 'Contabilista',     depts: ['financeiro'],     wwc: false },
-                      { key: 'marketer',         label: 'Marketer',         depts: ['marketing'],      wwc: false },
-                      { key: 'comercial',        label: 'Comercial',        depts: ['comercial'],      wwc: true  },
-                      { key: 'customer-success', label: 'Customer Success', depts: ['clientes'],       wwc: true  },
-                      { key: 'administrativa',   label: 'Administrativa',   depts: ['administrativo'], wwc: false },
-                    ].map(p => (
-                      <button
-                        key={p.key}
-                        type="button"
-                        onClick={() => {
-                          set('departments', p.depts);
-                          set('works_with_clients', p.wwc);
-                        }}
-                        className="text-[11px] rounded-full border border-border px-2.5 py-1 hover:border-primary hover:bg-primary/5 transition-colors"
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
                   <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
                   <p className="text-[10px] text-muted-foreground">Define em que áreas do negócio este membro trabalha. Controla também o acesso a essas secções do sistema.</p>
                   <div className="space-y-1 mt-1.5">
@@ -641,6 +655,13 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                     })}
                   </div>
                 </div>
+                <label className="flex items-center justify-between gap-3 rounded-md border border-border/60 px-3 py-2.5 cursor-pointer hover:bg-muted/40">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-medium">Trabalha diretamente com clientes</p>
+                    <p className="text-[10px] text-muted-foreground leading-tight">Entra no cálculo de capacidade client-facing e em análises de tempo Cliente vs. Interno.</p>
+                  </div>
+                  <Switch checked={!!f.works_with_clients} onCheckedChange={(v) => set('works_with_clients', v)} />
+                </label>
                 <Textarea placeholder="Responsabilidades específicas (opcional)" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
               </div>
 
@@ -650,34 +671,41 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
 
-                <div className="space-y-2">
-                  <span className="text-xs text-muted-foreground font-medium">Função no sistema</span>
-                  <p className="text-[10px] text-muted-foreground">Controla o nível de acesso técnico. Diferente do cargo (descritivo).</p>
-                  <Select value={f.system_role || 'team_member'} onValueChange={(v) => {
-                    set('system_role', v);
-                    // Aplica defaults de permissões sensíveis para esta função (preserva o que já está ON).
-                    const defaults = SENSITIVE_DEFAULTS_BY_ROLE[v] || [];
-                    if (defaults.length > 0) {
-                      const current = { ...(f.sensitiveAccess || {}) };
-                      defaults.forEach(k => { if (current[k] === undefined) current[k] = true; });
-                      set('sensitiveAccess', current);
-                    }
-                  }}>
-                    <SelectTrigger className="h-9 text-xs">
-                      <SelectValue placeholder="Membro de equipa" />
-                    </SelectTrigger>
-                    <SelectContent className="max-w-[320px]">
-                      {SYSTEM_ROLE_OPTIONS.map(r => (
-                        <SelectItem key={r.value} value={r.value} className="text-xs py-2">
-                          <div className="flex flex-col">
-                            <span className="font-medium">{r.label}</span>
-                            <span className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">{r.hint}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <details className="group">
+                  <summary className="cursor-pointer list-none flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground select-none">
+                    <span className="transition-transform group-open:rotate-90">›</span>
+                    Função no sistema (avançado)
+                    <span className="ml-2 text-[10px] opacity-70">
+                      — atual: {(SYSTEM_ROLE_OPTIONS.find(r => r.value === (f.system_role || 'team_member'))?.label) || 'Membro de equipa'}
+                    </span>
+                  </summary>
+                  <div className="space-y-2 mt-2">
+                    <p className="text-[10px] text-muted-foreground">Já foi definida automaticamente pelo cargo. Só ajustar se precisares de algo diferente.</p>
+                    <Select value={f.system_role || 'team_member'} onValueChange={(v) => {
+                      set('system_role', v);
+                      const defaults = SENSITIVE_DEFAULTS_BY_ROLE[v] || [];
+                      if (defaults.length > 0) {
+                        const current = { ...(f.sensitiveAccess || {}) };
+                        defaults.forEach(k => { if (current[k] === undefined) current[k] = true; });
+                        set('sensitiveAccess', current);
+                      }
+                    }}>
+                      <SelectTrigger className="h-9 text-xs">
+                        <SelectValue placeholder="Membro de equipa" />
+                      </SelectTrigger>
+                      <SelectContent className="max-w-[320px]">
+                        {SYSTEM_ROLE_OPTIONS.map(r => (
+                          <SelectItem key={r.value} value={r.value} className="text-xs py-2">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{r.label}</span>
+                              <span className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">{r.hint}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </details>
 
                 <div className="space-y-2">
                   <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
@@ -712,20 +740,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🕐 Horário</h3>
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
-          </div>
-
-          <Separator />
-
-          {/* ═══ MODO DE TRABALHO ═══ */}
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🎯 Modo de trabalho</h3>
-            <label className="flex items-center justify-between gap-3 rounded-md border border-border/60 px-3 py-2.5 cursor-pointer hover:bg-muted/40">
-              <div className="space-y-0.5">
-                <p className="text-sm font-medium">Trabalha diretamente com clientes</p>
-                <p className="text-xs text-muted-foreground leading-tight">Inclui-o no cálculo de capacidade client-facing e em análises de tempo Cliente vs. Interno.</p>
-              </div>
-              <Switch checked={!!f.works_with_clients} onCheckedChange={(v) => set('works_with_clients', v)} />
-            </label>
           </div>
 
           {isENIOwner && (
