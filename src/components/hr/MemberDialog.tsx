@@ -69,27 +69,42 @@ const SENSITIVE_DEFAULTS_BY_ROLE: Record<string, string[]> = {
 };
 
 // Mapa de presets por cargo → preenche automaticamente departamentos,
-// função no sistema e modo de trabalho com clientes. Se o cargo não
-// estiver aqui (ex: cargo personalizado criado pelo Owner), nada é
-// auto-preenchido e o utilizador escolhe manualmente.
+// função no sistema e modo de trabalho com clientes. A chave é normalizada
+// (minúsculas + sem acentos + trim) — ver normalizeCargo() abaixo.
+// Se o cargo não estiver aqui (ex: cargo personalizado criado pelo Owner),
+// nada é auto-preenchido e o utilizador escolhe manualmente.
 const CARGO_PRESETS: Record<string, { system_role: string; depts: string[]; wwc: boolean }> = {
-  'contabilista':       { system_role: 'accountant',  depts: ['financeiro'],     wwc: false },
-  'marketer':           { system_role: 'team_member', depts: ['marketing'],      wwc: false },
-  'marketing':          { system_role: 'team_member', depts: ['marketing'],      wwc: false },
-  'designer':           { system_role: 'team_member', depts: ['marketing'],      wwc: false },
-  'comercial':          { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
-  'vendedor':           { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
-  'vendedora':          { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
-  'customer success':   { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
-  'gestor de cliente':  { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
-  'gestora de cliente': { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
-  'administrativa':     { system_role: 'admin_staff', depts: ['administrativo'], wwc: false },
-  'administrativo':     { system_role: 'admin_staff', depts: ['administrativo'], wwc: false },
-  'recursos humanos':   { system_role: 'hr',          depts: ['administrativo'], wwc: false },
-  'rh':                 { system_role: 'hr',          depts: ['administrativo'], wwc: false },
-  'administrador':      { system_role: 'admin',       depts: [],                 wwc: false },
-  'administradora':     { system_role: 'admin',       depts: [],                 wwc: false },
+  // Financeiro / Admin
+  'contabilista':         { system_role: 'accountant',  depts: ['financeiro'],     wwc: false },
+  'recursos humanos':     { system_role: 'hr',          depts: ['administrativo'], wwc: false },
+  'assistente':           { system_role: 'admin_staff', depts: ['administrativo'], wwc: false },
+  'advogada':             { system_role: 'team_member', depts: ['administrativo'], wwc: false },
+  'advogado':             { system_role: 'team_member', depts: ['administrativo'], wwc: false },
+  'administrador':        { system_role: 'admin',       depts: [],                 wwc: false },
+  'administradora':       { system_role: 'admin',       depts: [],                 wwc: false },
+  // Marketing
+  'marketer':             { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'designer':             { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'copywriter':           { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'gestora de redes':     { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'gestor de redes':      { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'estratega':            { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  // Comercial / Clientes
+  'comercial':            { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
+  'customer success':     { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
+  // Gestão
+  'gestora de projetos':  { system_role: 'team_member', depts: [],                 wwc: true  },
+  'gestor de projetos':   { system_role: 'team_member', depts: [],                 wwc: true  },
+  // Genéricos
+  'estagiario':           { system_role: 'team_member', depts: [],                 wwc: false },
+  'estagiaria':           { system_role: 'team_member', depts: [],                 wwc: false },
+  'estagiario/a':         { system_role: 'team_member', depts: [],                 wwc: false },
 };
+
+/** Normaliza um cargo: minúsculas, sem acentos, sem espaços extra. */
+function normalizeCargo(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
 
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'transferencia', label: 'Transferência' },
@@ -515,7 +530,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                             setTimeout(applyOwnerDefaults, 0);
                           } else if (newRole) {
                             // Aplica preset associado ao cargo (se existir).
-                            const preset = CARGO_PRESETS[newRole.toLowerCase().trim()];
+                            const preset = CARGO_PRESETS[normalizeCargo(newRole)];
                             if (preset) {
                               set('system_role', preset.system_role);
                               set('departments', preset.depts);
