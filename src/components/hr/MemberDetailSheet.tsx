@@ -257,6 +257,36 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
                   Ver como este membro
                 </Button>
               )}
+              {isOwner && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-2 text-destructive hover:text-destructive"
+                  onClick={async () => {
+                    const ok = await confirmDestructive({
+                      title: `Eliminar ${member.full_name}?`,
+                      description: 'Esta ação remove a ficha de equipa E a conta de utilizador associada. Não pode ser desfeita. Para membros reais usa antes "Iniciar offboarding".',
+                      confirmText: 'Eliminar definitivamente',
+                    });
+                    if (!ok) return;
+                    try {
+                      const { data, error } = await supabase.functions.invoke('delete-member', {
+                        body: { team_member_id: member.id },
+                      });
+                      if (error) throw error;
+                      if ((data as any)?.error) throw new Error((data as any).error);
+                      toast.success('Membro eliminado');
+                      qc.invalidateQueries({ queryKey: ['team_members'] });
+                      onClose?.();
+                    } catch (e: any) {
+                      toast.error('Falha ao eliminar', { description: e?.message });
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Eliminar
+                </Button>
+              )}
             </div>
             {member.role_title && <p className="text-sm text-muted-foreground mt-0.5">{member.role_title}</p>}
           </div>
