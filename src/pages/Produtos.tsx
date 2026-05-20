@@ -122,8 +122,6 @@ export default function ProdutosPage() {
           }
         />
 
-        <DepartmentKpiSummary department="produtos" />
-
         {/* Summary Cards (filter chips) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {statusCards.map(sc => {
