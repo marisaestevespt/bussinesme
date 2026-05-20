@@ -183,6 +183,48 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     ...CACHE,
   });
 
+  // Capacidade total da equipa (soma de horas semanais esperadas dos ativos)
+  const teamCapacity = useQuery({
+    queryKey: ['kpi-auto-team-capacity'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('expected_weekly_hours')
+        .eq('status', 'ativo');
+      return (data || []).reduce(
+        (s: number, m: any) => s + Number(m.expected_weekly_hours || 0),
+        0,
+      );
+    },
+    ...CACHE,
+  });
+
+  // Objetivos anuais do ano (para progresso médio)
+  const yearObjectives = useQuery({
+    queryKey: ['kpi-auto-year-objectives', year],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('executive_objectives')
+        .select('id,target_value,current_value,year,status')
+        .eq('year', year);
+      return data || [];
+    },
+    ...CACHE,
+  });
+
+  // Renovações concluídas — lifetime, para taxa de ativação
+  const renewalsCompletedAll = useQuery({
+    queryKey: ['kpi-auto-renewals-completed-all'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_renewals')
+        .select('client_id,completed')
+        .eq('completed', true);
+      return data || [];
+    },
+    ...CACHE,
+  });
+
   const channelMetrics = useQuery({
     queryKey: ['kpi-auto-followers', year, startMonth, endMonth],
     queryFn: async () => {
@@ -456,6 +498,16 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
 
     if (src === 'bd_equipa') return team.data ?? null;
+    if (src === 'bd_capacidade_disponivel') {
+      const weeklyTotal = teamCapacity.data ?? 0;
+      const weeks = ((endMonth - startMonth + 1) * 4.33);
+      const available = weeklyTotal * weeks;
+      const logged = ((timeEntries.data || []) as any[]).reduce(
+        (s, r) => s + Number(r.duration || 0),
+        0,
+      );
+      return Math.round((available - logged) * 10) / 10;
+    }
     if (src === 'bd_equipa_execucao_autonoma') {
       // % tarefas done que não foram reatribuídas (assigned_to == original_assignee ou original null)
       const rows = (tasksDone.data || []) as any[];
@@ -598,6 +650,29 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       if (rows.length === 0) return null;
       const avg = rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0) / rows.length;
       return Math.round(avg * 100) / 100;
+    }
+    if (src === 'bd_produtos_ativacao') {
+      // % clientes ativos com produto sf.product_id que têm pelo menos uma renewal completed
+      const allClients = ((clientsFull.data || []) as any[]).filter((c) => c.status === 'ativo');
+      const target = sf.product_id
+        ? allClients.filter((c) => c.current_product_id === sf.product_id)
+        : allClients;
+      if (target.length === 0) return null;
+      const activated = new Set(((renewalsCompletedAll.data || []) as any[]).map((r) => r.client_id));
+      const num = target.filter((c) => activated.has(c.id)).length;
+      return Math.round((num / target.length) * 1000) / 10;
+    }
+
+    // === Geral / Estratégico ===
+    if (src === 'bd_objetivos_progresso') {
+      const rows = (yearObjectives.data || []) as any[];
+      const usable = rows.filter((o) => Number(o.target_value || 0) > 0);
+      if (usable.length === 0) return null;
+      const sum = usable.reduce((s, o) => {
+        const pct = Math.min(100, (Number(o.current_value || 0) / Number(o.target_value)) * 100);
+        return s + pct;
+      }, 0);
+      return Math.round((sum / usable.length) * 10) / 10;
     }
 
     // === Geral ===
