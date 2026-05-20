@@ -771,8 +771,69 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
   const statusColors: Record<string, string> = { green: 'bg-success', yellow: 'bg-warning', red: 'bg-destructive', neutral: 'bg-muted' };
   const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
 
+  // Sugestão automática: KPIs do departamento ainda não associados a este objetivo
+  const linkedKpiIds = new Set(metrics.map((m: any) => m.linked_kpi_id).filter(Boolean));
+  const suggestedKpis = kpisList.filter((k: any) => !linkedKpiIds.has(k.id));
+  const [suggestSelected, setSuggestSelected] = useState<Record<string, boolean>>({});
+  const [suggestDismissed, setSuggestDismissed] = useState(false);
+  const toggleSuggest = (id: string) => setSuggestSelected(p => ({ ...p, [id]: !p[id] }));
+  const handleLinkSuggested = async () => {
+    const ids = Object.entries(suggestSelected).filter(([, v]) => v).map(([k]) => k);
+    if (ids.length === 0) { toast.error('Selecciona pelo menos uma meta'); return; }
+    for (const id of ids) {
+      const kpi = kpisList.find((k: any) => k.id === id);
+      if (!kpi) continue;
+      await planning.upsertMetric.mutateAsync({
+        objective_id: objectiveId,
+        name: kpi.name,
+        cadence: 'mensal',
+        source: 'manual',
+        linked_kpi_id: kpi.id,
+        target_unit: kpi.unit || '',
+        target_value: kpi.target_value ?? null,
+        measurement_type: 'acumulativo',
+        green_threshold: 90,
+        yellow_threshold: 60,
+      });
+    }
+    toast.success(`${ids.length} meta(s) associada(s)`);
+    setSuggestSelected({});
+  };
+
   return (
     <div>
+      {!suggestDismissed && suggestedKpis.length > 0 && (
+        <div className="mb-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <p className="text-xs font-semibold flex items-center gap-1">
+                <Sparkles className="h-3 w-3 text-primary" />
+                {suggestedKpis.length} meta(s) do departamento {planAreaLabel(objectiveArea)} ainda não estão associadas
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Selecciona as que contribuem para este objectivo.</p>
+            </div>
+            <button onClick={() => setSuggestDismissed(true)} className="text-[10px] text-muted-foreground hover:text-foreground">Dispensar</button>
+          </div>
+          <div className="space-y-1.5 mb-2">
+            {suggestedKpis.map((k: any) => (
+              <label key={k.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-muted/40 rounded px-1 py-0.5">
+                <Checkbox checked={!!suggestSelected[k.id]} onCheckedChange={() => toggleSuggest(k.id)} />
+                <span className="flex-1">{k.name}</span>
+                {k.target_value != null && (
+                  <span className="text-[10px] text-muted-foreground">
+                    {Number(k.current_value || 0).toLocaleString()} / {Number(k.target_value).toLocaleString()} {k.unit || ''}
+                  </span>
+                )}
+              </label>
+            ))}
+          </div>
+          <div className="flex justify-end">
+            <Button size="sm" variant="default" onClick={handleLinkSuggested}>
+              <Plus className="h-3 w-3 mr-1" /> Associar seleccionadas
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-2">
         <div>
           <h3 className="text-sm font-semibold">Metas associadas</h3>
