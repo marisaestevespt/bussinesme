@@ -88,8 +88,8 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
       <CockpitSection
         storageKey={`b0:${year}-${month}`}
         icon={<Target className="h-4 w-4" />}
-        title="Key Results em curso"
-        subtitle="Resultados-chave dos objetivos anuais com progresso atual"
+        title="Metas dos objetivos anuais"
+        subtitle="Progresso das metas ligadas aos objetivos do ano"
       >
         <BlockMonthlyKRs year={year} month={month} />
       </CockpitSection>
@@ -118,7 +118,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b3:${year}-${month}`}
         icon={<Briefcase className="h-4 w-4" />}
         title="Comercial"
-        subtitle="KPRs, vendas, pipeline e portefólio ativo"
+        subtitle="Metas, vendas, pipeline e portefólio ativo"
       >
         <BlockComercial year={year} month={month} />
       </CockpitSection>
@@ -127,7 +127,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b3b:${year}-${month}`}
         icon={<Package className="h-4 w-4" />}
         title="Produtos"
-        subtitle="KPRs por produto e desempenho do portefólio"
+        subtitle="Metas por produto e desempenho do portefólio"
       >
         <BlockProdutos year={year} month={month} />
       </CockpitSection>
@@ -136,7 +136,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b4:${year}-${month}`}
         icon={<Megaphone className="h-4 w-4" />}
         title="Marketing"
-        subtitle="KPRs, calendário de conteúdo, funis e campanhas"
+        subtitle="Metas, calendário de conteúdo, funis e campanhas"
       >
         <BlockMarketing year={year} month={month} />
       </CockpitSection>
@@ -145,7 +145,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b5:${year}-${month}`}
         icon={<Users className="h-4 w-4" />}
         title="Clientes"
-        subtitle="KPRs, portefólio, renovações, onboardings e alertas"
+        subtitle="Metas, portefólio, renovações, onboardings e alertas"
       >
         <BlockClientes year={year} month={month} />
       </CockpitSection>
@@ -154,7 +154,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b6:${year}-${month}`}
         icon={<Settings2 className="h-4 w-4" />}
         title="Operação"
-        subtitle="KPRs, projetos, capacidade e tarefas atrasadas"
+        subtitle="Metas, projetos, capacidade e tarefas atrasadas"
       >
         <BlockOperacao year={year} month={month} />
       </CockpitSection>
@@ -163,7 +163,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b6b:${year}-${month}`}
         icon={<Wallet className="h-4 w-4" />}
         title="Financeiro"
-        subtitle="KPRs financeiros — faturação, MRR, custos, break-even"
+        subtitle="Metas financeiras — faturação, MRR, custos, break-even"
       >
         <BlockFinanceiro year={year} month={month} />
       </CockpitSection>
@@ -172,7 +172,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b6c:${year}-${month}`}
         icon={<UserCog className="h-4 w-4" />}
         title="Equipa"
-        subtitle="KPRs da equipa — capacidade, ocupação, rotação"
+        subtitle="Metas da equipa — capacidade, ocupação, rotação"
       >
         <BlockEquipa year={year} month={month} />
       </CockpitSection>
@@ -181,7 +181,7 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
         storageKey={`b6d:${year}-${month}`}
         icon={<Sparkles className="h-4 w-4" />}
         title="Geral do negócio"
-        subtitle="KPRs transversais — MRR/faturação, capacidade, OKRs, referências"
+        subtitle="Metas transversais — MRR/faturação, capacidade, objetivos, referências"
       >
         <BlockGeral year={year} month={month} />
       </CockpitSection>
