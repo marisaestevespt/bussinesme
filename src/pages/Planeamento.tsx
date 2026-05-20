@@ -100,13 +100,12 @@ export default function PlaneamentoPage() {
       <div className="space-y-6">
         <BackNavigation />
 
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <PageHeader
-            title="Planeamento"
-            subtitle="Visão → Ano → Trimestre → Mês → Semana"
-          />
-          {nivel !== 'visao' && (
-          <div className="flex items-center gap-1 text-muted-foreground">
+        <PageHeader
+          title="Planeamento"
+          subtitle="Visão → Ano → Trimestre → Mês → Semana"
+        />
+        {nivel !== 'visao' && (
+          <div className="flex items-center justify-end gap-1 text-muted-foreground -mt-2">
             <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano anterior" onClick={() => setYearAndUrl(year - 1)}>
               <ChevronLeft className="h-3.5 w-3.5" />
             </Button>
@@ -115,8 +114,7 @@ export default function PlaneamentoPage() {
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
-          )}
-        </div>
+        )}
 
         {/* Cascade tabs */}
         <Tabs value={nivel} onValueChange={(v) => setNivel(v as Nivel)}>
