@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { ChannelCard } from '@/components/marketing/ChannelCard';
 import { getPlanningSection } from '@/lib/department-planning';
-import { DepartmentKpiSummary } from '@/components/planning/DepartmentKpiSummary';
 
 
 const MARKETING_360 = [
@@ -156,7 +155,6 @@ export default function MarketingDashboard() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Marketing e Branding" subtitle="Estratégia de marketing, conteúdo e canais de comunicação." department="marketing" />
-        <DepartmentKpiSummary department="marketing" />
 
         <div className="space-y-6">
 
