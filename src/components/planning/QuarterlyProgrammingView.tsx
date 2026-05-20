@@ -219,10 +219,8 @@ function ItemRow({ item, onRemove, onUpdate, showDate, showSeverity, showMitigat
   showSeverity?: boolean;
   showMitigation?: boolean;
 }) {
-  const [title, setTitle] = useState(item.title);
   const [dueDate, setDueDate] = useState(item.due_date || '');
   const [severity, setSeverity] = useState(item.severity || 'media');
-  const [mitigation, setMitigation] = useState(item.mitigation || '');
 
   const sevColor = severity === 'alta' ? 'border-rose-500/40 text-rose-600' :
     severity === 'baixa' ? 'border-emerald-500/40 text-emerald-600' :
@@ -231,12 +229,13 @@ function ItemRow({ item, onRemove, onUpdate, showDate, showSeverity, showMitigat
   return (
     <div className="rounded border border-border/40 bg-background p-1.5 space-y-1">
       <div className="flex items-center gap-1.5">
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={() => { if (title !== item.title) onUpdate({ title }); }}
-          className="h-6 text-xs border-0 px-1 focus-visible:ring-1"
-        />
+        <div className="flex-1 min-w-0">
+          <InlineEditableText
+            value={item.title}
+            onSave={(v) => { if (v !== item.title) onUpdate({ title: v }); }}
+            displayClassName="text-xs"
+          />
+        </div>
         {showSeverity && (
           <select
             value={severity}
@@ -266,12 +265,12 @@ function ItemRow({ item, onRemove, onUpdate, showDate, showSeverity, showMitigat
         </Button>
       </div>
       {showMitigation && (
-        <Input
-          value={mitigation}
-          onChange={(e) => setMitigation(e.target.value)}
-          onBlur={() => { if (mitigation !== (item.mitigation || '')) onUpdate({ mitigation }); }}
-          placeholder="Mitigação…"
-          className="h-6 text-[11px] px-2"
+        <InlineEditableText
+          value={item.mitigation || ''}
+          onSave={(v) => { if (v !== (item.mitigation || '')) onUpdate({ mitigation: v }); }}
+          placeholder="Mitigação"
+          emptyText="+ Adicionar mitigação"
+          displayClassName="text-[11px]"
         />
       )}
     </div>
