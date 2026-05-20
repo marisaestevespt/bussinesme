@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronDown, ChevronRight, Plus, Pencil, Save, X, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, Target } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS } from '@/hooks/usePlanningData';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
@@ -50,6 +51,7 @@ interface Props {
 export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
   const [openObj, setOpenObj] = useState<Record<string, boolean>>({});
   const [detailObj, setDetailObj] = useState<any>(null);
+  const [openArea, setOpenArea] = useState<Record<string, boolean>>({});
 
   const objectives = planning.allObjectives || [];
   const metrics = planning.allMetrics || [];
@@ -86,20 +88,31 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
 
       {byArea.map(([area, objs]) => {
         const Icon = AREA_ICONS[area] || Target;
+        const isOpen = openArea[area] ?? false;
         return (
           <Card key={area} className="hq-card overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50">
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-                  <Icon className="h-3.5 w-3.5" />
-                </div>
-                <h2 className="text-sm font-semibold uppercase tracking-wider">{planAreaLabel(area)}</h2>
-                <Badge variant="outline" className="text-[10px]">{objs.length} objetivos</Badge>
-              </div>
-              <span className="text-[10px] text-muted-foreground">{quarter} · {qMonths.join(' · ')}</span>
-            </div>
-
-            <div className="p-4 space-y-4">
+            <Collapsible open={isOpen} onOpenChange={(o) => setOpenArea((s) => ({ ...s, [area]: o }))}>
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50 hover:bg-muted/50 hq-transition text-left"
+                  aria-expanded={isOpen}
+                >
+                  <div className="flex items-center gap-2">
+                    {isOpen
+                      ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                    <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+                    <h2 className="text-sm font-semibold uppercase tracking-wider">{planAreaLabel(area)}</h2>
+                    <Badge variant="outline" className="text-[10px]">{objs.length} objetivos</Badge>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{quarter} · {qMonths.join(' · ')}</span>
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="p-4 space-y-4">
               {/* KPIs permanentes do departamento */}
               <DepartmentKpisSection department={area} departmentLabel={planAreaLabel(area)} />
 
@@ -222,7 +235,9 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
         );
       })}
