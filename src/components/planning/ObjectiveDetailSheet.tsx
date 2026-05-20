@@ -712,6 +712,20 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {kpisList.length > 0 && (
+              <div><Label>Ligar a KPI do departamento (opcional)</Label>
+                <Select value={editForm.linked_kpi_id || 'none'} onValueChange={v => setEditForm((p: any) => ({ ...p, linked_kpi_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Não ligado" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Não ligado</SelectItem>
+                    {kpisList.map((k: any) => (
+                      <SelectItem key={k.id} value={k.id}>{k.name} {k.unit ? `(${k.unit})` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente do KPI ligado.</p>
+              </div>
+            )}
             {(editForm.source === 'bd_vendas' || editForm.source === 'bd_crm') && (
               <div><Label>Produto associado</Label>
                 <Select value={editForm.product_id || 'none'} onValueChange={v => setEditForm((p: any) => ({ ...p, product_id: v === 'none' ? '' : v }))}>
