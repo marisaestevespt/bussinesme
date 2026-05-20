@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { formatNumber } from '@/lib/formatting';
 import { getPlanningSection } from '@/lib/department-planning';
+import { DepartmentKpiSummary } from '@/components/planning/DepartmentKpiSummary';
 
 const SECTIONS = [
   // Planeamento sempre primeiro (regra: ver mem://design/department-planning-card.md)
@@ -32,6 +33,7 @@ export default function ComercialPage() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Comercial" subtitle="Gestão comercial, vendas e metas do negócio." department="comercial" />
+        <DepartmentKpiSummary department="comercial" />
 
         {/* Annual goal progress bar */}
         <Card className="border-primary/20">
