@@ -121,7 +121,7 @@ export default function PlaneamentoDepartamento() {
           />
         </section>
 
-        {/* 2 — Metas & KPRs (o quê medir) */}
+        {/* 2 — Metas (o quê medir) */}
         <section className="space-y-4 pt-6 border-t border-border/60">
           <SectionHeading
             step="02"
@@ -155,7 +155,7 @@ export default function PlaneamentoDepartamento() {
           />
         </section>
 
-        {/* 4 — Mês (KPRs mês a mês + análise) */}
+        {/* 4 — Mês (metas mês a mês + análise) */}
         <section className="space-y-4 pt-6 border-t border-border/60">
           <SectionHeading
             step="04"
