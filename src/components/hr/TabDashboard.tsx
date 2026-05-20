@@ -131,20 +131,6 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
     } catch { return 'off'; }
   };
 
-  const availColors: Record<string, string> = {
-    available: 'bg-success/15 dark:bg-success/30',
-    off: 'bg-muted',
-    vacation: 'bg-warning/15 dark:bg-warning/30',
-    absence: 'bg-warning/15 dark:bg-warning/30',
-    holiday: 'bg-info/15 dark:bg-info/30',
-  };
-  const availDots: Record<string, string> = {
-    available: 'bg-success',
-    off: 'bg-muted-foreground/30',
-    vacation: 'bg-warning',
-    holiday: 'bg-info',
-  };
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
