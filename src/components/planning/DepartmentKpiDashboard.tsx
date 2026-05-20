@@ -22,6 +22,13 @@ interface Props {
   department: string;
   departmentLabel?: string;
   year: number;
+  /**
+   * Which slice to render:
+   * - 'all' (default, backwards compat): header + hero cards + monthly table
+   * - 'cards': header + form + hero cards only (top of planning page)
+   * - 'monthly': just the monthly table (lower section)
+   */
+  view?: 'all' | 'cards' | 'monthly';
 }
 
 function fmt(v: number | null | undefined, unit?: string | null) {
@@ -31,7 +38,7 @@ function fmt(v: number | null | undefined, unit?: string | null) {
   return unit ? `${s} ${unit}` : s;
 }
 
-export function DepartmentKpiDashboard({ department, departmentLabel, year }: Props) {
+export function DepartmentKpiDashboard({ department, departmentLabel, year, view = 'all' }: Props) {
   const { list: kpis, upsert: upsertKpi, remove: removeKpi } = useDepartmentKpis(department);
   const kpiIds = useMemo(() => kpis.map(k => k.id), [kpis]);
   const { list: monthly, upsert: upsertMonthly } = useDepartmentKpiMonthly(year, kpiIds);
@@ -79,27 +86,37 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header (hidden in monthly-only view) */}
+      {view === 'all' && (
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
             <Gauge className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-base font-semibold">KPIs do departamento — {year}</h2>
+            <h2 className="text-base font-semibold">KPRs do departamento — {year}</h2>
             <p className="text-xs text-muted-foreground">
-              Métricas permanentes{departmentLabel ? ` para ${departmentLabel}` : ''}. Edita os valores mês a mês.
+              Métricas permanentes{departmentLabel ? ` para ${departmentLabel}` : ''}.
             </p>
           </div>
         </div>
         {!addingKpi && (
           <Button size="sm" variant="outline" onClick={() => setAddingKpi(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Novo KPI
+            <Plus className="h-4 w-4 mr-1" /> Novo KPR
           </Button>
         )}
       </div>
+      )}
 
-      {addingKpi && (
+      {view === 'cards' && !addingKpi && (
+        <div className="flex justify-end">
+          <Button size="sm" variant="outline" onClick={() => setAddingKpi(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Novo KPR
+          </Button>
+        </div>
+      )}
+
+      {view !== 'monthly' && addingKpi && (
         <KpiForm
           initial={{ department }}
           year={year}
@@ -109,12 +126,15 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
       )}
 
       {kpis.length === 0 && !addingKpi ? (
-        <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">
-          Ainda sem KPIs. Cria o primeiro para começar a medir.
-        </CardContent></Card>
+        view !== 'monthly' ? (
+          <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">
+            Ainda sem KPRs. Cria o primeiro para começar a medir.
+          </CardContent></Card>
+        ) : null
       ) : (
         <>
           {/* Hero cards com sparklines */}
+          {view !== 'monthly' && (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {kpis.map((k) => {
               const months = monthlyIdx[k.id] || {};
@@ -186,8 +206,9 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
               );
             })}
           </div>
+          )}
 
-          {editingKpi && (() => {
+          {view !== 'monthly' && editingKpi && (() => {
             const k = kpis.find(x => x.id === editingKpi);
             if (!k) return null;
             return (
@@ -201,6 +222,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
           })()}
 
           {/* Tabela mensal */}
+          {view !== 'cards' && (
           <Card>
             <CardContent className="p-0 overflow-x-auto">
               <table className="w-full text-xs">
@@ -310,6 +332,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
               </table>
             </CardContent>
           </Card>
+          )}
         </>
       )}
     </div>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { CalendarRange, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarRange } from 'lucide-react';
 import { QuarterlyProgrammingView } from './QuarterlyProgrammingView';
 import { QuarterlyRetrospectiveView } from './QuarterlyRetrospectiveView';
 import { shiftQuarter, type QuarterStr } from '@/hooks/useQuarterlyPlan';
@@ -12,47 +12,39 @@ interface Props {
   year: number;
   planAreaKey: string;
   label: string;
+  /** When true, renders without outer section/header (caller provides them). */
+  embedded?: boolean;
 }
 
 /**
  * Bloco de programação trimestral para um único departamento, com seletor
  * de Q1-Q4 e as 3 sub-tabs (Retrospetiva, Estado, Programação).
  */
-export function DepartmentQuarterlyPlanning({ planning, year, planAreaKey, label }: Props) {
+export function DepartmentQuarterlyPlanning({ planning, year, planAreaKey, label, embedded = false }: Props) {
   const currentQ = (['T1', 'T2', 'T3', 'T4'] as const)[Math.floor(new Date().getMonth() / 3)];
   const [quarter, setQuarter] = useState<QuarterStr>(currentQ);
 
   const prev = shiftQuarter(year, quarter, -1);
   const next = shiftQuarter(year, quarter, 1);
 
-  return (
-    <section className="space-y-3 pt-6 border-t border-border/60">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <CalendarRange className="h-4 w-4" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold">Análise & Programação Trimestral</h2>
-            <p className="text-xs text-muted-foreground">Retrospetiva e programação de {label}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          {(['T1', 'T2', 'T3', 'T4'] as const).map((q) => (
-            <Button
-              key={q}
-              size="sm"
-              variant={q === quarter ? 'default' : 'outline'}
-              className="h-7 text-xs px-3"
-              onClick={() => setQuarter(q)}
-            >
-              {q}
-            </Button>
-          ))}
-        </div>
-      </div>
+  const quarterPicker = (
+    <div className="flex items-center gap-1">
+      {(['T1', 'T2', 'T3', 'T4'] as const).map((q) => (
+        <Button
+          key={q}
+          size="sm"
+          variant={q === quarter ? 'default' : 'outline'}
+          className="h-7 text-xs px-3"
+          onClick={() => setQuarter(q)}
+        >
+          {q}
+        </Button>
+      ))}
+    </div>
+  );
 
-      <Card className="hq-card">
+  const body = (
+    <Card className="hq-card">
         <CardContent className="pt-5">
           <Tabs defaultValue="atual">
             <TabsList className="grid grid-cols-2 w-full h-auto p-1">
@@ -94,6 +86,32 @@ export function DepartmentQuarterlyPlanning({ planning, year, planAreaKey, label
           </Tabs>
         </CardContent>
       </Card>
+  );
+
+  if (embedded) {
+    return (
+      <div className="space-y-3">
+        <div className="flex justify-end">{quarterPicker}</div>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <section className="space-y-3 pt-6 border-t border-border/60">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <CalendarRange className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold">Análise & Programação Trimestral</h2>
+            <p className="text-xs text-muted-foreground">Retrospetiva e programação de {label}</p>
+          </div>
+        </div>
+        {quarterPicker}
+      </div>
+      {body}
     </section>
   );
 }
