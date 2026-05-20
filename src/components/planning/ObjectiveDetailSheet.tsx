@@ -19,6 +19,8 @@ import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCE
 import { useTeamData } from '@/hooks/useTeamData';
 import { useProducts } from '@/hooks/useProducts';
 import { useDepartmentKpis } from '@/hooks/useDepartmentKpis';
+import { useDepartmentKpiMonthly } from '@/hooks/useDepartmentKpiMonthly';
+import { Link as RouterLink } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -277,7 +279,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
           )}
 
           <Separator />
-          <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} parentObjective={obj} />
+          <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} parentObjective={obj} metrics={objMetrics} />
           <Separator />
           <MetricsSection objectiveId={obj.id} objectiveArea={obj.area} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
           <Separator />
@@ -320,7 +322,7 @@ const QUARTER_MAP: Record<string, string[]> = {
   'T4': ['Outubro', 'Novembro', 'Dezembro'],
 };
 
-function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
+function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics = [] }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
 
@@ -329,6 +331,17 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
 
   const isAutoSource = parentObjective?.value_source && parentObjective.value_source !== 'manual' && parentObjective.value_source !== 'metrica';
   const sourceLabel = VALUE_SOURCES.find(s => s.value === parentObjective?.value_source)?.label;
+
+  // If objective has metrics linked to a department KPI, we read monthly breakdown
+  // from department_kpi_monthly instead of asking the user to create planning_goals.
+  const linkedKpiIds: string[] = metrics
+    .map((m: any) => m.linked_kpi_id)
+    .filter((id: string | null): id is string => !!id);
+  const departmentKpis = useDepartmentKpis(parentObjective?.area);
+  const linkedKpis = (departmentKpis.list || []).filter((k: any) => linkedKpiIds.includes(k.id));
+  const year = parentObjective?.deadline ? new Date(parentObjective.deadline).getFullYear() : new Date().getFullYear();
+  const kpiMonthly = useDepartmentKpiMonthly(year, linkedKpiIds);
+  const hasLinkedKpi = linkedKpis.length > 0;
 
   useEffect(() => {
     if (editGoal) {
@@ -393,13 +406,55 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
       <div className="flex items-center justify-between mb-2">
         <div>
           <h3 className="text-sm font-semibold">Desdobramento em Metas</h3>
-          {isAutoSource && (
+          {hasLinkedKpi ? (
+            <p className="text-[10px] text-muted-foreground">Metas mensais vêm das Metas do departamento ligadas. Edita em Planeamento → Departamento.</p>
+          ) : isAutoSource && (
             <p className="text-[10px] text-muted-foreground">Valores reais calculados automaticamente via {sourceLabel}</p>
           )}
         </div>
-        <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
+        {!hasLinkedKpi && (
+          <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
+        )}
       </div>
-      {allRows.length === 0 ? <EmptyHint>Sem metas associadas. Defina metas mensais e os trimestres serão calculados automaticamente.</EmptyHint> : (
+      {hasLinkedKpi ? (
+        <div className="space-y-3">
+          {linkedKpis.map((kpi: any) => {
+            const rows = MONTHS.map((label, idx) => {
+              const m = (kpiMonthly.list || []).find((r: any) => r.kpi_id === kpi.id && r.month === idx + 1);
+              const target = m?.target_value ?? null;
+              const actual = m?.actual_value ?? null;
+              const dev = target != null && actual != null ? Number(actual) - Number(target) : null;
+              return { label, target, actual, dev };
+            });
+            return (
+              <div key={kpi.id} className="rounded-lg border">
+                <div className="px-3 py-2 flex items-center justify-between border-b bg-muted/30">
+                  <div>
+                    <p className="text-xs font-semibold">{kpi.name} {kpi.unit && <span className="text-muted-foreground font-normal">({kpi.unit})</span>}</p>
+                    <p className="text-[10px] text-muted-foreground">Anual: {kpi.annual_target ?? '—'} · Trimestral: {kpi.quarterly_target ?? '—'}</p>
+                  </div>
+                  <RouterLink to={`/planeamento/dep/${parentObjective?.area}`} className="text-[10px] underline text-primary">Editar no departamento →</RouterLink>
+                </div>
+                <Table>
+                  <TableHeader><TableRow>
+                    <TableHead className="w-[120px]">Mês</TableHead><TableHead>Meta</TableHead><TableHead>Real</TableHead><TableHead>Desvio</TableHead>
+                  </TableRow></TableHeader>
+                  <TableBody>
+                    {rows.map((r) => (
+                      <TableRow key={r.label}>
+                        <TableCell className="text-sm">{r.label}</TableCell>
+                        <TableCell>{r.target != null ? Number(r.target).toLocaleString('pt-PT') : '—'}</TableCell>
+                        <TableCell>{r.actual != null ? Number(r.actual).toLocaleString('pt-PT') : '—'}</TableCell>
+                        <TableCell className={r.dev != null && r.dev < 0 ? 'text-destructive' : ''}>{r.dev != null ? (r.dev >= 0 ? `+${r.dev}` : r.dev) : '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            );
+          })}
+        </div>
+      ) : allRows.length === 0 ? <EmptyHint>Sem metas associadas. Defina metas mensais e os trimestres serão calculados automaticamente.</EmptyHint> : (
         <Table>
           <TableHeader><TableRow>
             <TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
