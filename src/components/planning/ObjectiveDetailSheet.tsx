@@ -18,6 +18,7 @@ import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
 import { useProducts } from '@/hooks/useProducts';
+import { useDepartmentKpis } from '@/hooks/useDepartmentKpis';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
@@ -278,7 +279,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
           <Separator />
           <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} parentObjective={obj} />
           <Separator />
-          <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
+          <MetricsSection objectiveId={obj.id} objectiveArea={obj.area} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
           <Separator />
           <ActionsSection objectiveId={obj.id} actions={objActions} planning={planning} />
         </div>
