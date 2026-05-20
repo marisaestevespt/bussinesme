@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useSearchParams, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -6,11 +6,8 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Target, Building2, FolderKanban, Plus, MessageSquare } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+import { Target, Gauge, CalendarRange, CalendarDays, FolderKanban, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { usePlanningData } from '@/hooks/usePlanningData';
@@ -37,6 +34,34 @@ const DEPT_TO_AREA: Record<string, string> = {
   admin: 'admin',
 };
 
+interface SectionHeadingProps {
+  step: string;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}
+
+function SectionHeading({ step, icon: Icon, title, subtitle, action }: SectionHeadingProps) {
+  return (
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-center gap-3">
+        <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground font-semibold tabular-nums">{step}</span>
+            <h2 className="text-base font-semibold">{title}</h2>
+          </div>
+          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
 export default function PlaneamentoDepartamento() {
   const { area: areaParam } = useParams<{ area: string }>();
   const [params] = useSearchParams();
@@ -53,34 +78,10 @@ export default function PlaneamentoDepartamento() {
   const yearEnd = endOfMonth(new Date(year, 11, 1));
   const { data: projectsByDept = {} } = useProjectsByDepartmentInRange(yearStart, yearEnd);
 
-  const areaInfo = useMemo(
-    () => tacticalAreas.find((a) => a.key === areaKey),
-    [tacticalAreas, areaKey],
-  );
+  const areaInfo = tacticalAreas.find((a) => a.key === areaKey);
 
   const planAreaKey = planningAreaForDepartment(areaKey);
   const initiatives = projectsByDept[areaKey] || [];
-
-  // Local notes state — keyed by goal id
-  const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
-  const [savingId, setSavingId] = useState<string | null>(null);
-
-  // Filter monthly+quarterly goals belonging to this area via parent objective
-  const areaGoals = useMemo(() => {
-    const objs = (planning.objectives.data || []) as any[];
-    const objIds = new Set(objs.filter(o => o.area === planAreaKey).map(o => o.id));
-    return ((planning.goals.data || []) as any[]).filter(g => objIds.has(g.objective_id));
-  }, [planning.goals.data, planning.objectives.data, planAreaKey]);
-
-  const saveNotes = async (goalId: string) => {
-    setSavingId(goalId);
-    const value = notesDraft[goalId] ?? '';
-    const { error } = await supabase.from('planning_goals').update({ notes: value }).eq('id', goalId);
-    setSavingId(null);
-    if (error) { toast.error('Erro ao guardar nota'); return; }
-    toast.success('Nota guardada');
-    planning.goals.refetch?.();
-  };
 
   if (!areaParam) {
     return <Navigate to="/executive/planeamento/tatico" replace />;
@@ -90,42 +91,26 @@ export default function PlaneamentoDepartamento() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="space-y-10">
         <BackNavigation />
         <PageHeader
-          title={`Planeamento — ${label}`}
-          subtitle="Tudo o que está planeado para este departamento"
+          title={`Planeamento & Análise — ${label}`}
+          subtitle="Do objetivo anual ao mês: tudo num só fluxo"
         />
 
-        {/* Dashboard de KPIs do departamento: hero cards + tabela mensal + análise */}
-        <DepartmentKpiDashboard department={areaKey} departmentLabel={label} year={year} />
-
-        {/* Análise + Programação trimestral só desta área */}
-        <DepartmentQuarterlyPlanning
-          planning={planning}
-          year={year}
-          planAreaKey={planAreaKey}
-          label={label}
-        />
-
-        {/* Objetivos Anuais do dept */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                <Target className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold">Objetivos Anuais</h2>
-                <p className="text-xs text-muted-foreground">Big goals do ano para {label}</p>
-              </div>
-            </div>
-            {isOwner && (
+        {/* 1 — Objetivos anuais (porquê) */}
+        <section className="space-y-4">
+          <SectionHeading
+            step="01"
+            icon={Target}
+            title="Objetivos Anuais"
+            subtitle={`Big goals do ano para ${label}`}
+            action={isOwner ? (
               <Button size="sm" onClick={() => setNewObjectiveOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Novo Objetivo
               </Button>
-            )}
-          </div>
+            ) : undefined}
+          />
           <PlanningObjectivesTab
             planning={planning}
             showHeaderButton={false}
@@ -136,96 +121,64 @@ export default function PlaneamentoDepartamento() {
           />
         </section>
 
-        {/* Metas do dept */}
-        <section className="space-y-3 pt-6 border-t border-border/60">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Target className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold">Metas</h2>
-              <p className="text-xs text-muted-foreground">Só metas associadas a {label}</p>
-            </div>
-          </div>
+        {/* 2 — Metas & KPRs (o quê medir) */}
+        <section className="space-y-4 pt-6 border-t border-border/60">
+          <SectionHeading
+            step="02"
+            icon={Gauge}
+            title="Metas & KPRs"
+            subtitle="Indicadores e metas anuais que dão sinal aos objetivos"
+          />
+          <DepartmentKpiDashboard
+            department={areaKey}
+            departmentLabel={label}
+            year={year}
+            view="cards"
+          />
           <PlanningGoalsTab planning={planning} viewMode="metas" areaFilter={planAreaKey} />
         </section>
 
-        {/* Notas do departamento por meta — editável por qualquer membro */}
-        <section className="space-y-3 pt-6 border-t border-border/60">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <MessageSquare className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold">Notas do departamento</h2>
-              <p className="text-xs text-muted-foreground">Comentários do departamento sobre cada meta. Visível para o CEO.</p>
-            </div>
-          </div>
-          {areaGoals.length === 0 ? (
-            <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Sem metas para comentar.
-            </CardContent></Card>
-          ) : (
-            <div className="space-y-3">
-              {areaGoals.map((g: any) => {
-                const draft = notesDraft[g.id] ?? g.notes ?? '';
-                const dirty = draft !== (g.notes ?? '');
-                return (
-                  <Card key={g.id}>
-                    <CardContent className="p-4 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px]">{g.period}</Badge>
-                          <span className="text-sm">Alvo: <strong className="tabular-nums">{g.target_value || '—'}</strong></span>
-                          <span className="text-sm text-muted-foreground">Real: {g.actual_value || '—'}</span>
-                        </div>
-                      </div>
-                      <Textarea
-                        placeholder="Notas do departamento sobre esta meta…"
-                        value={draft}
-                        onChange={(e) => setNotesDraft({ ...notesDraft, [g.id]: e.target.value })}
-                        rows={2}
-                      />
-                      {dirty && (
-                        <div className="flex justify-end">
-                          <Button size="sm" onClick={() => saveNotes(g.id)} disabled={savingId === g.id}>
-                            {savingId === g.id ? 'A guardar…' : 'Guardar nota'}
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
+        {/* 3 — Trimestre (programação + retrospetiva) */}
+        <section className="space-y-4 pt-6 border-t border-border/60">
+          <SectionHeading
+            step="03"
+            icon={CalendarRange}
+            title="Trimestre"
+            subtitle="Retrospetiva e programação trimestral"
+          />
+          <DepartmentQuarterlyPlanning
+            planning={planning}
+            year={year}
+            planAreaKey={planAreaKey}
+            label={label}
+          />
         </section>
 
-        {/* Tático filtrado a esta área */}
-        <section className="space-y-3 pt-6 border-t border-border/60">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Building2 className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold">Cronograma do ano</h2>
-              <p className="text-xs text-muted-foreground">Trimestres / semestres deste departamento. Clica num bloco para o detalhe.</p>
-            </div>
-          </div>
+        {/* 4 — Mês (KPRs mês a mês + análise) */}
+        <section className="space-y-4 pt-6 border-t border-border/60">
+          <SectionHeading
+            step="04"
+            icon={CalendarDays}
+            title="Mês a mês"
+            subtitle="Metas e valores reais por KPR, com análise mensal"
+          />
+          <DepartmentKpiDashboard
+            department={areaKey}
+            departmentLabel={label}
+            year={year}
+            view="monthly"
+          />
+        </section>
+
+        {/* 5 — Iniciativas & cronograma */}
+        <section className="space-y-4 pt-6 border-t border-border/60">
+          <SectionHeading
+            step="05"
+            icon={FolderKanban}
+            title="Iniciativas & Cronograma"
+            subtitle={`Projetos e blocos táticos de ${year}`}
+          />
           <TacticalByAreaView planning={planning} year={year} onlyAreaKey={areaKey} />
-        </section>
-
-        {/* Iniciativas / Projetos do dept no ano */}
-        <section className="space-y-3 pt-6 border-t border-border/60">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <FolderKanban className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold">Iniciativas & Projetos</h2>
-              <p className="text-xs text-muted-foreground">Projetos com deadline em {year} associados a este departamento</p>
-            </div>
-          </div>
           {initiatives.length === 0 ? (
             <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">
               Nenhuma iniciativa ou projeto associado.
