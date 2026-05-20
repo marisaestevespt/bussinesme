@@ -24,7 +24,6 @@ import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 import { OperacaoAnaliseTab } from '@/components/operacao/OperacaoAnaliseTab';
-import { DepartmentKpiSummary } from '@/components/planning/DepartmentKpiSummary';
 import { isTaskDone, isTaskOpen, isTaskOverdue } from '@/lib/taskStatus';
 import { computeProjectHealth } from '@/lib/projectHealth';
 import { isDeliverableDone } from '@/lib/projectProgress';
