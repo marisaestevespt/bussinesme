@@ -102,6 +102,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
       {addingKpi && (
         <KpiForm
           initial={{ department }}
+          year={year}
           onCancel={() => setAddingKpi(false)}
           onSave={(payload) => upsertKpi.mutate(payload, { onSuccess: () => setAddingKpi(false) })}
         />
@@ -192,6 +193,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
             return (
               <KpiForm
                 initial={k}
+                year={year}
                 onCancel={() => setEditingKpi(null)}
                 onSave={(payload) => upsertKpi.mutate(payload, { onSuccess: () => setEditingKpi(null) })}
               />
