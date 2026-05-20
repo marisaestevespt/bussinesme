@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { exportPdf } from '@/lib/exportPdf';
 import { ALL_SECTIONS_ROW1, ALL_SECTIONS_ROW2 } from '@/components/financial/finOverview/sections';
-import { DepartmentKpiSummary } from '@/components/planning/DepartmentKpiSummary';
 import { NavRow } from '@/components/financial/finOverview/NavSections';
 import { useOverviewData } from '@/components/financial/finOverview/useOverviewData';
 import { SummaryCards, BestWorstMonth } from '@/components/financial/finOverview/SummaryCards';
@@ -55,7 +54,6 @@ export default function FinanceiroPage() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." department="financeiro" />
-        <DepartmentKpiSummary department="financeiro" />
 
         <div className="space-y-3">
           <NavRow sections={SECTIONS_ROW1} />
