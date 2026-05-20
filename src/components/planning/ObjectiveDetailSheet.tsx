@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus, Sparkles, Wand2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip as InfoTooltip, TooltipContent as InfoTooltipContent, TooltipProvider as InfoTooltipProvider, TooltipTrigger as InfoTooltipTrigger } from '@/components/ui/tooltip';
 import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
