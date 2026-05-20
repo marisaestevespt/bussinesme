@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Target, AlertTriangle, Flag, Sparkles, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, Save } from 'lucide-react';
+import { Plus, Trash2, Target, AlertTriangle, Flag, Sparkles, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog } from 'lucide-react';
 import { PLAN_AREAS, planAreaLabel } from '@/hooks/usePlanningData';
 import { useQuarterlyPlan, type QuarterStr, type QuarterItemKind } from '@/hooks/useQuarterlyPlan';
 import { confirmDestructive } from '@/lib/confirmDestructive';
+import { InlineEditableText } from '@/components/ui/inline-editable-text';
 
 const AREA_ICONS: Record<string, any> = {
   comercial: Briefcase, marketing: Megaphone, financeiro: Wallet,
@@ -47,13 +47,18 @@ export function QuarterlyProgrammingView({ year, quarter }: Props) {
 
             <div className="p-4 space-y-4">
               {/* Tema do trimestre */}
-              <ThemeEditor
-                area={area}
-                year={year}
-                quarter={quarter}
-                plan={plan}
-                onSave={(payload) => upsertPlan.mutate(payload)}
-              />
+              <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Tema do trimestre</label>
+                </div>
+                <InlineEditableText
+                  value={plan?.theme || ''}
+                  emptyText="Define o foco principal deste trimestre"
+                  placeholder="Uma frase: qual é o foco principal?"
+                  onSave={(v) => upsertPlan.mutate({ area, year, quarter, theme: v })}
+                />
+              </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 {/* Prioridades */}
@@ -121,55 +126,23 @@ export function QuarterlyProgrammingView({ year, quarter }: Props) {
   );
 }
 
-function ThemeEditor({ area, year, quarter, plan, onSave }: {
-  area: string; year: number; quarter: QuarterStr;
-  plan: any;
-  onSave: (p: any) => void;
-}) {
-  const [theme, setTheme] = useState(plan?.theme || '');
-  const dirty = theme !== (plan?.theme || '');
-  return (
-    <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-3.5 w-3.5 text-primary" />
-        <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Tema do trimestre</label>
-      </div>
-      <div className="flex items-center gap-2">
-        <Input
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
-          placeholder="Uma frase: qual é o foco principal deste trimestre?"
-          className="h-8 text-sm"
-        />
-        {dirty && (
-          <Button size="sm" className="h-8" onClick={() => onSave({ area, year, quarter, theme })}>
-            <Save className="h-3.5 w-3.5 mr-1" /> Guardar
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function NotesEditor({ label, icon, value, placeholder, onSave }: {
   label: string; icon: React.ReactNode; value: string; placeholder: string;
   onSave: (v: string) => void;
 }) {
-  const [v, setV] = useState(value);
-  const dirty = v !== value;
   return (
-    <div className="rounded-md border border-border/60 p-2.5 space-y-1.5 bg-muted/10">
+    <div className="rounded-md border border-border/60 p-2.5 space-y-1 bg-muted/10">
       <div className="flex items-center gap-1.5 text-muted-foreground">
         {icon}
         <span className="text-[10px] uppercase tracking-wider font-medium">{label}</span>
       </div>
-      <Textarea
-        value={v}
-        onChange={(e) => setV(e.target.value)}
-        placeholder={placeholder}
+      <InlineEditableText
+        value={value}
+        multiline
         rows={2}
-        className="text-xs"
-        onBlur={() => { if (dirty) onSave(v); }}
+        placeholder={placeholder}
+        emptyText={placeholder}
+        onSave={onSave}
       />
     </div>
   );
