@@ -49,6 +49,7 @@ export const GOAL_STATUSES = [
 export const VALUE_SOURCES = [
   { value: 'manual', label: 'Manual', area: null, desc: 'Introduzir valores manualmente' },
   { value: 'metrica', label: 'Métrica na Ficha', area: null, desc: 'Progresso via métrica com tracking periódico' },
+  { value: 'commercial', label: 'Meta Comercial (Vendas)', area: 'comercial', desc: 'Sincroniza com metas anuais/trimestrais/mensais comerciais (Vendas)' },
   { value: 'bd_vendas', label: 'Faturação (Vendas)', area: 'financeiro', desc: 'Soma de vendas registadas no período' },
   { value: 'bd_crm', label: 'Leads ganhos (CRM)', area: 'comercial', desc: 'Contagem de leads com status ganho' },
   { value: 'bd_clientes', label: 'Clientes ativos', area: 'comercial', desc: 'Nº de clientes com status ativo' },
