@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { DepartmentKpiSummary } from '@/components/planning/DepartmentKpiSummary';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -122,8 +121,6 @@ export default function ProdutosPage() {
             </Button>
           }
         />
-
-        <DepartmentKpiSummary department="produtos" />
 
         {/* Summary Cards (filter chips) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

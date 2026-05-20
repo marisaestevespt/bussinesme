@@ -23,7 +23,6 @@ import {
 import { EntityTabs, EntityTabsList, EntityTabsTrigger } from '@/components/layout/entity';
 import { getPlanningSection } from '@/lib/department-planning';
 import { useDetailAccessMap } from '@/hooks/useDetailAccess';
-import { DepartmentKpiSummary } from '@/components/planning/DepartmentKpiSummary';
 import { Lock } from 'lucide-react';
 
 const fmtDate = (d: string | null | undefined) => {
@@ -131,7 +130,6 @@ export default function ClientesPage() {
   return (
     <AppLayout>
       <PageHeader title={sectorConfig.t('clientes')} subtitle={`Gestão de ${sectorConfig.t('clientes').toLowerCase()}, acompanhamento e satisfação.`} department="clientes" />
-      <DepartmentKpiSummary department="clientes" />
       <CollectionPage className="pt-6">
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
