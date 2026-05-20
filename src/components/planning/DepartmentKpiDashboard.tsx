@@ -87,7 +87,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
   return (
     <div className="space-y-6">
       {/* Header (hidden in monthly-only view) */}
-      {view !== 'monthly' && (
+      {view === 'all' && (
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
@@ -106,6 +106,14 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
           </Button>
         )}
       </div>
+      )}
+
+      {view === 'cards' && !addingKpi && (
+        <div className="flex justify-end">
+          <Button size="sm" variant="outline" onClick={() => setAddingKpi(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Novo KPR
+          </Button>
+        </div>
       )}
 
       {view !== 'monthly' && addingKpi && (
