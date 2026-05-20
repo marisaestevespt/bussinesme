@@ -34,7 +34,7 @@ export function DepartmentQuarterlyPlanning({ planning, year, planAreaKey, label
           </div>
           <div>
             <h2 className="text-base font-semibold">Análise & Programação Trimestral</h2>
-            <p className="text-xs text-muted-foreground">Retrospetiva, estado e programação de {label}</p>
+            <p className="text-xs text-muted-foreground">Retrospetiva e programação de {label}</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -54,19 +54,15 @@ export function DepartmentQuarterlyPlanning({ planning, year, planAreaKey, label
 
       <Card className="hq-card">
         <CardContent className="pt-5">
-          <Tabs defaultValue="programa">
-            <TabsList className="grid grid-cols-3 w-full h-auto p-1">
+          <Tabs defaultValue="atual">
+            <TabsList className="grid grid-cols-2 w-full h-auto p-1">
               <TabsTrigger value="retro" className="py-2 text-xs">
                 <span className="font-semibold">Retrospetiva</span>
                 <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{prev.quarter}·{prev.year}</span>
               </TabsTrigger>
-              <TabsTrigger value="estado" className="py-2 text-xs">
-                <span className="font-semibold">Estado</span>
-                <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{quarter}·{year}</span>
-              </TabsTrigger>
-              <TabsTrigger value="programa" className="py-2 text-xs">
-                <span className="font-semibold">Programação</span>
-                <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{next.quarter}·{next.year}</span>
+              <TabsTrigger value="atual" className="py-2 text-xs">
+                <span className="font-semibold">Em curso & próximo</span>
+                <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{quarter}·{year} → {next.quarter}·{next.year}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -79,23 +75,21 @@ export function DepartmentQuarterlyPlanning({ planning, year, planAreaKey, label
               />
             </TabsContent>
 
-            <TabsContent value="estado" className="mt-4">
-              <p className="text-[11px] text-muted-foreground mb-3">
-                Estado do trimestre vigente: vê os KPIs e Key Results acima nesta página.
-              </p>
-              <QuarterlyProgrammingView
-                year={year}
-                quarter={quarter}
-                onlyArea={planAreaKey}
-              />
-            </TabsContent>
-
-            <TabsContent value="programa" className="mt-4">
-              <QuarterlyProgrammingView
-                year={next.year}
-                quarter={next.quarter}
-                onlyArea={planAreaKey}
-              />
+            <TabsContent value="atual" className="mt-4 space-y-6">
+              <section className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider">Estado · {quarter} {year}</h3>
+                  <span className="text-[10px] text-muted-foreground">Trimestre vigente</span>
+                </div>
+                <QuarterlyProgrammingView year={year} quarter={quarter} onlyArea={planAreaKey} />
+              </section>
+              <section className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider">Programação · {next.quarter} {next.year}</h3>
+                  <span className="text-[10px] text-muted-foreground">Próximo trimestre</span>
+                </div>
+                <QuarterlyProgrammingView year={next.year} quarter={next.quarter} onlyArea={planAreaKey} />
+              </section>
             </TabsContent>
           </Tabs>
         </CardContent>
