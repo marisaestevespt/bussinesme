@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Target, AlertTriangle, Flag, Sparkles, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog } from 'lucide-react';
+import { Plus, Trash2, Target, AlertTriangle, Flag, Sparkles, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, ChevronDown } from 'lucide-react';
 import { PLAN_AREAS, planAreaLabel } from '@/hooks/usePlanningData';
 import { useQuarterlyPlan, type QuarterStr, type QuarterItemKind } from '@/hooks/useQuarterlyPlan';
 import { confirmDestructive } from '@/lib/confirmDestructive';
@@ -33,24 +33,46 @@ export function QuarterlyProgrammingView({ year, quarter, onlyArea }: Props) {
     ? PLAN_AREAS.filter(a => a.value === onlyArea)
     : PLAN_AREAS;
 
+  // Estado de colapso por área. Em modo single-dept abre sempre.
+  const [openAreas, setOpenAreas] = useState<Record<string, boolean>>({});
+  const isOpen = (area: string) => (onlyArea ? true : openAreas[area] ?? false);
+  const toggle = (area: string) => setOpenAreas((s) => ({ ...s, [area]: !isOpen(area) }));
+
   return (
     <div className="space-y-4">
       {areas.map((a) => {
         const area = a.value;
         const Icon = AREA_ICONS[area] || Target;
         const plan = planFor(area);
+        const open = isOpen(area);
+        const priorities = itemsFor(area, 'priority');
+        const milestones = itemsFor(area, 'milestone');
+        const risks = itemsFor(area, 'risk');
+        const filledCount = (plan?.theme ? 1 : 0) + priorities.length + milestones.length + risks.length;
         return (
           <Card key={area} className="hq-card overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50">
+            <button
+              type="button"
+              onClick={() => !onlyArea && toggle(area)}
+              disabled={!!onlyArea}
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50 hq-transition hover:bg-muted/50 disabled:cursor-default disabled:hover:bg-muted/30"
+            >
               <div className="flex items-center gap-2">
+                {!onlyArea && (
+                  <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground hq-transition ${open ? '' : '-rotate-90'}`} />
+                )}
                 <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
                   <Icon className="h-3.5 w-3.5" />
                 </div>
                 <h2 className="text-sm font-semibold uppercase tracking-wider">{planAreaLabel(area)}</h2>
+                {!open && filledCount > 0 && (
+                  <Badge variant="outline" className="text-[9px] ml-1">{filledCount}</Badge>
+                )}
               </div>
               <span className="text-[10px] text-muted-foreground">{quarter} · {year}</span>
-            </div>
+            </button>
 
+            {open && (
             <div className="p-4 space-y-4">
               {/* Tema do trimestre */}
               <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-1">
@@ -72,8 +94,8 @@ export function QuarterlyProgrammingView({ year, quarter, onlyArea }: Props) {
                   title="Top prioridades"
                   icon={<Target className="h-3.5 w-3.5" />}
                   emptyText="Define as 3 prioridades do trimestre."
-                  items={itemsFor(area, 'priority')}
-                  onAdd={(title) => upsertItem.mutate({ area, year, quarter, kind: 'priority', title, sort_order: itemsFor(area, 'priority').length })}
+                  items={priorities}
+                  onAdd={(title) => upsertItem.mutate({ area, year, quarter, kind: 'priority', title, sort_order: priorities.length })}
                   onRemove={(id) => removeItem.mutate(id)}
                   onUpdate={(it, patch) => upsertItem.mutate({ ...it, ...patch })}
                   placeholder="Ex.: Lançar nova campanha de leads"
@@ -84,8 +106,8 @@ export function QuarterlyProgrammingView({ year, quarter, onlyArea }: Props) {
                   title="Marcos do trimestre"
                   icon={<Flag className="h-3.5 w-3.5" />}
                   emptyText="Datas-chave (lançamentos, eventos, deadlines)."
-                  items={itemsFor(area, 'milestone')}
-                  onAdd={(title) => upsertItem.mutate({ area, year, quarter, kind: 'milestone', title, sort_order: itemsFor(area, 'milestone').length })}
+                  items={milestones}
+                  onAdd={(title) => upsertItem.mutate({ area, year, quarter, kind: 'milestone', title, sort_order: milestones.length })}
                   onRemove={(id) => removeItem.mutate(id)}
                   onUpdate={(it, patch) => upsertItem.mutate({ ...it, ...patch })}
                   placeholder="Ex.: Site novo em produção"
@@ -97,8 +119,8 @@ export function QuarterlyProgrammingView({ year, quarter, onlyArea }: Props) {
                   title="Riscos & blockers"
                   icon={<AlertTriangle className="h-3.5 w-3.5" />}
                   emptyText="O que pode descarrilar este trimestre?"
-                  items={itemsFor(area, 'risk')}
-                  onAdd={(title) => upsertItem.mutate({ area, year, quarter, kind: 'risk', title, severity: 'media', sort_order: itemsFor(area, 'risk').length })}
+                  items={risks}
+                  onAdd={(title) => upsertItem.mutate({ area, year, quarter, kind: 'risk', title, severity: 'media', sort_order: risks.length })}
                   onRemove={(id) => removeItem.mutate(id)}
                   onUpdate={(it, patch) => upsertItem.mutate({ ...it, ...patch })}
                   placeholder="Ex.: Sem capacidade técnica para Y"
@@ -125,6 +147,7 @@ export function QuarterlyProgrammingView({ year, quarter, onlyArea }: Props) {
                 </div>
               </div>
             </div>
+            )}
           </Card>
         );
       })}

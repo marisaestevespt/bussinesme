@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2, XCircle, Lightbulb, Plus, Trash2, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, Target } from 'lucide-react';
+import { CheckCircle2, XCircle, Lightbulb, Plus, Trash2, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, Target, ChevronDown } from 'lucide-react';
 import { PLAN_AREAS, planAreaLabel } from '@/hooks/usePlanningData';
 import { useQuarterlyPlan, type QuarterStr } from '@/hooks/useQuarterlyPlan';
 import { confirmDestructive } from '@/lib/confirmDestructive';
@@ -65,6 +65,10 @@ export function QuarterlyRetrospectiveView({ planning, year, quarter, onlyArea }
     return map;
   }, [objectives, goals, qMonths, quarter]);
 
+  const [openAreas, setOpenAreas] = useState<Record<string, boolean>>({});
+  const isOpen = (area: string) => (onlyArea ? true : openAreas[area] ?? false);
+  const toggle = (area: string) => setOpenAreas((s) => ({ ...s, [area]: !isOpen(area) }));
+
   return (
     <div className="space-y-4">
       {(onlyArea ? PLAN_AREAS.filter(a => a.value === onlyArea) : PLAN_AREAS).map((a) => {
@@ -73,11 +77,20 @@ export function QuarterlyRetrospectiveView({ planning, year, quarter, onlyArea }
         const stats = areaStats[area];
         const plan = plans.find(p => p.area === area);
         const learnings = items.filter(i => i.area === area && i.kind === 'learning');
+        const open = isOpen(area);
 
         return (
           <Card key={area} className="hq-card overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50">
+            <button
+              type="button"
+              onClick={() => !onlyArea && toggle(area)}
+              disabled={!!onlyArea}
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50 hq-transition hover:bg-muted/50 disabled:cursor-default disabled:hover:bg-muted/30"
+            >
               <div className="flex items-center gap-2">
+                {!onlyArea && (
+                  <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground hq-transition ${open ? '' : '-rotate-90'}`} />
+                )}
                 <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
                   <Icon className="h-3.5 w-3.5" />
                 </div>
@@ -87,8 +100,9 @@ export function QuarterlyRetrospectiveView({ planning, year, quarter, onlyArea }
                 <span className="tabular-nums">{stats.achieved}/{stats.total} metas atingidas</span>
                 <Badge variant={stats.pct >= 70 ? 'default' : 'secondary'} className="text-[9px]">{stats.pct}%</Badge>
               </div>
-            </div>
+            </button>
 
+            {open && (
             <div className="p-4 grid gap-3 md:grid-cols-2">
               {/* Conclusão do Q */}
               <div className="space-y-2">
@@ -126,6 +140,7 @@ export function QuarterlyRetrospectiveView({ planning, year, quarter, onlyArea }
                 />
               </div>
             </div>
+            )}
           </Card>
         );
       })}
