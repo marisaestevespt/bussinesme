@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -220,9 +220,9 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
                     const analysisVal = analysisDraft[draftKey] ?? focusRow?.analysis ?? '';
 
                     return (
-                      <>
+                      <Fragment key={k.id}>
                         {/* Linha META */}
-                        <tr key={`${k.id}-target`} className="border-t border-border/40">
+                        <tr className="border-t border-border/40">
                           <td className="px-3 py-1.5 sticky left-0 bg-background z-10" rowSpan={2}>
                             <p className="font-medium text-sm">{k.name}</p>
                             {k.unit && <p className="text-[10px] text-muted-foreground">{k.unit}</p>}
@@ -297,7 +297,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year }: Pr
                             );
                           })}
                         </tr>
-                      </>
+                      </Fragment>
                     );
                   })}
                 </tbody>
