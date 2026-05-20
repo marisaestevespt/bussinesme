@@ -2,14 +2,33 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, MessageSquare, FileText, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Users, MessageSquare, FileText, AlertTriangle } from 'lucide-react';
+import { format, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { pt as ptLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTeamData } from '@/hooks/useTeamData';
 import { getInitials, currentYear, currentMonth, getPortugueseHolidays, DAY_KEY_MAP } from '@/components/hr/team-helpers';
+
+const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+const STATUS_COLORS: Record<string, string> = {
+  available: 'bg-success',
+  off: 'bg-muted',
+  vacation: 'bg-info',
+  absence: 'bg-warning',
+  holiday: 'bg-warning',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  available: 'Disponível',
+  off: 'Folga',
+  vacation: 'Férias',
+  absence: 'Ausência',
+  holiday: 'Feriado',
+};
 
 // Dashboard with people-focused stats + monthly schedule + overdue payment alerts.
 export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
@@ -112,20 +131,6 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
     } catch { return 'off'; }
   };
 
-  const availColors: Record<string, string> = {
-    available: 'bg-success/15 dark:bg-success/30',
-    off: 'bg-muted',
-    vacation: 'bg-warning/15 dark:bg-warning/30',
-    absence: 'bg-warning/15 dark:bg-warning/30',
-    holiday: 'bg-info/15 dark:bg-info/30',
-  };
-  const availDots: Record<string, string> = {
-    available: 'bg-success',
-    off: 'bg-muted-foreground/30',
-    vacation: 'bg-warning',
-    holiday: 'bg-info',
-  };
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -162,70 +167,82 @@ export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> })
       </div>
 
       {(escalaMembers.data || []).length > 0 && (
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" aria-label="Anterior" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => subMonths(m, 1))}><ChevronLeft className="h-4 w-4" /></Button>
-                <h3 className="text-sm font-semibold">Escala — {format(escalaMonth, 'MMMM yyyy', { locale: ptLocale })}</h3>
-                <Button variant="ghost" aria-label="Seguinte" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
+        <div className="space-y-6">
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            {Object.entries(STATUS_LABELS).map(([key, label]) => (
+              <div key={key} className="flex items-center gap-2">
+                <span className={cn('h-3 w-3 rounded-full', STATUS_COLORS[key])} />
+                <span className="text-muted-foreground">{label}</span>
               </div>
-              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-success inline-block" /> Disponível</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-warning inline-block" /> Férias</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-warning inline-block" /> Ausência</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-info inline-block" /> Feriado</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/30 inline-block" /> Folga</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr>
-                    <th className="text-left font-medium text-muted-foreground py-1 pr-3 w-[140px] sticky left-0 bg-card z-10">Membro</th>
+            ))}
+          </div>
+
+          {/* Month navigation */}
+          <div className="flex items-center justify-between">
+            <Button variant="outline" size="sm" onClick={() => setEscalaMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>← Anterior</Button>
+            <h3 className="text-lg font-semibold text-foreground capitalize">
+              {format(escalaMonth, 'MMMM yyyy', { locale: ptLocale })}
+            </h3>
+            <Button variant="outline" size="sm" onClick={() => setEscalaMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>Seguinte →</Button>
+          </div>
+
+          {/* Schedule grid */}
+          <Card>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="sticky left-0 bg-card z-10 min-w-[180px]">Membro</TableHead>
                     {monthDays.map(d => {
                       const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                       const isHoliday = holidays.some(h => isSameDay(h, d));
                       return (
-                        <th key={d.toISOString()} className={cn(
-                          "text-center font-medium py-1 px-1 min-w-[32px]",
-                          isSameDay(d, new Date()) && "text-primary",
-                          isWeekend && "bg-muted/50 text-muted-foreground/60",
-                          isHoliday && "bg-warning/15 dark:bg-warning/20",
-                        )}>
-                          <div className="text-[9px]">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]}</div>
-                          <div className="text-[10px]">{format(d, 'd')}</div>
-                        </th>
+                        <TableHead
+                          key={d.toISOString()}
+                          className={cn(
+                            'text-center text-[10px] px-1 min-w-[32px]',
+                            isWeekend && 'bg-muted/50',
+                            isHoliday && 'bg-warning/15 dark:bg-warning/20'
+                          )}
+                        >
+                          <div>{DAY_LABELS[d.getDay()]}</div>
+                          <div className="font-semibold">{d.getDate()}</div>
+                        </TableHead>
                       );
                     })}
-                  </tr>
-                </thead>
-                <tbody>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {(escalaMembers.data || []).map((m: any) => (
-                    <tr key={m.id} className="border-t border-border/50">
-                      <td className="py-1.5 pr-3 sticky left-0 bg-card z-10">
+                    <TableRow key={m.id}>
+                      <TableCell className="sticky left-0 bg-card z-10">
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6"><AvatarImage src={m.photo_url || undefined} /><AvatarFallback className="text-[9px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>
-                          <span className="truncate font-medium">{m.full_name?.split(' ')[0]}</span>
+                          <Avatar className="h-7 w-7">
+                            <AvatarImage src={m.photo_url || ''} />
+                            <AvatarFallback className="bg-primary/10 text-primary text-[10px]">{getInitials(m.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <p className="text-xs font-medium truncate">{m.full_name}</p>
                         </div>
-                      </td>
+                      </TableCell>
                       {monthDays.map(d => {
-                        const avail = getAvail(m, d);
+                        const status = getAvail(m, d);
                         return (
-                          <td key={d.toISOString()} className="py-1.5 px-1 text-center">
-                            <div className={cn("mx-auto h-5 w-5 rounded-full flex items-center justify-center", availColors[avail])}>
-                              <span className={cn("h-1.5 w-1.5 rounded-full", availDots[avail])} />
-                            </div>
-                          </td>
+                          <TableCell key={d.toISOString()} className="text-center p-1">
+                            <div
+                              className={cn('h-5 w-5 mx-auto rounded-full', STATUS_COLORS[status])}
+                              title={`${m.full_name} — ${format(d, 'dd/MM')} — ${STATUS_LABELS[status] || status}`}
+                            />
+                          </TableCell>
                         );
                       })}
-                    </tr>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {overduePayments.length > 0 && (
