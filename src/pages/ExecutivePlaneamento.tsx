@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { PlanningOverviewView } from '@/components/planning/PlanningOverviewView';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { AllGoalsList } from '@/components/planning/AllGoalsList';
+import { AreaPulseGrid } from '@/components/planning/AreaPulseGrid';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -146,6 +147,9 @@ export default function ExecutivePlaneamento() {
             />
           </CardContent>
         </Card>
+
+        {/* Pulse por área — atalhos para o planeamento de cada departamento */}
+        <AreaPulseGrid />
 
         <PlanningOverviewView planning={planning} year={year} stats={stats} />
 
