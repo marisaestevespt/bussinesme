@@ -241,6 +241,9 @@ export default function HubEquipaPage() {
         {/* Active absence alerts */}
         <ActiveAbsenceAlerts />
 
+        {/* KPRs do departamento Equipa */}
+        <DepartmentKpiSummary department="equipa" />
+
         {/* KPIs gigantes — editorial */}
         <WeeklySummary />
 
