@@ -36,18 +36,19 @@ type: feature
 - `bd_equipa_entregas_a_tempo` — % tasks done concluídas até deadline
 - `bd_geral_mrr_ratio` — MRR / faturação total
 - `bd_geral_velocidade_mrr` — diff € MRR entre primeiro e último mês do range
+- `bd_capacidade_disponivel` — sum(expected_weekly_hours) × semanas − horas registadas
+- `bd_produtos_ativacao` — % clientes ativos do produto (sf.product_id) com ≥1 client_renewals completed (lifetime)
+- `bd_objetivos_progresso` — média de current_value/target_value de executive_objectives do ano (capped 100%)
 
 ## KPIs que ficam manuais (intencional)
-- Geral — Capacidade Gláuks disponível (regras de capacidade ainda não definidas)
-- Geral — Progresso dos objetivos anuais (depende do cockpit)
-- Produtos — Taxa ativação Lyrata pós-consultoria (sem telemetria interna)
-- Produtos — Módulos Lyrata utilizados/cliente (sem telemetria interna)
+(nenhum — todos os KPIs do sistema têm fonte automática)
 
 ## KPIs removidos em 2026-05-20
 - Comercial: Origem dos leads
 - Clientes: Dias desde último contacto
 - Geral: Horas Marisa: operacional vs estratégia
 - Geral: Referências recebidas
+- Produtos: Módulos Lyrata utilizados / cliente
 
 ## Fluxo UI
 ObjectiveDetailSheet → quando objective_metrics.linked_kpi_id existe, mostra leitura via `department_kpi_monthly` em modo read-only e oculta "Nova Meta Mensal".
