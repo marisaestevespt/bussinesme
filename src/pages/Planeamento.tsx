@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import {
   ChevronLeft, ChevronRight, Compass, Target, CalendarRange,
-  CalendarDays, Flame, ArrowRight,
+  CalendarDays, Flame,
 } from 'lucide-react';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
