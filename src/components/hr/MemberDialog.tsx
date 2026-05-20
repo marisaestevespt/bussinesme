@@ -839,10 +839,31 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               )}
               {contract.contract_type === 'contrato_prestacao' && (
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs cursor-pointer">
-                    <Checkbox checked={contract.value_includes_vat} onCheckedChange={(v) => setC('value_includes_vat', !!v)} />
-                    <span>O valor mensal já inclui IVA (23%)</span>
-                  </label>
+                  <div className="rounded-md border bg-muted/30 p-2 space-y-1.5">
+                    <p className="text-[11px] font-medium">Os {Number(contract.monthly_value) > 0 ? `${Number(contract.monthly_value).toFixed(2)} €` : 'X €'} indicados acima são:</p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setC('value_includes_vat', false)}
+                        className={`text-left rounded border p-2 text-[11px] transition ${!contract.value_includes_vat ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted/50'}`}
+                      >
+                        <div className="font-medium">Valor base (sem IVA)</div>
+                        <div className="text-muted-foreground">
+                          Pagas {Number(contract.monthly_value) > 0 ? `${(Number(contract.monthly_value) * 1.23).toFixed(2)} €` : '— €'}/mês (+23% IVA)
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setC('value_includes_vat', true)}
+                        className={`text-left rounded border p-2 text-[11px] transition ${contract.value_includes_vat ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted/50'}`}
+                      >
+                        <div className="font-medium">Total (IVA incluído)</div>
+                        <div className="text-muted-foreground">
+                          Pagas {Number(contract.monthly_value) > 0 ? `${Number(contract.monthly_value).toFixed(2)} €` : '— €'}/mês (base {Number(contract.monthly_value) > 0 ? `${(Number(contract.monthly_value) / 1.23).toFixed(2)} €` : '— €'})
+                        </div>
+                      </button>
+                    </div>
+                  </div>
                   <div>
                     <label className="text-xs text-muted-foreground">Método de pagamento</label>
                     <Select value={contract.payment_method || ''} onValueChange={v => setC('payment_method', v)}>
