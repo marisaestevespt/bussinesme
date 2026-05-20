@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { CockpitSection } from './CockpitSection';
 import { BlockObjetivos } from './BlockObjetivos';
+import { BlockMonthlyKRs } from './BlockMonthlyKRs';
 import { BlockAgenda } from './BlockAgenda';
 import { BlockComercial } from './BlockComercial';
 import { BlockMarketing } from './BlockMarketing';
@@ -79,6 +80,15 @@ export function MonthlyCockpit({ year, month, onChange }: Props) {
       </div>
 
       {/* Blocks */}
+      <CockpitSection
+        storageKey={`b0:${year}-${month}`}
+        icon={<Target className="h-4 w-4" />}
+        title="Key Results em curso"
+        subtitle="Resultados-chave dos objetivos anuais com progresso atual"
+      >
+        <BlockMonthlyKRs year={year} month={month} />
+      </CockpitSection>
+
       <CockpitSection
         storageKey={`b1:${year}-${month}`}
         icon={<Target className="h-4 w-4" />}
