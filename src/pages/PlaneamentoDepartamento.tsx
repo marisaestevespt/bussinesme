@@ -126,8 +126,8 @@ export default function PlaneamentoDepartamento() {
           <SectionHeading
             step="02"
             icon={Gauge}
-            title="Metas & KPRs"
-            subtitle="Indicadores e metas anuais que dão sinal aos objetivos"
+            title="Metas"
+            subtitle="Indicadores permanentes com alvo (anual, trimestral, mensal)"
           />
           <DepartmentKpiDashboard
             department={areaKey}
@@ -161,7 +161,7 @@ export default function PlaneamentoDepartamento() {
             step="04"
             icon={CalendarDays}
             title="Mês a mês"
-            subtitle="Metas e valores reais por KPR, com análise mensal"
+            subtitle="Metas e valores reais mês a mês, com análise mensal"
           />
           <DepartmentKpiDashboard
             department={areaKey}
