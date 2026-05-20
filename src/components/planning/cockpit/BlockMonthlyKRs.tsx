@@ -21,7 +21,14 @@ export function BlockMonthlyKRs({ year }: { year: number; month: number }) {
 
   if (planning.metrics.isLoading) return <p className="text-xs text-muted-foreground">A carregar KRs…</p>;
   if (krs.length === 0) {
-    return <p className="text-xs text-muted-foreground">Sem Key Results definidos. Cria KRs dentro de cada objetivo anual para os ver aqui.</p>;
+    return (
+      <div className="text-xs text-muted-foreground space-y-1">
+        <p>Ainda não há <strong>Key Results</strong> com meta definida.</p>
+        <p className="text-[11px]">
+          Os KRs vivem dentro de cada objetivo anual — abre Planeamento → Ano → escolhe um objetivo e adiciona as métricas (target + fonte). Aparecem aqui para acompanhares o progresso mês a mês. Não confundir com os KPIs do departamento (esses são permanentes e geridos por área).
+        </p>
+      </div>
+    );
   }
 
   return (
