@@ -310,6 +310,92 @@ function StatCard({
   );
 }
 
+type Nivel2 = 'visao' | 'ano' | 'trimestre' | 'mes' | 'semana';
+function OnboardingStrip({
+  year, objectivesCount, goalsCount, activeNivel, onGoTo,
+}: {
+  year: number;
+  objectivesCount: number;
+  goalsCount: number;
+  activeNivel: Nivel2;
+  onGoTo: (n: Nivel2) => void;
+}) {
+  const storageKey = `planning:onboarding-dismissed:${year}`;
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    try { return localStorage.getItem(storageKey) === '1'; } catch { return false; }
+  });
+  const steps = [
+    { id: 'visao', label: 'Define a visão', desc: 'Plano de negócio e direção a 3-5 anos.', nivel: 'visao' as Nivel2, done: false /* visão é livre, marcamos só quando o user passou por lá */ },
+    { id: 'ano', label: 'Cria objetivos do ano', desc: `Quantos objetivos para ${year}? Define ao menos 3.`, nivel: 'ano' as Nivel2, done: objectivesCount >= 3 },
+    { id: 'trimestre', label: 'Desdobra em metas', desc: 'Distribui pelos trimestres e meses.', nivel: 'trimestre' as Nivel2, done: goalsCount >= 1 },
+    { id: 'mes', label: 'Acompanha o mês', desc: 'Cockpit mensal com semáforos por área.', nivel: 'mes' as Nivel2, done: false },
+  ];
+  const visitedKey = `planning:visited-niveis:${year}`;
+  const [visited, setVisited] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(visitedKey) || '[]')); } catch { return new Set(); }
+  });
+  useEffect(() => {
+    if (!visited.has(activeNivel)) {
+      const next = new Set(visited);
+      next.add(activeNivel);
+      setVisited(next);
+      try { localStorage.setItem(visitedKey, JSON.stringify([...next])); } catch { /* noop */ }
+    }
+  }, [activeNivel, visited, visitedKey]);
+
+  const enriched = steps.map(s => ({ ...s, done: s.done || visited.has(s.nivel) }));
+  const completed = enriched.filter(s => s.done).length;
+  const total = enriched.length;
+  if (dismissed || completed === total) return null;
+
+  const dismiss = () => {
+    setDismissed(true);
+    try { localStorage.setItem(storageKey, '1'); } catch { /* noop */ }
+  };
+
+  return (
+    <div className="rounded-lg border border-primary/25 bg-gradient-to-br from-primary/5 to-transparent px-4 py-3 -mt-2">
+      <div className="flex items-center justify-between gap-3 mb-2.5">
+        <div className="flex items-baseline gap-2">
+          <p className="text-sm font-semibold">Começar bem o planeamento de {year}</p>
+          <span className="text-xs text-muted-foreground tabular-nums">{completed}/{total}</span>
+        </div>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={dismiss} aria-label="Dispensar">
+          <X className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+        {enriched.map((s, i) => (
+          <button
+            key={s.id}
+            onClick={() => onGoTo(s.nivel)}
+            className={cn(
+              'group text-left rounded-md border px-3 py-2 hq-transition flex items-start gap-2',
+              s.done
+                ? 'border-primary/30 bg-primary/5'
+                : 'border-border/60 hover:border-primary/40 hover:bg-muted/40',
+            )}
+          >
+            <div className={cn(
+              'h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5',
+              s.done ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+            )}>
+              {s.done ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className={cn('text-xs font-semibold flex items-center gap-1', s.done && 'text-muted-foreground line-through')}>
+                {s.label}
+                <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+              </p>
+              <p className="text-[10.5px] text-muted-foreground leading-snug mt-0.5">{s.desc}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function GlossaryButton() {
   return (
     <Dialog>
