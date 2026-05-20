@@ -98,7 +98,20 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
                 {objs.length === 0 && (
                   <div className="px-4 py-6 text-center text-xs text-muted-foreground space-y-2">
                     <p>Sem objetivos para esta área neste ano.</p>
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setDetailObj({ area, year, objective_type: 'quantitativo' })}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        planning.upsertObjective.mutate({
+                          title: `Novo objetivo · ${planAreaLabel(area)}`,
+                          area,
+                          objective_type: 'quantitativo',
+                          status: 'por_iniciar',
+                          year,
+                        });
+                      }}
+                    >
                       <Plus className="h-3 w-3 mr-1" /> Criar objetivo de {planAreaLabel(area)}
                     </Button>
                   </div>
