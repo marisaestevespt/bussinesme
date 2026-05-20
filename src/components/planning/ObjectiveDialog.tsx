@@ -32,8 +32,8 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
       <DialogContent>
         <DialogHeader><DialogTitle>{initial?.id ? 'Editar Objetivo' : 'Novo Objetivo'}</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          <div><Label>Título</Label><Input value={form.title} onChange={e => set('title', e.target.value)} /></div>
-          <div><Label>Descrição</Label><Textarea value={form.description || ''} onChange={e => set('description', e.target.value)} rows={3} /></div>
+          <div><Label>Título</Label><Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Ex: Atingir 200k€ de faturação em 2026" /></div>
+          <div><Label>Descrição</Label><Textarea value={form.description || ''} onChange={e => set('description', e.target.value)} rows={3} placeholder="Porquê este objetivo? Que impacto traz ao negócio?" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Área</Label>
               <Select value={form.area} onValueChange={v => set('area', v)}>
@@ -75,7 +75,7 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div><Label>Valor alvo</Label><Input type="number" value={form.target_value || ''} onChange={e => set('target_value', e.target.value)} /></div>
+                <div><Label>Valor alvo</Label><Input type="number" value={form.target_value || ''} onChange={e => set('target_value', e.target.value)} placeholder="Ex: 200000" /></div>
                 <div><Label>Unidade</Label><Input value={form.target_unit || ''} onChange={e => set('target_unit', e.target.value)} placeholder="€, seguidores..." /></div>
                 <div><Label>Fonte valor atual</Label>
                   <Select value={form.value_source || 'manual'} onValueChange={v => { set('value_source', v); set('source_filter', {}); }}>
