@@ -14,7 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { EntryDetailSheet } from './EntryDetailSheet';
 import { ExpenseDetailSheet } from './ExpenseDetailSheet';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
-import { getAutoExpenseStatus } from '@/lib/expenseStatus';
+import { getAutoExpenseStatus, normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { ExportContabilistaButton } from './ExportContabilistaButton';
 import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/lib/vatCalculations';
 import { formatEuro } from '@/lib/formatting';
@@ -68,6 +68,26 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const [expOpen, setExpOpen] = useState(false);
   const m = parseInt(month);
 
+  const { data: monthExpensesFromDb = [] } = useQuery<Expense[]>({
+    queryKey: ['financial-expenses', currentYear, m],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('financial_expenses')
+        .select('*')
+        .or('source_type.is.null,source_type.neq.rule')
+        .eq('expense_year', currentYear)
+        .eq('expense_month', m)
+        .order('expense_date', { ascending: true })
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return ((data || []) as Expense[]).map(e => ({
+        ...e,
+        status: normalizeUnpaidExpenseStatus(e.status, e.expense_date),
+      }));
+    },
+    staleTime: 30 * 1000,
+  });
+
   // Active member contracts
   const { data: activeContracts = [] } = useQuery<ContractLike[]>({
     queryKey: ['active-member-contracts'],
@@ -105,11 +125,11 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     const db = b.payment_date || '';
     return da.localeCompare(db);
   }), [sales, currentYear, m]);
-  const allMonthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).sort((a, b) => {
+  const allMonthExpenses = useMemo(() => monthExpensesFromDb.sort((a, b) => {
     const da = a.expense_date || '';
     const db = b.expense_date || '';
     return da.localeCompare(db);
-  }), [expenses, currentYear, m]);
+  }), [monthExpensesFromDb]);
   const isHiddenOccurrence = useCallback((e: Expense | undefined) => (
     !!e && e.description?.startsWith('Oculto —') && (e.total_with_vat || 0) === 0 && (e.base_value || 0) === 0
   ), []);
