@@ -130,7 +130,7 @@ export function PlanningObjectivesTab({
                     {krs.length > 0 && (
                       <div className="pt-1.5 border-t border-border/50 space-y-1">
                         <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
-                          {krs.length} Key Result{krs.length === 1 ? '' : 's'}
+                          {krs.length} Meta{krs.length === 1 ? '' : 's'}
                         </p>
                         {krs.slice(0, 3).map((m: any) => {
                           const mt = Number(m.target_value || 0);
