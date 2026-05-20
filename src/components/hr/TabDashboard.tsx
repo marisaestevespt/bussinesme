@@ -2,14 +2,33 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, MessageSquare, FileText, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Users, MessageSquare, FileText, AlertTriangle } from 'lucide-react';
+import { format, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { pt as ptLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTeamData } from '@/hooks/useTeamData';
 import { getInitials, currentYear, currentMonth, getPortugueseHolidays, DAY_KEY_MAP } from '@/components/hr/team-helpers';
+
+const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+const STATUS_COLORS: Record<string, string> = {
+  available: 'bg-success',
+  off: 'bg-muted',
+  vacation: 'bg-info',
+  absence: 'bg-warning',
+  holiday: 'bg-warning',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  available: 'Disponível',
+  off: 'Folga',
+  vacation: 'Férias',
+  absence: 'Ausência',
+  holiday: 'Feriado',
+};
 
 // Dashboard with people-focused stats + monthly schedule + overdue payment alerts.
 export function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
