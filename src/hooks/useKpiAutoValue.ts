@@ -4,42 +4,54 @@ import type { DepartmentKpi } from './useDepartmentKpis';
 
 const CACHE = { staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
 
+// ── Helpers shared by all branches ────────────────────────────────────────
+const monthOf = (v: string | number | null | undefined): number | null => {
+  if (v == null) return null;
+  if (typeof v === 'number') return v;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.getMonth() + 1;
+};
+const inMonths = (months: number[], dateField: string) => (r: Record<string, unknown>) => {
+  const mm = monthOf(r[dateField] as string | number | null);
+  return mm !== null && months.includes(mm);
+};
+
 /**
  * Resolves auto value for KPRs across a [startMonth, endMonth] window in a year.
- * - month=N → useKpiAutoValue(year, N) (start=end=N)
- * - quarter Q → range (Q*3-2, Q*3)
- * - year → range (1, 12)
+ * Internally fetches **year-wide** data once (so all callers — monthly, quarterly,
+ * annual — share the same TanStack cache entries) and filters by month at
+ * resolve-time. `resolve(kpi, monthsOverride?)` allows callers (e.g. goals on
+ * arbitrary periods) to override the default range without re-fetching.
  */
 export function useKpiAutoValueRange(year: number, startMonth: number, endMonth: number) {
-  const start = `${year}-${String(startMonth).padStart(2, '0')}-01`;
-  const endDay = new Date(year, endMonth, 0).getDate();
-  const end = `${year}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
-  const endTs = end + 'T23:59:59';
-  const months: number[] = [];
-  for (let m = startMonth; m <= endMonth; m++) months.push(m);
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+  const yearEndTs = `${yearEnd}T23:59:59`;
+  const defaultMonths: number[] = [];
+  for (let m = startMonth; m <= endMonth; m++) defaultMonths.push(m);
 
   const sales = useQuery({
-    queryKey: ['kpi-auto-sales', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-sales', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('commercial_sales')
         .select('invoice_total,product,product_id,sale_month')
-        .eq('sale_year', year)
-        .in('sale_month', months);
+        .eq('sale_year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const crm = useQuery({
-    queryKey: ['kpi-auto-crm', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-crm', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('crm_leads')
         .select('id,potential_product_id,potential_product,created_at,added_at,updated_at,status,next_followup')
         .eq('status', 'ganho')
-        .gte('created_at', start)
-        .lte('created_at', endTs);
+        .gte('created_at', yearStart)
+        .lte('created_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -47,13 +59,13 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // All leads in period (for conversion rates and tempo de fecho)
   const allLeads = useQuery({
-    queryKey: ['kpi-auto-all-leads', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-all-leads', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('crm_leads')
         .select('id,status,added_at,updated_at,next_followup,potential_product_id')
-        .gte('added_at', start)
-        .lte('added_at', end);
+        .gte('added_at', yearStart)
+        .lte('added_at', yearEnd);
       return data || [];
     },
     ...CACHE,
@@ -77,13 +89,13 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // Quotes (propostas) criadas no período
   const quotes = useQuery({
-    queryKey: ['kpi-auto-quotes', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-quotes', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('product_quotes')
         .select('id,lead_id,product_id,created_at')
-        .gte('created_at', start)
-        .lte('created_at', endTs);
+        .gte('created_at', yearStart)
+        .lte('created_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -115,40 +127,39 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // Atividades de ciclo (renovações)
   const renewals = useQuery({
-    queryKey: ['kpi-auto-renewals', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-renewals', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('client_renewals')
         .select('client_id,cycle_number,completed,due_date')
-        .gte('due_date', start)
-        .lte('due_date', end);
+        .gte('due_date', yearStart)
+        .lte('due_date', yearEnd);
       return data || [];
     },
     ...CACHE,
   });
 
   const timeEntries = useQuery({
-    queryKey: ['kpi-auto-time', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-time', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('time_entries')
-        .select('duration,category,client_id')
-        .eq('entry_year', year)
-        .in('entry_month', months);
+        .select('duration,entry_month,category,client_id')
+        .eq('entry_year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const tasksDone = useQuery({
-    queryKey: ['kpi-auto-tasks', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-tasks', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
         .select('id,department,updated_at,deadline,assigned_to,original_assignee,priority,status')
         .eq('status', 'done')
-        .gte('updated_at', start)
-        .lte('updated_at', endTs);
+        .gte('updated_at', yearStart)
+        .lte('updated_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
