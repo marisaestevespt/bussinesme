@@ -328,7 +328,10 @@ function QuarterlySubTabs({ planning, year, quarter }: { planning: any; year: nu
         <section className="space-y-2">
           <div className="flex items-baseline justify-between">
             <h3 className="text-sm font-semibold uppercase tracking-wider">Programação · {next.quarter} {next.year}</h3>
-            <span className="text-[10px] text-muted-foreground">Tema, prioridades, marcos, riscos, capacidade e financeiro</span>
+            <span className="text-[10px] text-muted-foreground">
+              {next.year !== year ? 'Próximo ano · ' : 'Próximo trimestre · '}
+              Tema, prioridades, marcos, riscos, capacidade e financeiro
+            </span>
           </div>
           <QuarterlyProgrammingView year={next.year} quarter={next.quarter} />
         </section>
