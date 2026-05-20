@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, preflight } from "../_shared/cors.ts";
+import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
 // ─── Portuguese holidays (inline for edge function) ───
 function computeEaster(year: number): Date {
@@ -251,11 +252,8 @@ Deno.serve(async (req) => {
       }
 
       // Generate a direct recovery/invite link for the welcome email.
-      // IMPORTANT: do NOT call resetPasswordForEmail here — it would trigger
-      // the auth-email-hook and send a generic "recovery" email, duplicating
-      // the welcome-member transactional email below. The welcome-member
-      // template already includes the inviteUrl as its primary CTA, so the
-      // member only needs that one branded email.
+      // generateLink creates the action link only; we send it through the
+      // branded team welcome email below and also return it as a manual fallback.
       const appOrigin = req.headers.get("origin") || new URL(req.url).origin;
       const resetRedirectTo = `${appOrigin}/reset-password`;
 
@@ -273,7 +271,8 @@ Deno.serve(async (req) => {
       });
 
       const invite_url = resetData?.properties?.action_link ?? null;
-      const email_sent = false; // generateLink only creates the link; it does not send an email
+      let email_sent = false;
+      let welcome_email_error: string | null = resetError?.message ?? null;
 
       // Fetch WhatsApp group links for the welcome email
       let whatsapp_team_url: string | null = null;
@@ -283,7 +282,7 @@ Deno.serve(async (req) => {
       // Get team-wide WhatsApp link from business_settings
       const { data: bizSettings } = await supabase
         .from("business_settings")
-        .select("whatsapp_team_url")
+        .select("business_name, whatsapp_team_url, primary_color, text_color, accent_color, font_display, font_body, logo_url")
         .limit(1)
         .maybeSingle();
       if (bizSettings?.whatsapp_team_url) {
