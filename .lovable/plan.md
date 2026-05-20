@@ -1,41 +1,80 @@
-## Objetivo
+# Plano — Frentes C + D + E (Planeamento)
 
-1. **Eliminar** o bloco separado "KPRs por área" do cockpit mensal.
-2. **Inserir uma sub-secção "KPRs" dentro de cada bloco de área** — Comercial+Produtos, Marketing, Clientes, Operação — e **criar os blocos em falta** (Financeiro, Equipa, Geral) para que todas as 8 áreas tenham casa.
-3. **Valor atual automático**: cada KPR resolve o `actual_value` a partir do `value_source` configurado na ficha (faturação, leads, clientes ativos, horas, tarefas, etc.), filtrado ao mês. Edição manual só onde `value_source = 'manual'`.
-4. **Meta**: continua editável inline, mas reforçamos que pode também ser definida no dashboard do dept ou no Planeamento anual/trimestral (já existe; nenhuma migração necessária agora).
+Continuação direta de A + B. O objetivo é fechar o ciclo: KPRs ↔ Objetivos, cadências múltiplas, e presença consistente em todas as vistas.
 
-## Mudanças
+---
 
-### Cockpit mensal — estrutura
-- `MonthlyCockpit.tsx`: remover `<CockpitSection>` do `BlockKPRs`. Renomear "Comercial e Produtos" para apenas "Comercial" e adicionar bloco **Produtos** separado. Adicionar blocos **Financeiro**, **Equipa**, **Geral**. Ordem final: Objetivos → Comercial → Produtos → Marketing → Clientes → Operação → Financeiro → Equipa → Geral → Agenda → Reflexão.
+## C. Ligação KPR ↔ Objetivo (single source of truth)
 
-### Novos blocks (mínimos, só com KPRs por enquanto)
-- `BlockFinanceiro.tsx`, `BlockEquipa.tsx`, `BlockGeral.tsx`, `BlockProdutos.tsx`: cada um renderiza apenas `<KPRsInline area="..." />` por agora (placeholders para conteúdos futuros como faturação detalhada, capacidade, etc.).
+**Migração DB**
+- `ALTER TABLE department_kpis ADD COLUMN objective_id uuid NULL REFERENCES executive_objectives(id) ON DELETE SET NULL`
+- Index em `objective_id`.
+- Trigger `kpr_sync_to_planning_goals`: quando um KPR ligado a um objetivo tem `department_kpi_monthly` atualizado, faz upsert no `planning_goals` correspondente (period_type='mensal', period=`YYYY-MM`) com `target_value` / `actual_value`. Anti-loop via GUC `app.kpr_sync` (padrão já existente no projeto — ver memory `sync-anti-loop`).
+- Trigger inverso opcional: se um `planning_goals` mensal ligado a um objetivo que tem KPR vinculado é editado, propaga ao `department_kpi_monthly`.
 
-### Componente partilhado `KPRsInline`
-- `src/components/planning/cockpit/KPRsInline.tsx`: recebe `area`, `year`, `month`.
-- Lista KPRs do departamento (`useDepartmentKpis(area)`).
-- Para cada KPR: mostra **Meta** (editável), **Valor** (auto ou input se manual), **Δ%**, **Análise** (auto + override manual).
-- Cabeçalho compacto "Indicadores · X KPRs" + chevron se quisermos colapsar.
+**UI**
+- Em `KpiForm` (DepartmentKpiDashboard + DepartmentKpisSection): novo `Select` "Objetivo anual associado" filtrado por `area === department`.
+- Badge em listagens de KPRs mostrando "ligado a: <objetivo>".
+- Em `ObjectiveDialog` (Planeamento anual): listar KPRs ligados ao objetivo (read-only com link para Dept).
 
-### Resolver automático mensal
-- Novo hook `useKpiAutoValue(year, month)` em `src/hooks/useKpiAutoValue.ts`:
-  - Reutiliza a infra de `usePlanningData.getAutoValue` mas com queries filtradas ao mês corrente.
-  - Resolve fontes já existentes: `bd_vendas`, `bd_crm`, `bd_clientes`, `bd_tempo`, `bd_tarefas`, `bd_equipa`, `bd_marketing`, `bd_conteudos`, `bd_reunioes`, `bd_nps`, `bd_despesas`, `bd_projetos`, `metrica`.
-  - Devolve função `resolve(kpi) → number | null`.
-- Cada `<KPRsInline>` chama o hook e passa o valor resolvido. Se diferente do `actual_value` em DB, faz upsert silencioso (cache da fonte para análise/sparklines).
+## D. Cadências múltiplas (mensal + trimestral + anual)
 
-### Insertion em blocos de área existentes
-- `BlockComercial.tsx`, `BlockMarketing.tsx`, `BlockClientes.tsx`, `BlockOperacao.tsx`: adicionar no topo `<KPRsInline area="X" year={year} month={month} />` antes do conteúdo atual.
+**Migração DB**
+- `ALTER TABLE department_kpis ADD COLUMN quarterly_target numeric NULL, ADD COLUMN annual_target numeric NULL`.
+- `quarterly_target` é interpretado por quarter (igual em todos) — para metas distintas por trimestre criamos `department_kpi_quarterly (kpi_id, year, quarter, target_value, actual_value, analysis)` com unique `(kpi_id, year, quarter)` e RLS igual a `department_kpi_monthly`.
+- View materializada leve `v_department_kpi_progress` que agrega mensal→trimestre→ano para consumo no front.
 
-### Limpeza
-- Apagar `BlockKPRs.tsx` (substituído por `KPRsInline`).
-- Remover import e secção em `MonthlyCockpit.tsx`.
+**UI**
+- `KpiForm` ganha 3 campos: Meta Mensal (default), Meta Trimestral, Meta Anual.
+- Em `KPRsInline` (cockpit mensal) adicionamos toggle "Mensal | Trimestral | Anual" no header do bloco de KPRs, alternando a meta e o `actual` agregado.
+- `useKpiAutoValue` ganha parâmetro `period: 'month' | 'quarter' | 'year'` e usa o mesmo `value_source` mas com janelas diferentes (mês corrente, Q corrente, ano corrente).
 
-## Notas técnicas
-- `department_kpis.value_source` já existe com default `'manual'`. Na ficha do KPR (`DepartmentKpisSection.tsx`/`DepartmentKpiDashboard.tsx`) já se pode editar — vamos garantir que mostra o select de `VALUE_SOURCES`.
-- Sem migrações de schema; só código de leitura/cache.
-- Sem alterar tabela `department_kpi_monthly` — continua a guardar target manual + actual em cache (atualizado pelo resolver).
+## E. KPRs em todas as vistas
 
-Confirmas que avanço assim?
+**Weekly Align**
+- Após a lista de objetivos atuais, nova secção "KPRs em foco" com os KPRs do departamento(s) do utilizador. Cada linha: nome, meta mensal, atual auto, Δ%, mini-input de nota semanal (campo já existente `notes` em planning ou criar `department_kpi_weekly_notes` se necessário). Por agora, reusar `analysis` do mês corrente.
+
+**Cockpit Trimestral** (`QuarterlyCockpit`)
+- Reusar `KPRsInline` em modo `period='quarter'` dentro de cada bloco de área.
+
+**Cockpit Anual**
+- Resumo agregado (sem edição), apenas leitura: nome | meta anual | atual anual | Δ%, agrupado por área.
+
+**Hubs operacionais** (Comercial, Marketing, Financeiro, Clientes, Operação, Equipa, Produtos)
+- Adicionar componente `<DepartmentKpiSummary department="..." />` no topo de cada hub: chips horizontais com meta vs atual do mês, link "Ver detalhe →" para `/executive/planeamento/[dept]`.
+
+---
+
+## Ficheiros estimados
+
+**Migrations** (1 ficheiro):
+- `add_kpr_objective_link_and_cadences.sql` — coluna `objective_id`, `quarterly_target`, `annual_target`, tabela `department_kpi_quarterly`, triggers de sync.
+
+**Edits**:
+- `src/hooks/useKpiAutoValue.ts` — suportar `period`
+- `src/components/planning/DepartmentKpiDashboard.tsx` — UI objetivo + cadências
+- `src/components/planning/DepartmentKpisSection.tsx` — idem
+- `src/components/planning/cockpit/KPRsInline.tsx` — toggle período
+- `src/components/planning/cockpit/QuarterlyCockpit.tsx` — incluir KPRs
+- `src/components/planning/cockpit/AnnualCockpit.tsx` — resumo anual KPRs
+- `src/components/planning/WeeklyAlign*.tsx` — secção KPRs em foco
+- `src/components/planning/ObjectiveDialog.tsx` — listar KPRs vinculados
+
+**Novos**:
+- `src/components/planning/DepartmentKpiSummary.tsx` — chips para hubs
+- Inserção do summary em 7 hubs operacionais
+
+---
+
+## Ordem de execução
+
+1. Migração DB (C + D estruturais)
+2. Atualizar `useKpiAutoValue` para suportar `period`
+3. UI dos formulários (objetivo + cadências)
+4. `KPRsInline` com toggle de período
+5. Quarterly + Annual cockpits
+6. Weekly Align
+7. Hubs operacionais (DepartmentKpiSummary)
+8. Memory: atualizar `mem://features/planning-overview` com novo modelo
+
+Cada passo é validado antes de avançar (queries DB + verificação visual no preview).

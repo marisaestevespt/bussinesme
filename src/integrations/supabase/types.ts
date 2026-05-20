@@ -3787,8 +3787,56 @@ export type Database = {
           },
         ]
       }
+      department_kpi_quarterly: {
+        Row: {
+          actual_value: number | null
+          analysis: string | null
+          auto_analysis: string | null
+          created_at: string
+          id: string
+          kpi_id: string
+          quarter: number
+          target_value: number | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          actual_value?: number | null
+          analysis?: string | null
+          auto_analysis?: string | null
+          created_at?: string
+          id?: string
+          kpi_id: string
+          quarter: number
+          target_value?: number | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          actual_value?: number | null
+          analysis?: string | null
+          auto_analysis?: string | null
+          created_at?: string
+          id?: string
+          kpi_id?: string
+          quarter?: number
+          target_value?: number | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_kpi_quarterly_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "department_kpis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       department_kpis: {
         Row: {
+          annual_target: number | null
           created_at: string
           current_value: number | null
           department: string
@@ -3798,6 +3846,8 @@ export type Database = {
           last_updated_at: string | null
           name: string
           notes: string | null
+          objective_id: string | null
+          quarterly_target: number | null
           sort_order: number
           source_filter: Json | null
           target_value: number | null
@@ -3806,6 +3856,7 @@ export type Database = {
           value_source: string
         }
         Insert: {
+          annual_target?: number | null
           created_at?: string
           current_value?: number | null
           department: string
@@ -3815,6 +3866,8 @@ export type Database = {
           last_updated_at?: string | null
           name: string
           notes?: string | null
+          objective_id?: string | null
+          quarterly_target?: number | null
           sort_order?: number
           source_filter?: Json | null
           target_value?: number | null
@@ -3823,6 +3876,7 @@ export type Database = {
           value_source?: string
         }
         Update: {
+          annual_target?: number | null
           created_at?: string
           current_value?: number | null
           department?: string
@@ -3832,6 +3886,8 @@ export type Database = {
           last_updated_at?: string | null
           name?: string
           notes?: string | null
+          objective_id?: string | null
+          quarterly_target?: number | null
           sort_order?: number
           source_filter?: Json | null
           target_value?: number | null
@@ -3839,7 +3895,15 @@ export type Database = {
           updated_at?: string
           value_source?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "department_kpis_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "executive_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       department_links: {
         Row: {
