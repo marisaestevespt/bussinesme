@@ -331,6 +331,23 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics =
 
   const isAutoSource = parentObjective?.value_source && parentObjective.value_source !== 'manual' && parentObjective.value_source !== 'metrica';
   const sourceLabel = VALUE_SOURCES.find(s => s.value === parentObjective?.value_source)?.label;
+  const unit = parentObjective?.target_unit || '';
+  const fmt = (n: any) => {
+    if (n == null || n === '') return '—';
+    const num = Number(n);
+    if (!Number.isFinite(num)) return '—';
+    const rounded = Math.round(num * 10) / 10;
+    return rounded.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+  };
+  const fmtSigned = (n: any) => {
+    if (n == null || n === '') return '—';
+    const num = Number(n);
+    if (!Number.isFinite(num)) return '—';
+    const rounded = Math.round(num * 10) / 10;
+    const s = rounded.toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+    return rounded >= 0 ? `+${s}` : s;
+  };
+  const withUnit = (s: string) => (s === '—' || !unit ? s : `${s} ${unit}`);
 
   // If objective has metrics linked to a department KPI, we read monthly breakdown
   // from department_kpi_monthly instead of asking the user to create planning_goals.
@@ -409,7 +426,7 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics =
           {hasLinkedKpi ? (
             <p className="text-[10px] text-muted-foreground">Metas mensais vêm das Metas do departamento ligadas. Edita em Planeamento → Departamento.</p>
           ) : isAutoSource && (
-            <p className="text-[10px] text-muted-foreground">Valores reais calculados automaticamente via {sourceLabel}</p>
+            <p className="text-[10px] text-muted-foreground">Valor real lido automaticamente — fonte: {sourceLabel}.</p>
           )}
         </div>
         {!hasLinkedKpi && (
@@ -443,9 +460,9 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics =
                     {rows.map((r) => (
                       <TableRow key={r.label}>
                         <TableCell className="text-sm">{r.label}</TableCell>
-                        <TableCell>{r.target != null ? Number(r.target).toLocaleString('pt-PT') : '—'}</TableCell>
-                        <TableCell>{r.actual != null ? Number(r.actual).toLocaleString('pt-PT') : '—'}</TableCell>
-                        <TableCell className={r.dev != null && r.dev < 0 ? 'text-destructive' : ''}>{r.dev != null ? (r.dev >= 0 ? `+${r.dev}` : r.dev) : '—'}</TableCell>
+                        <TableCell>{withUnit(fmt(r.target))}</TableCell>
+                        <TableCell>{withUnit(fmt(r.actual))}</TableCell>
+                        <TableCell className={r.dev != null && r.dev < 0 ? 'text-destructive' : ''}>{withUnit(fmtSigned(r.dev))}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -468,12 +485,12 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics =
             return (
               <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
                 <TableCell className="text-sm">{g.period}</TableCell>
-                <TableCell className="">{g.target_value || '—'}</TableCell>
+                <TableCell className="">{withUnit(fmt(g.target_value))}</TableCell>
                 <TableCell className="">
-                  {actualVal != null ? Number(actualVal).toLocaleString('pt-PT') : '—'}
+                  {withUnit(fmt(actualVal))}
                   {isAutoSource && !g.isQuarter && actualVal != null && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
                 </TableCell>
-                <TableCell className={` ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                <TableCell className={` ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{withUnit(fmtSigned(dev))}</TableCell>
                 <TableCell>
                   <Badge variant={autoStatus === 'atingido' ? 'default' : autoStatus === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">{planStatusLabel(autoStatus)}</Badge>
                   {autoStatus !== g.status && !g.isQuarter && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
