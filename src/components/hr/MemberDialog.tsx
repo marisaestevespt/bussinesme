@@ -68,6 +68,29 @@ const SENSITIVE_DEFAULTS_BY_ROLE: Record<string, string[]> = {
   viewer:      [],
 };
 
+// Mapa de presets por cargo → preenche automaticamente departamentos,
+// função no sistema e modo de trabalho com clientes. Se o cargo não
+// estiver aqui (ex: cargo personalizado criado pelo Owner), nada é
+// auto-preenchido e o utilizador escolhe manualmente.
+const CARGO_PRESETS: Record<string, { system_role: string; depts: string[]; wwc: boolean }> = {
+  'contabilista':       { system_role: 'accountant',  depts: ['financeiro'],     wwc: false },
+  'marketer':           { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'marketing':          { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'designer':           { system_role: 'team_member', depts: ['marketing'],      wwc: false },
+  'comercial':          { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
+  'vendedor':           { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
+  'vendedora':          { system_role: 'sales',       depts: ['comercial'],      wwc: true  },
+  'customer success':   { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
+  'gestor de cliente':  { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
+  'gestora de cliente': { system_role: 'team_member', depts: ['clientes'],       wwc: true  },
+  'administrativa':     { system_role: 'admin_staff', depts: ['administrativo'], wwc: false },
+  'administrativo':     { system_role: 'admin_staff', depts: ['administrativo'], wwc: false },
+  'recursos humanos':   { system_role: 'hr',          depts: ['administrativo'], wwc: false },
+  'rh':                 { system_role: 'hr',          depts: ['administrativo'], wwc: false },
+  'administrador':      { system_role: 'admin',       depts: [],                 wwc: false },
+  'administradora':     { system_role: 'admin',       depts: [],                 wwc: false },
+};
+
 const PAYMENT_METHOD_OPTIONS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'mbway', label: 'MB WAY' },
