@@ -104,10 +104,10 @@ export default function PlaneamentoPage() {
         <PageHeader
           title="Planeamento"
           subtitle="Visão → Ano → Trimestre → Mês → Semana"
-          actions={<GlossaryButton />}
         />
-        {nivel !== 'visao' && (
-          <div className="flex items-center justify-end gap-1 text-muted-foreground -mt-2">
+        <div className="flex items-center justify-end gap-1 text-muted-foreground -mt-2">
+          <GlossaryButton />
+          {nivel !== 'visao' && <>
             <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano anterior" onClick={() => setYearAndUrl(year - 1)}>
               <ChevronLeft className="h-3.5 w-3.5" />
             </Button>
@@ -115,8 +115,8 @@ export default function PlaneamentoPage() {
             <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano seguinte" onClick={() => setYearAndUrl(year + 1)}>
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
-          </div>
-        )}
+          </>}
+        </div>
 
         {/* Cascade tabs */}
         <Tabs value={nivel} onValueChange={(v) => setNivel(v as Nivel)}>
@@ -300,6 +300,55 @@ function StatCard({
         {hint && <p className="text-[10px] text-muted-foreground mt-1">{hint}</p>}
       </CardContent>
     </Card>
+  );
+}
+
+function GlossaryButton() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs">
+          <HelpCircle className="h-3.5 w-3.5" />
+          Como funciona?
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Como funciona o Planeamento</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <p className="text-muted-foreground">
+            O planeamento desce em cascata: do longo prazo (visão) ao curto prazo (semana). Cada nível responde a uma pergunta diferente.
+          </p>
+          <dl className="space-y-2.5">
+            <div className="rounded-md border border-border/60 px-3 py-2">
+              <dt className="font-semibold text-foreground flex items-center gap-1.5"><Compass className="h-3.5 w-3.5 text-primary" /> Visão</dt>
+              <dd className="text-xs text-muted-foreground mt-0.5">Onde queremos chegar a 3-5 anos. Plano de negócio e direção estratégica.</dd>
+            </div>
+            <div className="rounded-md border border-border/60 px-3 py-2">
+              <dt className="font-semibold text-foreground flex items-center gap-1.5"><Target className="h-3.5 w-3.5 text-primary" /> Ano</dt>
+              <dd className="text-xs text-muted-foreground mt-0.5">Objetivos quantitativos do ano por área (ex: faturação, clientes ativos).</dd>
+            </div>
+            <div className="rounded-md border border-border/60 px-3 py-2">
+              <dt className="font-semibold text-foreground flex items-center gap-1.5"><CalendarRange className="h-3.5 w-3.5 text-primary" /> Trimestre</dt>
+              <dd className="text-xs text-muted-foreground mt-0.5">Marcos e prioridades de 90 dias. Retrospetiva, estado atual e programação do próximo trimestre.</dd>
+            </div>
+            <div className="rounded-md border border-border/60 px-3 py-2">
+              <dt className="font-semibold text-foreground flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-primary" /> Mês</dt>
+              <dd className="text-xs text-muted-foreground mt-0.5">Cockpit operacional do mês: metas mensais por área e KPRs.</dd>
+            </div>
+            <div className="rounded-md border border-border/60 px-3 py-2">
+              <dt className="font-semibold text-foreground flex items-center gap-1.5"><Flame className="h-3.5 w-3.5 text-primary" /> Semana</dt>
+              <dd className="text-xs text-muted-foreground mt-0.5">Foco semanal: as 1-3 ações que mais movem as metas do mês.</dd>
+            </div>
+          </dl>
+          <div className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+            <strong className="text-foreground">Objetivos</strong> (anuais) desdobram-se em <strong className="text-foreground">Metas</strong> (trimestrais e mensais).{' '}
+            <strong className="text-foreground">KPRs</strong> são indicadores operacionais que medem se estás no caminho.
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
