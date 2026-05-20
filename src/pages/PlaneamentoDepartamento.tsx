@@ -17,6 +17,7 @@ import { usePlanningData } from '@/hooks/usePlanningData';
 import { TacticalByAreaView } from '@/components/planning/TacticalByAreaView';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
+import { DepartmentKpisSection } from '@/components/planning/DepartmentKpisSection';
 import { useTacticalAreas, useProjectsByDepartmentInRange } from '@/hooks/useTacticalAreas';
 import { endOfMonth } from 'date-fns';
 import { getDeptLabel } from '@/lib/departments';
@@ -94,6 +95,9 @@ export default function PlaneamentoDepartamento() {
           title={`Planeamento — ${label}`}
           subtitle="Tudo o que está planeado para este departamento"
         />
+
+        {/* KPIs permanentes do departamento */}
+        <DepartmentKpisSection department={areaKey} departmentLabel={label} />
 
         {/* Objetivos Anuais do dept */}
         <section className="space-y-3">

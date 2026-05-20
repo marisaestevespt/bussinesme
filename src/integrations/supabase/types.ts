@@ -3740,6 +3740,60 @@ export type Database = {
         }
         Relationships: []
       }
+      department_kpis: {
+        Row: {
+          created_at: string
+          current_value: number | null
+          department: string
+          description: string | null
+          id: string
+          is_active: boolean
+          last_updated_at: string | null
+          name: string
+          notes: string | null
+          sort_order: number
+          source_filter: Json | null
+          target_value: number | null
+          unit: string | null
+          updated_at: string
+          value_source: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number | null
+          department: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_updated_at?: string | null
+          name: string
+          notes?: string | null
+          sort_order?: number
+          source_filter?: Json | null
+          target_value?: number | null
+          unit?: string | null
+          updated_at?: string
+          value_source?: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number | null
+          department?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_updated_at?: string | null
+          name?: string
+          notes?: string | null
+          sort_order?: number
+          source_filter?: Json | null
+          target_value?: number | null
+          unit?: string | null
+          updated_at?: string
+          value_source?: string
+        }
+        Relationships: []
+      }
       department_links: {
         Row: {
           created_at: string
@@ -6972,6 +7026,7 @@ export type Database = {
           green_threshold: number | null
           id: string
           last_updated_at: string | null
+          linked_kpi_id: string | null
           measurement_type: string
           name: string
           objective_id: string
@@ -6988,6 +7043,7 @@ export type Database = {
           green_threshold?: number | null
           id?: string
           last_updated_at?: string | null
+          linked_kpi_id?: string | null
           measurement_type?: string
           name?: string
           objective_id: string
@@ -7004,6 +7060,7 @@ export type Database = {
           green_threshold?: number | null
           id?: string
           last_updated_at?: string | null
+          linked_kpi_id?: string | null
           measurement_type?: string
           name?: string
           objective_id?: string
@@ -7014,6 +7071,13 @@ export type Database = {
           yellow_threshold?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "objective_metrics_linked_kpi_id_fkey"
+            columns: ["linked_kpi_id"]
+            isOneToOne: false
+            referencedRelation: "department_kpis"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "objective_metrics_objective_id_fkey"
             columns: ["objective_id"]
@@ -7187,6 +7251,7 @@ export type Database = {
           deviation: string | null
           deviation_decision: string | null
           id: string
+          metric_id: string | null
           notes: string | null
           objective_id: string
           period: string
@@ -7202,6 +7267,7 @@ export type Database = {
           deviation?: string | null
           deviation_decision?: string | null
           id?: string
+          metric_id?: string | null
           notes?: string | null
           objective_id: string
           period: string
@@ -7217,6 +7283,7 @@ export type Database = {
           deviation?: string | null
           deviation_decision?: string | null
           id?: string
+          metric_id?: string | null
           notes?: string | null
           objective_id?: string
           period?: string
@@ -7227,6 +7294,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "planning_goals_metric_id_fkey"
+            columns: ["metric_id"]
+            isOneToOne: false
+            referencedRelation: "objective_metrics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "planning_goals_objective_id_fkey"
             columns: ["objective_id"]

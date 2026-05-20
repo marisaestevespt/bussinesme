@@ -1,101 +1,99 @@
-# Refactor do Planeamento — Cascata única e intuitiva
+# Refactor do Planeamento (anual / trimestral / mensal)
 
-## Problema atual
+## Conceito unificado
 
-Há demasiados pontos de entrada para a mesma coisa:
-- `/executive/planeamento` (overview com 3 horizontes + 8 áreas)
-- `/executive/planeamento/estrategico` (anual)
-- `/executive/planeamento/tatico` (trimestral)
-- `/executive/planeamento/operacional` (mensal)
-- Dentro do Mensal, o "Cockpit" mostra trimestre + áreas + reflexão — duplica o que está noutros lados
-- Estratégico/Tático/Operacional é jargão de consultoria, pouco intuitivo
-- Áreas (8) misturadas com horizontes (3) cria matriz confusa
-- Objetivos vs Metas vs OKRs vs Diretrizes — nomes a mais
-
-## Nova framework conceptual
-
-**Uma única cascata, com nomes diretos:**
-
-```text
-Visão / Diretrizes 3-5 anos       (raiz estratégica, já existe)
-        ↓
-Objetivos Anuais                  (3-7 por ano, por área)
-        ↓
-Metas Trimestrais (Rocks)         (desmembram cada objetivo anual)
-        ↓
-Metas Mensais                     (desmembram cada meta trimestral)
-        ↓
-OKRs / Foco da Semana             (ações concretas que movem as metas mensais)
+```
+Departamento ──tem──► KPIs permanentes (medição contínua: produtividade, sucesso)
+                          ▲
+                          │ pode ser referenciado como
+                          │
+Objetivo Anual ──tem──► Key Results (3-5, mensuráveis, com target anual)
+                          │
+                          ├─► distribui target por Q1/Q2/Q3/Q4 (metas trimestrais)
+                          ├─► distribui target por mês (metas mensais)
+                          └─► pode gerar foco semanal (Weekly Align)
 ```
 
-Cada nível tem **parent_id** para o nível acima → navegação natural drill-down/drill-up.
-Cada item tem **área** (comercial, marketing, financeiro, etc.) → filtro lateral, não eixo principal.
+- **KPI** = métrica permanente do departamento (ex.: NPS, tempo médio de resposta, taxa de ocupação). Vive em /equipa ou /planeamento → Departamentos.
+- **KR** = resultado mensurável com prazo, dentro de um objetivo. Pode "puxar" um KPI existente (auto-tracking) ou ser standalone.
+- **Meta trimestral/mensal** = fatia do target do KR nesse período.
 
-## Nova UI — uma única página `/planeamento`
+## Schema (migration)
 
-Substitui as 4 páginas atuais. Tabs no topo correspondem aos 4 níveis da cascata:
+1. **`department_kpis`** (novo)
+   - `department` (text), `name`, `description`, `unit`, `target`, `value_source` (manual | tabela existente), `source_filter` (jsonb), `is_active`
+2. **`objective_key_results`** (novo) — promoção do conceito atual de "criteria + metric"
+   - `objective_id` FK, `title`, `target_value`, `current_value`, `unit`, `value_source`, `source_filter`, `linked_kpi_id` FK opcional, `sort_order`
+3. **`key_result_periods`** (novo) — target dividido por período
+   - `key_result_id`, `period_type` ('trimestre' | 'mes' | 'semana'), `period_key` (ex.: '2026-Q1', '2026-03', '2026-W12'), `target`, `actual`
+4. Manter `objective_metrics`/`objective_criteria` por compatibilidade, marcar deprecated em código.
 
-```text
-┌─ Planeamento ─────────────────────────────────────────────┐
-│  [ Ano ] [ Trimestre ] [ Mês ] [ Semana ]      Área: ▾    │
-├───────────────────────────────────────────────────────────┤
-│  Header contextual: "2026 · Q2 · Maio · Semana 21"        │
-│  Breadcrumb cascata: Anual → Trimestral → Mensal → Semana │
-├───────────────────────────────────────────────────────────┤
-│                                                            │
-│  Tab ativa renderiza só os itens do nível,                │
-│  agrupados por área, com:                                  │
-│   - Progresso (semáforo)                                   │
-│   - Link "ver pais" e "ver filhos"                         │
-│   - Botão "desmembrar em filhos"                           │
-│                                                            │
-└───────────────────────────────────────────────────────────┘
-```
+## UI — Tab Anual
 
-**Princípios:**
-- 1 página, 4 tabs (nível), 1 filtro de área. Sem matriz.
-- Cada item mostra de onde vem (pai) e o que gera (filhos) sem mudar de página.
-- Reflexão mensal/trimestral fica dentro da tab respetiva, não numa página separada.
+- Cards de objetivo passam a mostrar, abaixo do título:
+  - **Valor atual / target** (ex.: `€42k / €120k`) com unidade
+  - Lista compacta dos KRs (até 3 visíveis, "+N" se mais)
+  - Progresso por KR em mini-barras
+- Drawer continua a abrir detalhe completo + edição inline.
 
-## Mapeamento das páginas atuais
+## UI — Tab Trimestral
 
-| Atual                                | Novo                                  |
-|--------------------------------------|---------------------------------------|
-| /executive/planeamento (overview)    | redireciona para /planeamento         |
-| /executive/planeamento/estrategico   | tab "Ano"                             |
-| /executive/planeamento/tatico        | tab "Trimestre"                       |
-| /executive/planeamento/operacional   | tab "Mês"                             |
-| Weekly Align (kpis/rituais)          | mantém-se à parte (é ritual semanal)  |
-| Foco da Semana (OKRs)                | tab "Semana" do novo /planeamento     |
+- Remove a grelha por área atual.
+- **Lista vertical**, um bloco por objetivo anual:
+  ```
+  ▸ Objetivo: Triplicar receita recorrente          [Q2 2026]
+    ├─ KR1  MRR > €15k          [████████░░] €12k/€15k
+    ├─ KR2  Churn < 4%          [██████░░░░]   5.2%/4%
+    └─ KR3  10 novos clientes   [█████████░]      9/10
+    [+ Nova meta trimestral]   [Editar]   [Notas]
+  ```
+- KRs do trimestre vêm de `key_result_periods` (period_type='trimestre').
+- Header do trimestre: stats agregadas + seletor Q1-Q4.
 
-Páginas de departamento (`/planeamento/dep/:dep`) mantêm-se — passam a aplicar o filtro de área automaticamente sobre a mesma cascata.
+## UI — Tab Mensal
 
-## Dados (sem migração destrutiva)
+- Mantém-se como cockpit mas:
+  - **Cada secção por área é editável in-place** (não só leitura). Inputs para target/actual, link directo para tarefas/reuniões dessa área.
+  - O drawer não fecha o cockpit — abre lateralmente (sheet), sem perder o scroll do mês.
+  - Cards redesenhados: hierarquia clara (valor grande, label pequeno, sparkline quando faz sentido).
+- Corrigir métricas partidas:
+  - **Capacidade equipa** — usar `teamMonthlyCapacitySummary` (lib já existe), filtrar entries do mês correcto
+  - **Horas por cliente** — agregação de `time_entries` por client_id no mês
+  - **Entregas no mês** — `deliverables` com due_date no mês + status
+- Adicionar bloco **Key Results do mês** no topo (vindos de `key_result_periods` period_type='mes').
 
-Tabela `planning_items` já existente cobre os 4 níveis via coluna `period` (`ano`, `trimestre`, `mes`, `semana`). Adicionar/garantir:
-- `parent_id uuid` (FK self) — se ainda não existir
-- `area text` — já existe
-- índices em `(year, period, area)` e `parent_id`
+## UI — Departamentos (novo separador)
 
-Migração ligeira só se faltar `parent_id`. Sem perder dados existentes.
+- Nova subpágina `/planeamento/dep/:dep` (a página já existe, vamos enriquecer):
+  - Bloco **KPIs do departamento** no topo: lista editável, valor actual, target, tendência.
+  - Bloco **Objetivos com KRs ligados a este departamento** (via `linked_kpi_id`).
 
-## Fases de implementação
+## Implementação (passos)
 
-1. **Migração leve** — garantir `parent_id` + índices em `planning_items` (skip se já existe)
-2. **Hook unificado** `usePlanningCascade(year)` — devolve itens por nível com relações pai/filho
-3. **Página nova** `src/pages/Planeamento.tsx` com as 4 tabs + filtro de área
-4. **Componentes** `CascadeLevel.tsx` (lista por nível) + `CascadeItemCard.tsx` (com pai/filhos)
-5. **Redirects** das 4 rotas antigas para `/planeamento?nivel=…`
-6. **Limpeza** — marcar páginas antigas como deprecated, remover do menu
+1. **Migration** — criar 3 tabelas (`department_kpis`, `objective_key_results`, `key_result_periods`) com RLS (mesmas regras de leitura/escrita de `executive_objectives`).
+2. **Hook `usePlanningData`** — adicionar leitura/mutações para KRs e period targets; manter API de objetivos compatível.
+3. **Hook `useDepartmentKpis`** — novo, para CRUD de KPIs por departamento.
+4. **Anual** — atualizar `PlanningObjectivesTab` card para mostrar valor/target/KRs inline (modo `showKRsInline`).
+5. **Trimestral** — substituir grelha de áreas por `<QuarterObjectiveList />` nova; mantém botão "Nova meta trimestral" mas agora cria KR-period.
+6. **Mensal** — redesign `MonthlyCockpit`:
+   - Substituir Cards por secções editáveis (`<EditableAreaSection />`)
+   - Usar `<Sheet />` lateral em vez de drawer cheio para detalhe
+   - Adicionar bloco "KRs do mês"
+   - Reparar `BlockOperacao` (capacidade + horas por cliente) e `BlockProjetos` (entregas)
+7. **Departamento** — adicionar tab "KPIs" em `PlaneamentoDepartamento.tsx`.
+8. **Migrar dados existentes** (best-effort): `objective_metrics` → `objective_key_results` (trigger one-shot via SQL na migration).
 
-## Riscos
+## Fora deste plano (para depois)
 
-- Páginas antigas têm UI rica (Cockpit mensal com 8 blocos). Não perder funcionalidade — os blocos viram conteúdo da tab "Mês" mas agrupados por área única em vez de 8 secções fixas.
-- Weekly Align não se mexe — é ritual, não planeamento.
-- Permissões: a página unificada herda as mesmas regras de Owner-only que o Executive Room.
+- Fundir Mensal com Weekly Align (decidiste manter separado, só redesign).
+- Visão 5 anos (já está OK).
+- Cron de auto-status (continua a funcionar nos novos KRs).
 
-## Confirmar antes de avançar
+## O que vais ver no fim
 
-1. Concordas com os 4 níveis: **Ano / Trimestre / Mês / Semana**? Ou queres outro nome (ex.: "Anual / Trimestral / Mensal / Foco")?
-2. OK manter o Cockpit mensal atual (8 blocos por área) **dentro** da tab "Mês", ou queres versão mais enxuta?
-3. Avanço com a fase 1 (migração leve + nova página) assim que aprovares?
+- Cards anuais com números reais, não só %.
+- Trimestre como lista clara objetivo→KRs com progresso por trimestre.
+- Mês com secções editáveis por área (não cards estáticos), drawer lateral, métricas a funcionar.
+- KPIs vivem em cada departamento; OKRs (com KRs) vivem em cada objetivo; KRs podem puxar KPIs.
+
+Confirma se avanço — vou começar pela migration.
