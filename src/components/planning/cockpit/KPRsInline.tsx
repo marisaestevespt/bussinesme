@@ -82,7 +82,7 @@ export function KPRsInline({ area, year, month, period: initialPeriod = 'month',
         )}
       </div>
       <div className="grid grid-cols-[1fr_90px_90px_70px_1.5fr] gap-2 px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-medium border-t border-border/40">
-        <span>KPR</span>
+        <span>Meta</span>
         <span className="text-right">Meta {periodLabel}</span>
         <span className="text-right">Real</span>
         <span className="text-right">Δ</span>
