@@ -297,9 +297,6 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
                         <tr className="border-b border-border/40 bg-muted/10">
                           <td className="px-2 py-1.5 text-center text-[10px] text-muted-foreground">
                             Real
-                            {k.value_source && k.value_source !== 'manual' && (
-                              <Zap className="inline h-2.5 w-2.5 ml-0.5 text-primary" aria-label="auto" />
-                            )}
                           </td>
                           {MONTHS.map((_, i) => {
                             const m = i + 1;
@@ -310,22 +307,19 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
                             const a = row?.actual_value;
                             const ok = t != null && a != null && Number(a) >= Number(t);
                             const bad = t != null && a != null && Number(a) < Number(t);
-                            const isAuto = k.value_source && k.value_source !== 'manual';
                             return (
                               <td key={m} className="px-1 py-0.5">
                                 <Input
                                   className={cn(
                                     'h-7 text-xs text-center px-1 tabular-nums font-medium',
+                                    'border-0 bg-transparent shadow-none focus-visible:ring-1 focus-visible:ring-ring/40 hover:bg-muted/40',
                                     ok && 'text-emerald-600',
                                     bad && 'text-rose-600',
-                                    isAuto && 'bg-muted/40 cursor-not-allowed',
                                   )}
                                   value={val}
-                                  readOnly={!!isAuto}
-                                  title={isAuto ? 'Valor automático — calculado a partir da fonte de dados' : undefined}
+                                  placeholder="—"
                                   onChange={(e) => setCellDraft({ ...cellDraft, [key]: e.target.value })}
                                   onBlur={(e) => {
-                                    if (isAuto) return;
                                     const v = e.target.value;
                                     const prev = row?.actual_value != null ? String(row.actual_value) : '';
                                     if (v !== prev) saveCell(k, m, 'actual_value', v);
