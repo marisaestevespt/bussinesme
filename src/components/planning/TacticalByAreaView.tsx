@@ -123,8 +123,7 @@ export function TacticalByAreaView({ planning, year, onlyAreaKey }: Props) {
         area={area}
         responsibles={responsibles}
         periodLabel={`${period.label} — ${monthLabels} ${year}`}
-        quarter={view === 'trimestral' ? Number(period.key.replace('T', '')) : undefined}
-        semester={view === 'semestral' ? Number(period.key.replace('S', '')) : undefined}
+        quarter={Number(period.key.replace('T', ''))}
         year={year}
         goals={periodGoals}
         initiatives={periodInits}
@@ -146,20 +145,6 @@ export function TacticalByAreaView({ planning, year, onlyAreaKey }: Props) {
   }
   return (
     <div className="space-y-3">
-      {!hideViewToggle && (
-        <div className="flex items-center justify-end">
-          <ToggleGroup
-            type="single"
-            value={view}
-            onValueChange={(v) => v && setView(v as 'trimestral' | 'semestral')}
-            size="sm"
-            variant="outline"
-          >
-            <ToggleGroupItem value="trimestral" className="text-xs h-7 px-3">Trimestre</ToggleGroupItem>
-            <ToggleGroupItem value="semestral" className="text-xs h-7 px-3">Semestre</ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-      )}
       {visibleAreas.map((area: TacticalArea) => {
         const responsibles = membersByDept[area.key] || [];
         const allAreaGoals = goals.filter((g: any) => goalBelongsToDepartment(g, goalAreaById, area.key));
