@@ -28,10 +28,17 @@ Trigger `sync_kpr_monthly_to_planning_goal` (AFTER INSERT OR UPDATE em `departme
 
 ## Onde aparece
 
+- Single source of truth para planeamento+análise de uma área: rota `/planeamento/dep/[area]` (`PlaneamentoDepartamento.tsx`). Inclui `DepartmentKpiDashboard` + `DepartmentQuarterlyPlanning` + objetivos/metas/notas/iniciativas.
+- Hubs operacionais (Marketing, Comercial, Financeiro, Clientes, Operação, Produtos, HubEquipa): `DepartmentKpiSummary` é um banner-CTA limpo (não chips) com mini-pulse "X/Y no caminho este mês" e link "Abrir →" para `/planeamento/dep/[area]`. Sem detalhe duplicado nos hubs.
+- Executive Room → Planeamento (`ExecutivePlaneamento.tsx`): `AreaPulseGrid` (cards por área com semáforo + 2 KPRs principais + link). Owner pensa estratégia macro aqui; vai a cada dept para o detalhe.
 - Cockpit Mensal: `KPRsInline` em cada bloco de área (M/T/A toggle).
-- Hubs operacionais (Comercial, Marketing, Financeiro, Clientes, Operação): `DepartmentKpiSummary` no topo (chips, mês corrente, link para detalhe).
-- Weekly Align: secção `WeeklyAlignKprs` agrupada por área.
-- `/executive/planeamento/[dept]` (DepartmentKpiDashboard): tabela completa anual.
+- Weekly Align: `WeeklyAlignKprs` agrupada por área.
+
+## Princípio
+
+- Planeamento+análise de uma área **vivem num único ecrã** (`/planeamento/dep/[area]`).
+- Hubs operacionais são para **fazer**, não para planear: têm apenas um banner-CTA para a página de planeamento.
+- Executive Room dá **visão macro** (objetivos do negócio + pulse por área) e atalhos para cada dept.
 
 ## Form (KpiForm)
 
