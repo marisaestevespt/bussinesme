@@ -9,8 +9,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import {
   ChevronLeft, ChevronRight, Compass, Target, CalendarRange,
-  CalendarDays, Flame,
+  CalendarDays, Flame, HelpCircle,
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { HorizonsView } from '@/components/planning/HorizonsView';
@@ -41,7 +42,7 @@ const NIVEIS: { value: Nivel; label: string; icon: React.ComponentType<{ classNa
   { value: 'ano',        label: 'Ano',        icon: Target,       desc: 'Objetivos anuais por área' },
   { value: 'trimestre',  label: 'Trimestre',  icon: CalendarRange,desc: 'Metas trimestrais (rocks)' },
   { value: 'mes',        label: 'Mês',        icon: CalendarDays, desc: 'Cockpit mensal e metas do mês' },
-  { value: 'semana',     label: 'Semana',     icon: Flame,        desc: 'Foco da semana — OKRs e rotinas' },
+  { value: 'semana',     label: 'Semana',     icon: Flame,        desc: 'Foco da semana — 1 a 3 prioridades e rotinas' },
 ];
 
 /**
@@ -103,6 +104,7 @@ export default function PlaneamentoPage() {
         <PageHeader
           title="Planeamento"
           subtitle="Visão → Ano → Trimestre → Mês → Semana"
+          actions={<GlossaryButton />}
         />
         {nivel !== 'visao' && (
           <div className="flex items-center justify-end gap-1 text-muted-foreground -mt-2">
@@ -135,10 +137,23 @@ export default function PlaneamentoPage() {
             })}
           </TabsList>
 
-          {/* Descrição do nível ativo */}
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            {NIVEIS.find((n) => n.value === nivel)?.desc}
-          </p>
+          {/* Hint card do nível ativo */}
+          <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 flex items-start gap-2.5">
+            {(() => {
+              const active = NIVEIS.find((n) => n.value === nivel);
+              if (!active) return null;
+              const Icon = active.icon;
+              return (
+                <>
+                  <Icon className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                  <div className="text-sm">
+                    <span className="font-semibold text-foreground">{active.label}: </span>
+                    <span className="text-muted-foreground">{active.desc}</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
 
           {/* VISÃO */}
           <TabsContent value="visao" className="mt-6 space-y-8">
@@ -252,9 +267,9 @@ export default function PlaneamentoPage() {
                   <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                     <Flame className="h-4 w-4" />
                   </div>
-                  <div>
+                <div>
                     <p className="text-base font-semibold">Foco da semana</p>
-                    <p className="text-xs text-muted-foreground">As 1-3 ações que mais movem as metas do mês. OKRs operacionais.</p>
+                    <p className="text-xs text-muted-foreground">As 1 a 3 ações que mais movem as metas do mês.</p>
                   </div>
                 </div>
                 {derived ? <WeekFocus derived={derived} /> : (
