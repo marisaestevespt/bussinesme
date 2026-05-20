@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { user_id, email, send_welcome } = await req.json();
+    const { user_id, email, send_welcome, full_name } = await req.json();
     
     let targetEmail = email;
     
@@ -102,8 +102,46 @@ Deno.serve(async (req) => {
 
     const inviteUrl = linkData.properties.action_link;
 
-    // Welcome email for team members is disabled — onboarding is in person.
-    const welcome_email_sent = false;
+    let welcome_email_sent = false;
+    let invite_error: string | null = null;
+
+    if (send_welcome !== false) {
+      const [{ data: profile }, { data: settings }] = await Promise.all([
+        user_id
+          ? supabase.from("profiles").select("full_name, role_title").eq("user_id", user_id).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+        supabase
+          .from("business_settings")
+          .select("business_name, whatsapp_team_url, primary_color, text_color, accent_color, font_display, font_body, logo_url")
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      const resolvedName = full_name || profile?.full_name || targetEmail;
+      const firstName = String(resolvedName).trim().split(/\s+/)[0] || String(resolvedName);
+      const sendRes = await sendTransactionalEmail({
+        templateName: "welcome-member",
+        recipientEmail: targetEmail,
+        idempotencyKey: `welcome-member-resend-${targetEmail.toLowerCase()}-${Date.now()}`,
+        templateData: {
+          memberName: firstName,
+          fullName: resolvedName,
+          roleTitle: profile?.role_title || undefined,
+          inviteUrl,
+          businessName: settings?.business_name || undefined,
+          whatsappTeamUrl: settings?.whatsapp_team_url || undefined,
+          primaryColor: settings?.primary_color || undefined,
+          primaryForeground: "0 0% 100%",
+          textColor: settings?.text_color || undefined,
+          accentColor: settings?.accent_color || undefined,
+          fontDisplay: settings?.font_display || undefined,
+          fontBody: settings?.font_body || undefined,
+          logoUrl: settings?.logo_url || undefined,
+        },
+      });
+      welcome_email_sent = sendRes.ok;
+      invite_error = sendRes.ok ? null : sendRes.details;
+    }
 
     return new Response(
       JSON.stringify({
@@ -112,7 +150,8 @@ Deno.serve(async (req) => {
         email: targetEmail,
         link_type: linkType,
         expires_in_hours: 24,
-        invite_error: null,
+        invite_error,
+        email_sent: welcome_email_sent,
         welcome_email_sent,
       }),
       {
