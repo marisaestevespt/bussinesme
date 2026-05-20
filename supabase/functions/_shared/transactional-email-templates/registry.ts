@@ -22,6 +22,7 @@ import { template as clientMeetingScheduled } from './client-meeting-scheduled.t
 import { template as clientFeedbackRequest } from './client-feedback-request.tsx'
 import { template as teamClientRequest } from './team-client-request.tsx'
 import { template as teamMeetingPrepTopic } from './team-meeting-prep-topic.tsx'
+import { template as welcomeMember } from './welcome-member.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome-client': welcomeClient,
@@ -37,4 +38,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'client-feedback-request': clientFeedbackRequest,
   'team-client-request': teamClientRequest,
   'team-meeting-prep-topic': teamMeetingPrepTopic,
+  'welcome-member': welcomeMember,
 }
