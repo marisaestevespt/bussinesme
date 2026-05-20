@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus, Sparkles, Wand2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip as InfoTooltip, TooltipContent as InfoTooltipContent, TooltipProvider as InfoTooltipProvider, TooltipTrigger as InfoTooltipTrigger } from '@/components/ui/tooltip';
 import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
@@ -328,6 +329,7 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics =
 
   const [editGoal, setEditGoal] = useState<any>(null);
   const [editForm, setEditForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+  const [distributeOpen, setDistributeOpen] = useState(false);
 
   const isAutoSource = parentObjective?.value_source && parentObjective.value_source !== 'manual' && parentObjective.value_source !== 'metrica';
   const sourceLabel = VALUE_SOURCES.find(s => s.value === parentObjective?.value_source)?.label;
@@ -430,7 +432,14 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics =
           )}
         </div>
         {!hasLinkedKpi && (
-          <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
+          <div className="flex gap-2">
+            {Number(parentObjective?.target_value) > 0 && (
+              <Button size="sm" variant="outline" onClick={() => setDistributeOpen(true)}>
+                <Wand2 className="h-3 w-3 mr-1" /> Distribuir meta anual
+              </Button>
+            )}
+            <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
+          </div>
         )}
       </div>
       {hasLinkedKpi ? (
@@ -535,7 +544,159 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics =
           </div>
         </DialogContent>
       </Dialog>
+
+      <DistributeAnnualDialog
+        open={distributeOpen}
+        onOpenChange={setDistributeOpen}
+        annualTarget={Number(parentObjective?.target_value) || 0}
+        unit={unit}
+        existingGoals={monthlyGoals}
+        onConfirm={async (perMonth) => {
+          // Sequentially upsert (preserve actual_value/status when editing existing)
+          for (let i = 0; i < MONTHS.length; i++) {
+            const period = MONTHS[i];
+            const target = perMonth[i];
+            const existing = monthlyGoals.find((g: any) => g.period === period);
+            await planning.upsertGoal.mutateAsync({
+              ...(existing ? { id: existing.id } : {}),
+              objective_id: objectiveId,
+              period,
+              target_value: String(target),
+              actual_value: existing?.actual_value ?? '',
+              status: existing?.status ?? 'por_iniciar',
+            });
+          }
+          toast.success('Meta anual distribuída pelos 12 meses');
+          setDistributeOpen(false);
+        }}
+      />
     </div>
+  );
+}
+
+// ─── Distribute Annual Dialog ─────────────
+function DistributeAnnualDialog({ open, onOpenChange, annualTarget, unit, existingGoals, onConfirm }: any) {
+  const [mode, setMode] = useState<'mensal' | 'trimestral'>('mensal');
+  const [weights, setWeights] = useState<[number, number, number, number]>([25, 25, 25, 25]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const perMonth = (() => {
+    if (mode === 'mensal') {
+      const v = annualTarget / 12;
+      return Array(12).fill(v) as number[];
+    }
+    const totalW = weights.reduce((s, w) => s + (Number(w) || 0), 0) || 1;
+    return MONTHS.map((_m, idx) => {
+      const q = Math.floor(idx / 3);
+      const qShare = (annualTarget * (Number(weights[q]) || 0)) / totalW;
+      return qShare / 3;
+    });
+  })();
+
+  const fmt = (n: number) =>
+    (Math.round(n * 10) / 10).toLocaleString('pt-PT', { maximumFractionDigits: 1 });
+
+  const totalDistributed = perMonth.reduce((s, n) => s + n, 0);
+  const hasOverwrite = (existingGoals || []).length > 0;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Distribuir meta anual</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Total anual: <strong>{fmt(annualTarget)} {unit}</strong>. Vai criar/atualizar 12 metas mensais — valores reais e status existentes são preservados.
+          </p>
+
+          <div>
+            <Label className="text-xs">Modo de distribuição</Label>
+            <Select value={mode} onValueChange={(v: any) => setMode(v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mensal">Igual mensal (÷12)</SelectItem>
+                <SelectItem value="trimestral">Por peso trimestral (%)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {mode === 'trimestral' && (
+            <div>
+              <Label className="text-xs">Peso por trimestre (%)</Label>
+              <div className="grid grid-cols-4 gap-2 mt-1">
+                {(['T1', 'T2', 'T3', 'T4'] as const).map((q, i) => (
+                  <div key={q}>
+                    <Label className="text-[10px] text-muted-foreground">{q}</Label>
+                    <Input
+                      type="number"
+                      value={weights[i]}
+                      onChange={(e) => {
+                        const next = [...weights] as [number, number, number, number];
+                        next[i] = Number(e.target.value);
+                        setWeights(next);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Soma: {weights.reduce((s, w) => s + (Number(w) || 0), 0)}%
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-lg border max-h-[240px] overflow-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Mês</TableHead>
+                  <TableHead className="text-xs">Meta</TableHead>
+                  <TableHead className="text-xs">Atual</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MONTHS.map((m, idx) => {
+                  const existing = (existingGoals || []).find((g: any) => g.period === m);
+                  return (
+                    <TableRow key={m}>
+                      <TableCell className="text-xs">{m}</TableCell>
+                      <TableCell className="text-xs">{fmt(perMonth[idx])} {unit}</TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground">
+                        {existing ? `${fmt(Number(existing.target_value) || 0)} ${unit}` : '—'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Total distribuído: {fmt(totalDistributed)} {unit}</span>
+            {hasOverwrite && <span className="text-amber-600">⚠ Vai sobrescrever metas existentes</span>}
+          </div>
+
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} disabled={submitting}>Cancelar</Button>
+            <Button
+              size="sm"
+              disabled={submitting || annualTarget <= 0}
+              onClick={async () => {
+                setSubmitting(true);
+                try {
+                  await onConfirm(perMonth);
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              {submitting ? 'A distribuir…' : 'Confirmar e criar 12 metas'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
