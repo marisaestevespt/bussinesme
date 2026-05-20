@@ -12,13 +12,8 @@ const QUARTER_MONTHS: Record<string, string[]> = {
   T3: ['Julho','Agosto','Setembro'],
   T4: ['Outubro','Novembro','Dezembro'],
 };
-const SEMESTER_MONTHS: Record<string, string[]> = {
-  S1: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho'],
-  S2: ['Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
-};
-
 /**
- * Cascade strip shown under an annual objective: Anual → S1/S2 → T1..T4.
+ * Cascade strip shown under an annual objective: Anual → T1..T4.
  * Reads target from planning_goals (if defined for that period) and the actual
  * from monthly goals aggregated for the period (and falls back to
  * `planning.goalAutoValue` so it stays in sync with auto-tracked sources).
