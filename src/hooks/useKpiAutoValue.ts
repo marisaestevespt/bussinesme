@@ -187,7 +187,7 @@ export function useKpiAutoValue(year: number, month: number) {
   const metrics = useQuery({
     queryKey: ['kpi-auto-metrics'],
     queryFn: async () => {
-      const { data } = await supabase.from('product_metrics').select('id,current_value');
+      const { data } = await supabase.from('objective_metrics').select('id,current_value');
       return data || [];
     },
     ...CACHE,
