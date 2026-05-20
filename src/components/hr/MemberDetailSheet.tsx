@@ -93,9 +93,9 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
       if (data?.error) throw new Error(data.error);
       if (data?.invite_url) {
         await navigator.clipboard.writeText(data.invite_url);
-        toast.success(data.email_sent ? 'Email enviado e link de convite copiado!' : 'Link de convite copiado!');
+        toast.success(data.email_sent ? 'Email enviado e link copiado como segurança!' : 'Não consegui enviar o email — link copiado para enviares manualmente.');
       } else if (data?.email_sent) {
-        toast.success('Email de convite enviado!');
+        toast.success('Email de acesso enviado!');
       } else {
         toast.error(data?.invite_error || 'Não foi possível gerar o link.');
       }
@@ -232,7 +232,7 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
                   disabled={generatingLink}
                 >
                   {generatingLink ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2 className="h-3 w-3" />}
-                  Copiar link de convite
+                  Enviar acesso
                 </Button>
               )}
               {member.status === 'ativo' && onOffboard && (
