@@ -5,10 +5,22 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronDown, ChevronRight, Plus, Pencil, Save, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Pencil, Save, X, Briefcase, Megaphone, Wallet, Settings2, Users, Package, UserCog, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS } from '@/hooks/usePlanningData';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
+import { DepartmentKpisSection } from './DepartmentKpisSection';
+
+const AREA_ICONS: Record<string, any> = {
+  comercial: Briefcase,
+  marketing: Megaphone,
+  financeiro: Wallet,
+  operacao: Settings2,
+  clientes: Users,
+  produtos: Package,
+  equipa: UserCog,
+  geral: Target,
+};
 
 const QUARTER_MONTHS: Record<string, string[]> = {
   T1: ['Janeiro', 'Fevereiro', 'Março'],
@@ -38,7 +50,6 @@ interface Props {
 export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
   const [openObj, setOpenObj] = useState<Record<string, boolean>>({});
   const [detailObj, setDetailObj] = useState<any>(null);
-  const [openAreas, setOpenAreas] = useState<Record<string, boolean>>({});
 
   const objectives = planning.allObjectives || [];
   const metrics = planning.allMetrics || [];
@@ -63,10 +74,6 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
 
   const krsForObj = (objId: string) => metrics.filter((m: any) => m.objective_id === objId);
 
-  // Default: only non-empty areas are expanded; empty ones colapsam para reduzir scroll.
-  const isAreaOpen = (a: string, hasItems: boolean) =>
-    openAreas[a] !== undefined ? openAreas[a] : hasItems;
-
   return (
     <div className="space-y-4">
       {byArea.length === 0 && (
@@ -78,23 +85,34 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
       )}
 
       {byArea.map(([area, objs]) => {
-        const open = isAreaOpen(area, objs.length > 0);
+        const Icon = AREA_ICONS[area] || Target;
         return (
           <Card key={area} className="hq-card overflow-hidden">
-            <button
-              onClick={() => setOpenAreas((s) => ({ ...s, [area]: !open }))}
-              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50 hover:bg-muted/50 hq-transition"
-            >
+            <div className="flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-b border-border/50">
               <div className="flex items-center gap-2">
-                {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                <span className="text-sm font-semibold uppercase tracking-wider">{planAreaLabel(area)}</span>
-                <Badge variant="outline" className="text-[10px]">{objs.length}</Badge>
+                <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
+                  <Icon className="h-3.5 w-3.5" />
+                </div>
+                <h2 className="text-sm font-semibold uppercase tracking-wider">{planAreaLabel(area)}</h2>
+                <Badge variant="outline" className="text-[10px]">{objs.length} objetivos</Badge>
               </div>
               <span className="text-[10px] text-muted-foreground">{quarter} · {qMonths.join(' · ')}</span>
-            </button>
+            </div>
 
-            {open && (
-              <div className="divide-y divide-border/40">
+            <div className="p-4 space-y-4">
+              {/* KPIs permanentes do departamento */}
+              <DepartmentKpisSection department={area} departmentLabel={planAreaLabel(area)} />
+
+              {/* Objetivos da área */}
+              <Card className="hq-card">
+                <CardContent className="pt-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-base font-semibold">Objetivos &amp; Key Results</p>
+                      <p className="text-xs text-muted-foreground">Metas anuais com progresso por {quarter}.</p>
+                    </div>
+                  </div>
+                  <div className="divide-y divide-border/40 -mx-4">
                 {objs.length === 0 && (
                   <div className="px-4 py-6 text-center text-xs text-muted-foreground space-y-2">
                     <p>Sem objetivos para esta área neste ano.</p>
@@ -201,8 +219,10 @@ export function QuarterlyObjectivesList({ planning, quarter, year }: Props) {
                     </div>
                   );
                 })}
-              </div>
-            )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </Card>
         );
       })}
