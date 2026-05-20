@@ -62,7 +62,7 @@ export function KPRsInline({ area, year, month, period: initialPeriod = 'month',
     <div className="rounded-md border border-border/60 bg-muted/10 overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 bg-muted/30">
         <Gauge className="h-3.5 w-3.5 text-primary" />
-        <span className="text-[11px] font-semibold uppercase tracking-wider">Indicadores (KPRs)</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider">Metas</span>
         <Badge variant="outline" className="text-[9px]">{kpis.length}</Badge>
         {!lockPeriod && (
           <div className="ml-auto inline-flex rounded-md border border-border/60 overflow-hidden text-[10px]">
