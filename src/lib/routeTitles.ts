@@ -15,10 +15,7 @@ const STATIC_ROUTES: Record<string, string> = {
   // Executive
   '/executive': 'Executive Room',
   '/executive/dashboard': 'Dashboard Executivo',
-  '/executive/planeamento': 'Planeamento Estratégico',
-  '/executive/planeamento-estrategico': 'Planeamento Estratégico',
-  '/executive/planeamento-tatico': 'Planeamento Tático',
-  '/executive/planeamento-operacional': 'Planeamento Operacional',
+  '/planeamento': 'Planeamento',
   '/executive/weekly-align': 'Weekly Align',
   '/executive/processos': 'Processos Executivos',
   '/executive/produtividade': 'Produtividade',

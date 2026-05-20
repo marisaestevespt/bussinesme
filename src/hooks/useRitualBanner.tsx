@@ -125,7 +125,7 @@ export function useRitualBanner() {
         title: `Fechaste ${cap(MONTH_PT[prevMonth - 1])}?`,
         subtitle: `Leva 5 minutos. Faz diferença para planear ${cap(MONTH_PT[m - 1])} com clareza.`,
         cta: `Fechar ${cap(MONTH_PT[prevMonth - 1])}`,
-        to: `/executive/planeamento/operacional?ano=${prevMonthYear}&mes=${prevMonth}&scroll=reflexao`,
+        to: `/planeamento?nivel=mes&ano=${prevMonthYear}&mes=${prevMonth}&scroll=reflexao`,
         ctaSecundario: { label: 'Já está feito', action: 'mark_complete' },
         tone: 'navy',
       });
@@ -136,7 +136,7 @@ export function useRitualBanner() {
         title: `Está na hora de planear ${cap(MONTH_PT[m - 1])}.`,
         subtitle: 'Define as tuas prioridades, agenda e metas para o mês.',
         cta: `Planear ${cap(MONTH_PT[m - 1])}`,
-        to: `/executive/planeamento/operacional?ano=${y}&mes=${m}`,
+        to: `/planeamento?nivel=mes&ano=${y}&mes=${m}`,
         ctaSecundario: { label: 'Mais tarde', action: 'dismiss' },
         tone: 'bordeaux',
       });
@@ -152,7 +152,7 @@ export function useRitualBanner() {
       title: 'Início de semestre — como estás vs. os objetivos do ano?',
       subtitle: 'Revê o progresso do semestre anterior e ajusta as metas do próximo.',
       cta: 'Rever objetivos',
-      to: '/executive/planeamento/tatico?view=semestral',
+      to: '/planeamento?nivel=trimestre&view=semestral',
       ctaSecundario: { label: 'Mais tarde', action: 'dismiss' },
       tone: 'gold',
     });
@@ -167,7 +167,7 @@ export function useRitualBanner() {
       title: `Começa o T${q}. As tuas prioridades estão definidas?`,
       subtitle: 'Revê os objetivos do trimestre e define o que é prioritário.',
       cta: 'Ver planeamento trimestral',
-      to: `/executive/planeamento/tatico?view=trimestral&quarter=T${q}`,
+      to: `/planeamento?nivel=trimestre&quarter=T${q}`,
       ctaSecundario: { label: 'Mais tarde', action: 'dismiss' },
       tone: 'navy',
     });

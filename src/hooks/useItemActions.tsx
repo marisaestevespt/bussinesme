@@ -16,7 +16,7 @@ function getItemRoute(item: UnifiedItem): string | null {
     case 'reuniao': return `/hub/reunioes/${item.sourceId}`;
     case 'projeto': return `/hub/projetos/${item.sourceId}`;
     case 'acao_venda': return `/comercial/acoes`;
-    case 'rotina': return `/executive/planeamento`;
+    case 'rotina': return `/planeamento?nivel=semana`;
     default: return null;
   }
 }
