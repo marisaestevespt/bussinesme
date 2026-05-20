@@ -4,8 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Plus, Pencil, Trash2, Save, X, Gauge, Zap } from 'lucide-react';
+import { Plus, Trash2, Save, X, Gauge, Zap } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { useDepartmentKpis, type DepartmentKpi } from '@/hooks/useDepartmentKpis';
 import { VALUE_SOURCES, usePlanningData } from '@/hooks/usePlanningData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,8 +38,12 @@ function fmt(v: number | null | undefined, unit?: string | null) {
  */
 export function DepartmentKpisSection({ department, departmentLabel }: Props) {
   const { list, upsert, remove } = useDepartmentKpis(department);
-  const [adding, setAdding] = useState(false);
-  const [editing, setEditing] = useState<string | null>(null);
+  /** null = closed | 'new' = creating | string = editing kpi id */
+  const [dialogState, setDialogState] = useState<null | 'new' | string>(null);
+  const editingKpi = typeof dialogState === 'string' && dialogState !== 'new'
+    ? list.find((k) => k.id === dialogState)
+    : null;
+  const dialogOpen = dialogState !== null;
 
   return (
     <Card className="hq-card">
@@ -50,61 +60,64 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
               </p>
             </div>
           </div>
-          {!adding && (
-            <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Novo KPI
-            </Button>
-          )}
+          <Button size="sm" variant="outline" onClick={() => setDialogState('new')}>
+            <Plus className="h-4 w-4 mr-1" /> Novo KPI
+          </Button>
         </div>
 
-        {adding && (
-          <KpiForm
-            initial={{ department }}
-            year={new Date().getFullYear()}
-            onCancel={() => setAdding(false)}
-            onSave={(payload) => {
-              upsert.mutate(payload, { onSuccess: () => setAdding(false) });
-            }}
-          />
-        )}
-
-        {list.length === 0 && !adding && (
+        {list.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">
             Ainda sem KPIs definidos. Cria o primeiro para começar a medir.
           </p>
-        )}
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-3">
-          {list.map((k) => {
-            if (editing === k.id) {
-              return (
-                <div key={k.id} className="col-span-full">
-                  <KpiForm
-                    initial={k}
-                    year={new Date().getFullYear()}
-                    onCancel={() => setEditing(null)}
-                    onSave={(payload) => upsert.mutate(payload, { onSuccess: () => setEditing(null) })}
-                  />
-                </div>
-              );
-            }
-            const pct = k.target_value && Number(k.target_value) > 0
-              ? Math.min(100, Math.round((Number(k.current_value || 0) / Number(k.target_value)) * 100))
-              : 0;
-            return (
-              <Card key={k.id} className="hq-card">
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-semibold text-sm leading-snug">{k.name}</p>
-                    <div className="flex items-center gap-0.5">
-                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditing(k.id)} aria-label="Editar">
-                        <Pencil className="h-3 w-3" />
-                      </Button>
+        ) : (
+          <div className="overflow-x-auto -mx-1">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border/50">
+                  <th className="font-medium px-2 py-2">KPI</th>
+                  <th className="font-medium px-2 py-2 text-right">Atual</th>
+                  <th className="font-medium px-2 py-2 text-right">Meta mensal</th>
+                  <th className="font-medium px-2 py-2 text-right">Trimestral</th>
+                  <th className="font-medium px-2 py-2 text-right">Anual</th>
+                  <th className="font-medium px-2 py-2">Fonte</th>
+                  <th className="font-medium px-2 py-2 w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((k) => (
+                  <tr
+                    key={k.id}
+                    className="border-b border-border/30 hover:bg-muted/40 cursor-pointer transition-colors"
+                    onClick={() => setDialogState(k.id)}
+                  >
+                    <td className="px-2 py-2.5">
+                      <p className="font-medium leading-snug">{k.name}</p>
+                      {k.description && (
+                        <p className="text-[11px] text-muted-foreground line-clamp-1">{k.description}</p>
+                      )}
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums font-semibold">
+                      {fmt(k.current_value, k.unit)}
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums text-muted-foreground">
+                      {fmt(k.target_value, k.unit)}
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums text-muted-foreground">
+                      {fmt(k.quarterly_target, k.unit)}
+                    </td>
+                    <td className="px-2 py-2.5 text-right tabular-nums text-muted-foreground">
+                      {fmt(k.annual_target, k.unit)}
+                    </td>
+                    <td className="px-2 py-2.5">
+                      <Badge variant="outline" className="text-[9px]">{k.value_source}</Badge>
+                    </td>
+                    <td className="px-2 py-2.5">
                       <Button
                         size="icon"
                         variant="ghost"
                         className="h-6 w-6 text-destructive"
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.stopPropagation();
                           if (await confirmDestructive({ title: 'Remover KPI?', description: 'Esta ação não pode ser desfeita.' })) {
                             remove.mutate(k.id);
                           }
@@ -113,29 +126,32 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
-                    </div>
-                  </div>
-                  {k.description && <p className="text-[11px] text-muted-foreground">{k.description}</p>}
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-lg font-bold tabular-nums">{fmt(k.current_value, k.unit)}</span>
-                    {k.target_value != null && (
-                      <span className="text-[11px] text-muted-foreground tabular-nums">/ {fmt(k.target_value, k.unit)}</span>
-                    )}
-                  </div>
-                  {k.target_value != null && Number(k.target_value) > 0 && (
-                    <Progress value={pct} className="h-1.5" />
-                  )}
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                    <Badge variant="outline" className="text-[9px]">{k.value_source}</Badge>
-                    {k.last_updated_at && (
-                      <span>{new Date(k.last_updated_at).toLocaleDateString('pt-PT')}</span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) setDialogState(null); }}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingKpi ? 'Editar KPI' : 'Novo KPI'}</DialogTitle>
+              <DialogDescription>
+                Define como medimos esta métrica e qual é a meta a atingir.
+              </DialogDescription>
+            </DialogHeader>
+            {dialogOpen && (
+              <KpiForm
+                initial={editingKpi || { department }}
+                year={new Date().getFullYear()}
+                onCancel={() => setDialogState(null)}
+                onSave={(payload) => upsert.mutate(payload, { onSuccess: () => setDialogState(null) })}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
