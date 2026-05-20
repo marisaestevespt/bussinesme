@@ -519,7 +519,6 @@ export default function OperacaoPage() {
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Operação" subtitle="Vista operacional de projetos de clientes e internos" department="operacao" />
-        <DepartmentKpiSummary department="operacao" />
 
         {/* Planeamento (regra: ver mem://design/department-planning-card.md) */}
         {(() => {
