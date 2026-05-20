@@ -500,7 +500,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             {/* Função */}
             <div className="space-y-2">
               <span className="text-xs text-muted-foreground font-medium">Cargo</span>
-              <p className="text-[10px] text-muted-foreground">Título descritivo (ex: Designer, Gestora). Não controla permissões — isso é a "Função no sistema" mais abaixo.</p>
+              <p className="text-[10px] text-muted-foreground">Escolhe o cargo — preenche automaticamente departamento, acessos e modo de trabalho. Podes ajustar depois.</p>
               <div className="flex flex-wrap gap-2">
                 {rolePresets.map((r: any) => {
                   const isSelected = f.role_title === r.label;
@@ -513,6 +513,22 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                           set('role_color', r.color);
                           if (newRole === 'Owner') {
                             setTimeout(applyOwnerDefaults, 0);
+                          } else if (newRole) {
+                            // Aplica preset associado ao cargo (se existir).
+                            const preset = CARGO_PRESETS[newRole.toLowerCase().trim()];
+                            if (preset) {
+                              set('system_role', preset.system_role);
+                              set('departments', preset.depts);
+                              set('works_with_clients', preset.wwc);
+                              const defaults = SENSITIVE_DEFAULTS_BY_ROLE[preset.system_role] || [];
+                              if (defaults.length > 0) {
+                                setF((prev: any) => {
+                                  const current = { ...(prev.sensitiveAccess || {}) };
+                                  defaults.forEach(k => { if (current[k] === undefined) current[k] = true; });
+                                  return { ...prev, sensitiveAccess: current };
+                                });
+                              }
+                            }
                           }
                         }}
                         className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
