@@ -5,8 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Pencil, Trash2, Save, X, Gauge } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Gauge, Zap } from 'lucide-react';
 import { useDepartmentKpis, type DepartmentKpi } from '@/hooks/useDepartmentKpis';
+import { VALUE_SOURCES } from '@/hooks/usePlanningData';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SourceFilterFields } from './SourceFilterFields';
 import { confirmDestructive } from '@/lib/confirmDestructive';
 
 interface Props {
@@ -150,6 +153,10 @@ function KpiForm({
   const [unit, setUnit] = useState(initial.unit || '');
   const [target, setTarget] = useState(initial.target_value != null ? String(initial.target_value) : '');
   const [current, setCurrent] = useState(initial.current_value != null ? String(initial.current_value) : '');
+  const [valueSource, setValueSource] = useState<string>(initial.value_source || 'manual');
+  const [sourceFilter, setSourceFilter] = useState<Record<string, string>>(
+    (initial.source_filter as Record<string, string>) || {},
+  );
 
   const submit = () => {
     if (!name.trim()) return;
@@ -161,7 +168,8 @@ function KpiForm({
       unit: unit || null,
       target_value: target ? Number(target) : null,
       current_value: current ? Number(current) : 0,
-      value_source: 'manual',
+      value_source: valueSource,
+      source_filter: sourceFilter,
       is_active: true,
     });
   };
@@ -191,6 +199,24 @@ function KpiForm({
           <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Target</label>
           <Input type="number" value={target} onChange={(e) => setTarget(e.target.value)} />
         </div>
+      </div>
+      <div className="space-y-2 rounded border border-border/40 bg-background p-3">
+        <div className="flex items-center gap-1.5">
+          <Zap className="h-3.5 w-3.5 text-primary" />
+          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Fonte do valor atual</label>
+        </div>
+        <Select value={valueSource} onValueChange={(v) => { setValueSource(v); setSourceFilter({}); }}>
+          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {VALUE_SOURCES.map((s) => (
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {VALUE_SOURCES.find((s) => s.value === valueSource)?.desc && (
+          <p className="text-[10px] text-muted-foreground">{VALUE_SOURCES.find((s) => s.value === valueSource)?.desc}</p>
+        )}
+        <SourceFilterFields source={valueSource} sourceFilter={sourceFilter} onChange={setSourceFilter} />
       </div>
       <div className="flex items-center justify-end gap-2">
         <Button size="sm" variant="ghost" onClick={onCancel}>

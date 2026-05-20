@@ -9,6 +9,10 @@ import { Gauge, Plus, Pencil, Trash2, Save, X, TrendingUp, TrendingDown } from '
 import { LineChart, Line, ResponsiveContainer, Tooltip as RTooltip } from 'recharts';
 import { useDepartmentKpis, type DepartmentKpi } from '@/hooks/useDepartmentKpis';
 import { useDepartmentKpiMonthly } from '@/hooks/useDepartmentKpiMonthly';
+import { VALUE_SOURCES } from '@/hooks/usePlanningData';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SourceFilterFields } from './SourceFilterFields';
+import { Zap } from 'lucide-react';
 import { confirmDestructive } from '@/lib/confirmDestructive';
 import { cn } from '@/lib/utils';
 
@@ -322,6 +326,10 @@ function KpiForm({
   const [name, setName] = useState(initial.name || '');
   const [description, setDescription] = useState(initial.description || '');
   const [unit, setUnit] = useState(initial.unit || '');
+  const [valueSource, setValueSource] = useState<string>(initial.value_source || 'manual');
+  const [sourceFilter, setSourceFilter] = useState<Record<string, string>>(
+    (initial.source_filter as Record<string, string>) || {},
+  );
 
   const submit = () => {
     if (!name.trim()) return;
@@ -331,7 +339,8 @@ function KpiForm({
       name: name.trim(),
       description: description || null,
       unit: unit || null,
-      value_source: 'manual',
+      value_source: valueSource,
+      source_filter: sourceFilter,
       is_active: true,
     });
   };
@@ -351,6 +360,26 @@ function KpiForm({
       <div>
         <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Descrição</label>
         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Como medimos e porquê" />
+      </div>
+      <div className="space-y-2 rounded border border-border/40 bg-background p-3">
+        <div className="flex items-center gap-1.5">
+          <Zap className="h-3.5 w-3.5 text-primary" />
+          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Fonte do valor atual</label>
+        </div>
+        <Select value={valueSource} onValueChange={(v) => { setValueSource(v); setSourceFilter({}); }}>
+          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {VALUE_SOURCES.map((s) => (
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {VALUE_SOURCES.find((s) => s.value === valueSource)?.desc && (
+          <p className="text-[10px] text-muted-foreground">
+            {VALUE_SOURCES.find((s) => s.value === valueSource)?.desc}
+          </p>
+        )}
+        <SourceFilterFields source={valueSource} sourceFilter={sourceFilter} onChange={setSourceFilter} />
       </div>
       <div className="flex items-center justify-end gap-2">
         <Button size="sm" variant="ghost" onClick={onCancel}>
