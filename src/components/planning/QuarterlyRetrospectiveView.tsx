@@ -27,13 +27,14 @@ interface Props {
   planning: any;
   year: number;
   quarter: QuarterStr;
+  onlyArea?: string;
 }
 
 /**
  * Retrospetiva do trimestre: para cada área mostra quantos KRs/metas foram
  * atingidos, lista de aprendizagens editáveis, e o resumo retrospetivo.
  */
-export function QuarterlyRetrospectiveView({ planning, year, quarter }: Props) {
+export function QuarterlyRetrospectiveView({ planning, year, quarter, onlyArea }: Props) {
   const { plans, items, upsertPlan, upsertItem, removeItem } = useQuarterlyPlan(year, quarter);
   const qMonths = QUARTER_MONTHS[quarter];
 
@@ -66,7 +67,7 @@ export function QuarterlyRetrospectiveView({ planning, year, quarter }: Props) {
 
   return (
     <div className="space-y-4">
-      {PLAN_AREAS.map((a) => {
+      {(onlyArea ? PLAN_AREAS.filter(a => a.value === onlyArea) : PLAN_AREAS).map((a) => {
         const area = a.value;
         const Icon = AREA_ICONS[area] || Target;
         const stats = areaStats[area];

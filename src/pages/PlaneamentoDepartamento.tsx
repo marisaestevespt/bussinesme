@@ -18,6 +18,7 @@ import { TacticalByAreaView } from '@/components/planning/TacticalByAreaView';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
 import { DepartmentKpiDashboard } from '@/components/planning/DepartmentKpiDashboard';
+import { DepartmentQuarterlyPlanning } from '@/components/planning/DepartmentQuarterlyPlanning';
 import { useTacticalAreas, useProjectsByDepartmentInRange } from '@/hooks/useTacticalAreas';
 import { endOfMonth } from 'date-fns';
 import { getDeptLabel } from '@/lib/departments';
@@ -98,6 +99,14 @@ export default function PlaneamentoDepartamento() {
 
         {/* Dashboard de KPIs do departamento: hero cards + tabela mensal + análise */}
         <DepartmentKpiDashboard department={areaKey} departmentLabel={label} year={year} />
+
+        {/* Análise + Programação trimestral só desta área */}
+        <DepartmentQuarterlyPlanning
+          planning={planning}
+          year={year}
+          planAreaKey={planAreaKey}
+          label={label}
+        />
 
         {/* Objetivos Anuais do dept */}
         <section className="space-y-3">

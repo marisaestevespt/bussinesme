@@ -18,18 +18,24 @@ const AREA_ICONS: Record<string, any> = {
 interface Props {
   year: number;
   quarter: QuarterStr;
+  /** Se definido, mostra apenas esta área (modo single-dept). */
+  onlyArea?: string;
 }
 
-export function QuarterlyProgrammingView({ year, quarter }: Props) {
+export function QuarterlyProgrammingView({ year, quarter, onlyArea }: Props) {
   const { plans, items, upsertPlan, upsertItem, removeItem } = useQuarterlyPlan(year, quarter);
 
   const planFor = (area: string) => plans.find(p => p.area === area);
   const itemsFor = (area: string, kind: QuarterItemKind) =>
     items.filter(i => i.area === area && i.kind === kind);
 
+  const areas = onlyArea
+    ? PLAN_AREAS.filter(a => a.value === onlyArea)
+    : PLAN_AREAS;
+
   return (
     <div className="space-y-4">
-      {PLAN_AREAS.map((a) => {
+      {areas.map((a) => {
         const area = a.value;
         const Icon = AREA_ICONS[area] || Target;
         const plan = planFor(area);
