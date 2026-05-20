@@ -1,6 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, preflight } from "../_shared/cors.ts";
-import { sendTransactionalEmail } from "../_shared/send-email.ts";
 
 // ─── Portuguese holidays (inline for edge function) ───
 function computeEaster(year: number): Date {
@@ -274,7 +273,7 @@ Deno.serve(async (req) => {
       });
 
       const invite_url = resetData?.properties?.action_link ?? null;
-      const email_sent = !!invite_url; // welcome-member email is sent below
+      const email_sent = false; // generateLink only creates the link; it does not send an email
 
       // Fetch WhatsApp group links for the welcome email
       let whatsapp_team_url: string | null = null;
