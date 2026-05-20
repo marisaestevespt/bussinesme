@@ -101,6 +101,7 @@ export default function PlaneamentoPage() {
             title="Planeamento"
             subtitle="Visão → Ano → Trimestre → Mês → Semana"
           />
+          {nivel !== 'visao' && (
           <div className="flex items-center gap-1 text-muted-foreground">
             <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Ano anterior" onClick={() => setYearAndUrl(year - 1)}>
               <ChevronLeft className="h-3.5 w-3.5" />
@@ -110,6 +111,7 @@ export default function PlaneamentoPage() {
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
+          )}
         </div>
 
         {/* Cascade tabs */}
