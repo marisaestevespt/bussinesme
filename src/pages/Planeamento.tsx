@@ -114,38 +114,27 @@ export default function PlaneamentoPage() {
 
         {/* Cascade tabs */}
         <Tabs value={nivel} onValueChange={(v) => setNivel(v as Nivel)}>
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-5 w-full h-auto p-1">
             {NIVEIS.map((n) => {
               const Icon = n.icon;
               return (
-                <TabsTrigger key={n.value} value={n.value} className="flex flex-col items-center gap-0.5 py-2">
-                  <div className="flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5" />
-                    <span className="text-xs font-semibold">{n.label}</span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground hidden md:block">{n.desc}</span>
+                <TabsTrigger
+                  key={n.value}
+                  value={n.value}
+                  className="flex items-center justify-center gap-1.5 py-2"
+                  title={n.desc}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span className="text-xs font-semibold">{n.label}</span>
                 </TabsTrigger>
               );
             })}
           </TabsList>
 
-          {/* Mini-breadcrumb da cascata */}
-          <div className="mt-3 flex items-center gap-1 text-[11px] text-muted-foreground flex-wrap">
-            {NIVEIS.map((n, i) => (
-              <span key={n.value} className="flex items-center gap-1">
-                <button
-                  onClick={() => setNivel(n.value)}
-                  className={cn(
-                    'hover:text-foreground hq-transition',
-                    n.value === nivel && 'text-foreground font-semibold'
-                  )}
-                >
-                  {n.label}
-                </button>
-                {i < NIVEIS.length - 1 && <ArrowRight className="h-3 w-3 opacity-50" />}
-              </span>
-            ))}
-          </div>
+          {/* Descrição do nível ativo */}
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            {NIVEIS.find((n) => n.value === nivel)?.desc}
+          </p>
 
           {/* VISÃO */}
           <TabsContent value="visao" className="mt-6 space-y-8">
