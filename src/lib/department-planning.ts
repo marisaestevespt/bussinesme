@@ -28,8 +28,8 @@ export interface PlanningCardDef {
 export function getPlanningSection(department: DepartmentKey): PlanningCardDef {
   return {
     path: `/planeamento/dep/${department}`,
-    label: 'Planeamento',
-    desc: 'Plano estratégico, tático e operacional',
+    label: 'Planeamento & Análise',
+    desc: 'Objetivos, KPRs e análise mensal',
     icon: Target,
     iconColor: 'text-primary',
     color: 'from-primary/15 to-primary/5 border-primary/30 hover:from-primary/25 hover:to-primary/10 hover:border-primary/50',

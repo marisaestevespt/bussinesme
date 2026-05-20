@@ -20,7 +20,6 @@ const SECTIONS = [
   { path: '/hub/comercial/estrategia', label: 'Estratégia', icon: Lightbulb, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10' },
   { path: '/hub/comercial/biblioteca', label: 'Biblioteca', icon: BookOpen, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
   { path: '/hub/comercial/processos', label: 'Processos', icon: GitBranch, iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10' },
-  { path: '/hub/comercial/analise', label: 'Análise Comercial', icon: BarChart3, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
   { path: '/hub/comercial/clientes', label: 'Lista de Clientes', icon: UserCheck, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10' },
   { path: '/hub/comercial/produtos', label: 'Produtos', icon: Package, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10' },
 ];
