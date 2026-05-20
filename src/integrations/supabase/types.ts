@@ -10103,6 +10103,96 @@ export type Database = {
         }
         Relationships: []
       }
+      quarterly_items: {
+        Row: {
+          area: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          kind: string
+          mitigation: string | null
+          quarter: string
+          severity: string | null
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          kind: string
+          mitigation?: string | null
+          quarter: string
+          severity?: string | null
+          sort_order?: number
+          status?: string
+          title: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          kind?: string
+          mitigation?: string | null
+          quarter?: string
+          severity?: string | null
+          sort_order?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      quarterly_plans: {
+        Row: {
+          area: string
+          capacity_notes: string | null
+          created_at: string
+          financial_notes: string | null
+          id: string
+          quarter: string
+          retrospective: string | null
+          theme: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          area: string
+          capacity_notes?: string | null
+          created_at?: string
+          financial_notes?: string | null
+          id?: string
+          quarter: string
+          retrospective?: string | null
+          theme?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          area?: string
+          capacity_notes?: string | null
+          created_at?: string
+          financial_notes?: string | null
+          id?: string
+          quarter?: string
+          retrospective?: string | null
+          theme?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       recommendations: {
         Row: {
           created_at: string
