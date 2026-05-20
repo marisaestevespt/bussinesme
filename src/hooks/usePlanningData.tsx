@@ -95,6 +95,9 @@ export const VALUE_SOURCES = [
   { value: 'bd_equipa_entregas_a_tempo', label: 'Entregas a tempo', area: 'equipa', desc: '% tarefas done concluídas até deadline' },
   { value: 'bd_geral_mrr_ratio', label: 'Rácio MRR / faturação', area: 'geral', desc: 'MRR sobre faturação total no período' },
   { value: 'bd_geral_velocidade_mrr', label: 'Velocidade crescimento MRR', area: 'geral', desc: 'Variação € MRR entre 1.º e último mês do período' },
+  { value: 'bd_capacidade_disponivel', label: 'Capacidade disponível (horas)', area: 'equipa', desc: 'Horas semanais da equipa × semanas − horas registadas no período' },
+  { value: 'bd_produtos_ativacao', label: 'Taxa de ativação', area: 'produtos', desc: '% clientes ativos do produto com pelo menos 1 renovação concluída' },
+  { value: 'bd_objetivos_progresso', label: 'Progresso objetivos anuais', area: 'geral', desc: 'Média do progresso (% atual/meta) dos objetivos do ano' },
 ];
 
 export const MEASUREMENT_TYPES = [
