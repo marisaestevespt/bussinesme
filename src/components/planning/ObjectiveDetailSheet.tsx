@@ -322,7 +322,7 @@ const QUARTER_MAP: Record<string, string[]> = {
   'T4': ['Outubro', 'Novembro', 'Dezembro'],
 };
 
-function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
+function GoalsSection({ objectiveId, goals, planning, parentObjective, metrics = [] }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
 
@@ -331,6 +331,17 @@ function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
 
   const isAutoSource = parentObjective?.value_source && parentObjective.value_source !== 'manual' && parentObjective.value_source !== 'metrica';
   const sourceLabel = VALUE_SOURCES.find(s => s.value === parentObjective?.value_source)?.label;
+
+  // If objective has metrics linked to a department KPI, we read monthly breakdown
+  // from department_kpi_monthly instead of asking the user to create planning_goals.
+  const linkedKpiIds: string[] = metrics
+    .map((m: any) => m.linked_kpi_id)
+    .filter((id: string | null): id is string => !!id);
+  const departmentKpis = useDepartmentKpis(parentObjective?.area);
+  const linkedKpis = (departmentKpis.list || []).filter((k: any) => linkedKpiIds.includes(k.id));
+  const year = parentObjective?.deadline ? new Date(parentObjective.deadline).getFullYear() : new Date().getFullYear();
+  const kpiMonthly = useDepartmentKpiMonthly(year, linkedKpiIds);
+  const hasLinkedKpi = linkedKpis.length > 0;
 
   useEffect(() => {
     if (editGoal) {
