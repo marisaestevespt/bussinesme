@@ -564,7 +564,7 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
                 <TableCell className="">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
                 <TableCell className="">
                   {displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || linkedKpi?.unit || ''}` : '—'}
-                  {linkedKpi && <div className="text-[10px] text-muted-foreground">via KPI: {linkedKpi.name}</div>}
+                  {linkedKpi && <div className="text-[10px] text-muted-foreground">via Meta: {linkedKpi.name}</div>}
                 </TableCell>
                 <TableCell className="">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                 <TableCell>
@@ -643,7 +643,7 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
               </Select>
             </div>
             {kpisList.length > 0 && (
-              <div><Label>Ligar a KPI do departamento (opcional)</Label>
+              <div><Label>Ligar a Meta do departamento (opcional)</Label>
                 <Select value={form.linked_kpi_id || 'none'} onValueChange={v => setForm(p => ({ ...p, linked_kpi_id: v === 'none' ? '' : v }))}>
                   <SelectTrigger><SelectValue placeholder="Não ligado" /></SelectTrigger>
                   <SelectContent>
@@ -653,7 +653,7 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente do KPI ligado.</p>
+                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente da Meta ligada (recomendado — evita duplicação).</p>
               </div>
             )}
             {(form.source === 'bd_vendas' || form.source === 'bd_crm') && (
@@ -713,7 +713,7 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
               </Select>
             </div>
             {kpisList.length > 0 && (
-              <div><Label>Ligar a KPI do departamento (opcional)</Label>
+              <div><Label>Ligar a Meta do departamento (opcional)</Label>
                 <Select value={editForm.linked_kpi_id || 'none'} onValueChange={v => setEditForm((p: any) => ({ ...p, linked_kpi_id: v === 'none' ? '' : v }))}>
                   <SelectTrigger><SelectValue placeholder="Não ligado" /></SelectTrigger>
                   <SelectContent>
@@ -723,7 +723,7 @@ function MetricsSection({ objectiveId, objectiveArea, metrics, planning, product
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente do KPI ligado.</p>
+                <p className="text-[10px] text-muted-foreground mt-1">O valor atual será lido automaticamente da Meta ligada (recomendado — evita duplicação).</p>
               </div>
             )}
             {(editForm.source === 'bd_vendas' || editForm.source === 'bd_crm') && (

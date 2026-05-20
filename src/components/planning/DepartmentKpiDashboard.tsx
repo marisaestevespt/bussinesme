@@ -94,7 +94,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
             <Gauge className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-base font-semibold">KPRs do departamento — {year}</h2>
+            <h2 className="text-base font-semibold">Metas do departamento — {year}</h2>
             <p className="text-xs text-muted-foreground">
               Métricas permanentes{departmentLabel ? ` para ${departmentLabel}` : ''}.
             </p>
@@ -128,7 +128,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
       {kpis.length === 0 && !addingKpi ? (
         view !== 'monthly' ? (
           <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Ainda sem KPRs. Cria o primeiro para começar a medir.
+            Ainda sem metas. Cria a primeira para começar a medir.
           </CardContent></Card>
         ) : null
       ) : (
@@ -166,7 +166,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
                         <Button
                           size="icon" variant="ghost" className="h-6 w-6 text-destructive"
                           onClick={async () => {
-                            if (await confirmDestructive({ title: 'Remover KPI?', description: 'Esta ação não pode ser desfeita.' })) {
+                            if (await confirmDestructive({ title: 'Remover meta?', description: 'Esta ação não pode ser desfeita.' })) {
                               removeKpi.mutate(k.id);
                             }
                           }}
@@ -228,7 +228,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
               <table className="w-full text-xs">
                 <thead className="bg-muted/40">
                   <tr>
-                    <th className="text-left px-3 py-2 sticky left-0 bg-muted/40 z-10 min-w-[180px]">KPI</th>
+                    <th className="text-left px-3 py-2 sticky left-0 bg-muted/40 z-10 min-w-[180px]">Meta</th>
                     <th className="text-center px-2 py-2 text-[10px] uppercase tracking-wider text-muted-foreground">Tipo</th>
                     {MONTHS.map((m) => (
                       <th key={m} className="text-center px-2 py-2 text-[10px] uppercase tracking-wider text-muted-foreground min-w-[64px]">{m}</th>
