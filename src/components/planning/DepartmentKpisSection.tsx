@@ -100,7 +100,7 @@ export function DepartmentKpisSection({ department, departmentLabel }: Props) {
                         variant="ghost"
                         className="h-6 w-6 text-destructive"
                         onClick={async () => {
-                          if (await confirmDestructive({ title: 'Remover KPI?', body: 'Esta ação não pode ser desfeita.' })) {
+                          if (await confirmDestructive({ title: 'Remover KPI?', description: 'Esta ação não pode ser desfeita.' })) {
                             remove.mutate(k.id);
                           }
                         }}
