@@ -276,7 +276,11 @@ export function MemberDetailSheet({ open, onClose, member, team, onOffboard }: a
                       if (error) throw error;
                       if ((data as any)?.error) throw new Error((data as any).error);
                       toast.success('Membro eliminado');
-                      qc.invalidateQueries({ queryKey: ['team_members'] });
+                      qc.setQueryData(['team', 'members'], (old: any) => Array.isArray(old) ? old.filter((item: any) => item.id !== member.id) : old);
+                      await Promise.all([
+                        qc.invalidateQueries({ queryKey: ['team'], refetchType: 'active' }),
+                        qc.invalidateQueries({ queryKey: ['team_members'], refetchType: 'active' }),
+                      ]);
                       onClose?.();
                     } catch (e: any) {
                       toast.error('Falha ao eliminar', { description: e?.message });
