@@ -237,27 +237,26 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
   });
 
   const channelMetrics = useQuery({
-    queryKey: ['kpi-auto-followers', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-followers', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('channel_monthly_metrics')
         .select('followers,channel_id,month,ig_accounts_reached,yt_total_views,ig_avg_saves')
-        .eq('year', year)
-        .in('month', months);
+        .eq('year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const content = useQuery({
-    queryKey: ['kpi-auto-content', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-content', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('content_items')
         .select('id,scheduled_at')
         .eq('status', 'publicado')
-        .gte('scheduled_at', start)
-        .lte('scheduled_at', endTs);
+        .gte('scheduled_at', yearStart)
+        .lte('scheduled_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
@@ -274,54 +273,53 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
 
   // Content metrics (saves/shares/impressions) no período
   const contentMetrics = useQuery({
-    queryKey: ['kpi-auto-content-metrics', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-content-metrics', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('content_metrics')
         .select('saves,shares,impressions,reach,views,month,year')
-        .eq('year', year)
-        .in('month', months);
+        .eq('year', year);
       return data || [];
     },
     ...CACHE,
   });
 
   const meetings = useQuery({
-    queryKey: ['kpi-auto-meetings', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-meetings', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('meetings')
         .select('id,department,client_id,date_time')
         .in('status', ['terminada', 'confirmada'])
-        .gte('date_time', start + 'T00:00:00')
-        .lte('date_time', endTs);
+        .gte('date_time', yearStart + 'T00:00:00')
+        .lte('date_time', yearEndTs);
       return data || [];
     },
     ...CACHE,
   });
 
   const nps = useQuery({
-    queryKey: ['kpi-auto-nps', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-nps', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('client_nps_records')
-        .select('nps_score,client_id')
+        .select('nps_score,client_id,actual_date')
         .not('nps_score', 'is', null)
-        .gte('actual_date', start)
-        .lte('actual_date', end);
+        .gte('actual_date', yearStart)
+        .lte('actual_date', yearEnd);
       return data || [];
     },
     ...CACHE,
   });
 
   const expenses = useQuery({
-    queryKey: ['kpi-auto-expenses', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-expenses', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('financial_expenses')
-        .select('total_with_vat,category,monthly_equivalent,is_recurring,status,renewal_date')
-        .gte('expense_date', start)
-        .lte('expense_date', end);
+        .select('total_with_vat,category,monthly_equivalent,is_recurring,status,renewal_date,expense_date')
+        .gte('expense_date', yearStart)
+        .lte('expense_date', yearEnd);
       return data || [];
     },
     ...CACHE,
@@ -383,15 +381,15 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
   });
 
   const projectsDone = useQuery({
-    queryKey: ['kpi-auto-projects', year, startMonth, endMonth],
+    queryKey: ['kpi-auto-projects', year],
     queryFn: async () => {
       const { data } = await supabase
         .from('projects')
         .select('id,type,updated_at')
         .eq('status', 'concluido')
         .is('archived_at', null)
-        .gte('updated_at', start)
-        .lte('updated_at', endTs);
+        .gte('updated_at', yearStart)
+        .lte('updated_at', yearEndTs);
       return data || [];
     },
     ...CACHE,
