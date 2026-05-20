@@ -10,7 +10,6 @@ import { AreaTimelineRow, type AreaPeriodCell } from './AreaTimelineRow';
 import { AreaPeriodDetail } from './AreaPeriodDetail';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { buildObjectiveAreaIndex, goalBelongsToDepartment, planningAreaForDepartment, planningAreaMatches } from '@/lib/planningAreaFilters';
 
 const MONTHS = [
@@ -25,25 +24,15 @@ const QUARTERS = [
   { key: 'T4', label: 'T4', months: [9,10,11], monthNames: ['Outubro','Novembro','Dezembro'] },
 ];
 
-const SEMESTERS = [
-  { key: 'S1', label: 'S1', months: [0,1,2,3,4,5], monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho'] },
-  { key: 'S2', label: 'S2', months: [6,7,8,9,10,11], monthNames: ['Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] },
-];
-
 interface Props {
   planning: any;
   year: number;
-  /** Default 'trimestral'. The view also has an internal toggle so the user can switch. */
-  defaultView?: 'trimestral' | 'semestral';
   /** When set, only render this single area row (used by per-department planning page). */
   onlyAreaKey?: string;
-  /** Hide the period view toggle (Trimestre/Semestre). */
-  hideViewToggle?: boolean;
 }
 
-export function TacticalByAreaView({ planning, year, defaultView = 'trimestral', onlyAreaKey, hideViewToggle = false }: Props) {
-  const [view, setView] = useState<'trimestral' | 'semestral'>(defaultView);
-  const periods = view === 'trimestral' ? QUARTERS : SEMESTERS;
+export function TacticalByAreaView({ planning, year, onlyAreaKey }: Props) {
+  const periods = QUARTERS;
   const [selected, setSelected] = useState<{ areaKey: string; periodKey: string } | null>(null);
 
   const { data: areas = [], isLoading: loadingAreas } = useTacticalAreas();
@@ -134,8 +123,7 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
         area={area}
         responsibles={responsibles}
         periodLabel={`${period.label} — ${monthLabels} ${year}`}
-        quarter={view === 'trimestral' ? Number(period.key.replace('T', '')) : undefined}
-        semester={view === 'semestral' ? Number(period.key.replace('S', '')) : undefined}
+        quarter={Number(period.key.replace('T', ''))}
         year={year}
         goals={periodGoals}
         initiatives={periodInits}
@@ -157,20 +145,6 @@ export function TacticalByAreaView({ planning, year, defaultView = 'trimestral',
   }
   return (
     <div className="space-y-3">
-      {!hideViewToggle && (
-        <div className="flex items-center justify-end">
-          <ToggleGroup
-            type="single"
-            value={view}
-            onValueChange={(v) => v && setView(v as 'trimestral' | 'semestral')}
-            size="sm"
-            variant="outline"
-          >
-            <ToggleGroupItem value="trimestral" className="text-xs h-7 px-3">Trimestre</ToggleGroupItem>
-            <ToggleGroupItem value="semestral" className="text-xs h-7 px-3">Semestre</ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-      )}
       {visibleAreas.map((area: TacticalArea) => {
         const responsibles = membersByDept[area.key] || [];
         const allAreaGoals = goals.filter((g: any) => goalBelongsToDepartment(g, goalAreaById, area.key));

@@ -12,13 +12,8 @@ const QUARTER_MONTHS: Record<string, string[]> = {
   T3: ['Julho','Agosto','Setembro'],
   T4: ['Outubro','Novembro','Dezembro'],
 };
-const SEMESTER_MONTHS: Record<string, string[]> = {
-  S1: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho'],
-  S2: ['Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
-};
-
 /**
- * Cascade strip shown under an annual objective: Anual → S1/S2 → T1..T4.
+ * Cascade strip shown under an annual objective: Anual → T1..T4.
  * Reads target from planning_goals (if defined for that period) and the actual
  * from monthly goals aggregated for the period (and falls back to
  * `planning.goalAutoValue` so it stays in sync with auto-tracked sources).
@@ -99,11 +94,6 @@ export function ObjectiveCascadeRow({ objective, planning }: { objective: any; p
     );
   };
 
-  const semesters = ['S1', 'S2'].map((k) => {
-    const override = pickPeriodOverride(k);
-    const agg = aggregateFor(SEMESTER_MONTHS[k]);
-    return { key: k, target: override?.target ?? agg?.target ?? null, actual: agg?.actual ?? override?.actual ?? null };
-  });
   const quarters = ['T1','T2','T3','T4'].map((k) => {
     const override = pickPeriodOverride(k);
     const agg = aggregateFor(QUARTER_MONTHS[k]);
@@ -119,8 +109,6 @@ export function ObjectiveCascadeRow({ objective, planning }: { objective: any; p
         </span>
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        {semesters.map((s) => <Cell key={s.key} label={s.key} target={s.target} actual={s.actual} />)}
-        <span className="text-muted-foreground/40 px-0.5">·</span>
         {quarters.map((q) => <Cell key={q.key} label={q.key} target={q.target} actual={q.actual} />)}
       </div>
     </div>
