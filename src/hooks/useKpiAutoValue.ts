@@ -404,50 +404,68 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     ...CACHE,
   });
 
-  const resolve = (kpi: DepartmentKpi): number | null => {
+  const resolve = (kpi: DepartmentKpi, monthsOverride?: number[]): number | null => {
     const src = kpi.value_source;
     const sf = (kpi.source_filter as Record<string, string> | null) || {};
     if (!src || src === 'manual') return null;
+
+    // Effective month window for this resolve call.
+    const M = monthsOverride && monthsOverride.length > 0 ? monthsOverride : defaultMonths;
+    const mStart = M[0];
+    const mEnd = M[M.length - 1];
+    // Filter year-wide datasets to the requested window.
+    const inM = (field: string) => inMonths(M, field);
+    const salesIn = ((sales.data || []) as Record<string, unknown>[]).filter(inM('sale_month'));
+    const crmIn = ((crm.data || []) as Record<string, unknown>[]).filter(inM('created_at'));
+    const allLeadsIn = ((allLeads.data || []) as Record<string, unknown>[]).filter(inM('added_at'));
+    const quotesIn = ((quotes.data || []) as Record<string, unknown>[]).filter(inM('created_at'));
+    const renewalsIn = ((renewals.data || []) as Record<string, unknown>[]).filter(inM('due_date'));
+    const timeEntriesIn = ((timeEntries.data || []) as Record<string, unknown>[]).filter(inM('entry_month'));
+    const tasksDoneIn = ((tasksDone.data || []) as Record<string, unknown>[]).filter(inM('updated_at'));
+    const channelMetricsIn = ((channelMetrics.data || []) as Record<string, unknown>[]).filter(inM('month'));
+    const contentIn = ((content.data || []) as Record<string, unknown>[]).filter(inM('scheduled_at'));
+    const contentMetricsIn = ((contentMetrics.data || []) as Record<string, unknown>[]).filter(inM('month'));
+    const meetingsIn = ((meetings.data || []) as Record<string, unknown>[]).filter(inM('date_time'));
+    const npsIn = ((nps.data || []) as Record<string, unknown>[]).filter(inM('actual_date'));
+    const expensesIn = ((expenses.data || []) as Record<string, unknown>[]).filter(inM('expense_date'));
+    const projectsDoneIn = ((projectsDone.data || []) as Record<string, unknown>[]).filter(inM('updated_at'));
 
     if (src === 'metrica') {
       const m = (metrics.data || []).find((x: any) => x.id === (sf.metric_id || ''));
       return m ? Number((m as any).current_value || 0) : null;
     }
     if (src === 'bd_vendas' || src === 'commercial') {
-      let rows = (sales.data || []) as any[];
+      let rows = salesIn as any[];
       if (sf.product_id) rows = rows.filter((r) => r.product_id === sf.product_id);
       return rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0);
     }
     if (src === 'bd_crm') {
-      let rows = (crm.data || []) as any[];
+      let rows = crmIn as any[];
       if (sf.product_id) rows = rows.filter((r) => r.potential_product_id === sf.product_id);
       return rows.length;
     }
     // === CRM avançado ===
     if (src === 'bd_crm_conv_sessao') {
       // % leads que receberam proposta = quotes únicos / leads adicionados no período
-      const totalLeads = (allLeads.data || []).length;
+      const totalLeads = allLeadsIn.length;
       if (totalLeads === 0) return 0;
-      const uniq = new Set((quotes.data || []).map((q: any) => q.lead_id).filter(Boolean));
+      const uniq = new Set(quotesIn.map((q: any) => q.lead_id).filter(Boolean));
       return Math.round((uniq.size / totalLeads) * 1000) / 10;
     }
     if (src === 'bd_crm_conv_proposta') {
       // % leads ganhos / leads com proposta
-      const uniqQuotes = new Set((quotes.data || []).map((q: any) => q.lead_id).filter(Boolean));
+      const uniqQuotes = new Set(quotesIn.map((q: any) => q.lead_id).filter(Boolean));
       if (uniqQuotes.size === 0) return 0;
-      const won = (allLeads.data || []).filter((l: any) => l.status === 'ganho' && uniqQuotes.has(l.id)).length
-        + (crm.data || []).filter((l: any) => uniqQuotes.has(l.id)).length;
-      // crm já filtra status='ganho' no período; usar união
       const wonIds = new Set([
-        ...((allLeads.data || []) as any[]).filter((l) => l.status === 'ganho').map((l) => l.id),
-        ...((crm.data || []) as any[]).map((l) => l.id),
+        ...(allLeadsIn as any[]).filter((l) => l.status === 'ganho').map((l) => l.id),
+        ...(crmIn as any[]).map((l) => l.id),
       ]);
       const numerator = Array.from(wonIds).filter((id) => uniqQuotes.has(id)).length;
       return Math.round((numerator / uniqQuotes.size) * 1000) / 10;
     }
     if (src === 'bd_crm_tempo_fecho') {
       // Média dias entre added_at e updated_at para leads ganhos no período
-      const rows = (crm.data || []) as any[];
+      const rows = crmIn as any[];
       const days = rows
         .map((r) => {
           const a = r.added_at ? new Date(r.added_at) : (r.created_at ? new Date(r.created_at) : null);
@@ -472,7 +490,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       );
       if (active.size === 0) return null;
       const byClient: Record<string, number> = {};
-      for (const r of (renewals.data || []) as any[]) {
+      for (const r of renewalsIn as any[]) {
         if (!active.has(r.client_id)) continue;
         const cur = byClient[r.client_id] || 0;
         byClient[r.client_id] = Math.max(cur, Number(r.cycle_number || 0));
@@ -485,20 +503,20 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
     if (src === 'bd_clientes_renovacao') {
       // % de atividades de renovação concluídas no período
-      const rows = (renewals.data || []) as any[];
+      const rows = renewalsIn as any[];
       if (rows.length === 0) return null;
       const done = rows.filter((r) => r.completed).length;
       return Math.round((done / rows.length) * 1000) / 10;
     }
 
     if (src === 'bd_tempo') {
-      let rows = (timeEntries.data || []) as any[];
+      let rows = timeEntriesIn as any[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       return rows.reduce((s, r) => s + Number(r.duration || 0), 0);
     }
     if (src === 'bd_tarefas') {
-      let rows = (tasksDone.data || []) as any[];
+      let rows = tasksDoneIn as any[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
@@ -509,9 +527,9 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     if (src === 'bd_equipa') return team.data ?? null;
     if (src === 'bd_capacidade_disponivel') {
       const weeklyTotal = teamCapacity.data ?? 0;
-      const weeks = ((endMonth - startMonth + 1) * 4.33);
+      const weeks = (M.length * 4.33);
       const available = weeklyTotal * weeks;
-      const logged = ((timeEntries.data || []) as any[]).reduce(
+      const logged = (timeEntriesIn as any[]).reduce(
         (s, r) => s + Number(r.duration || 0),
         0,
       );
@@ -519,7 +537,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
     if (src === 'bd_equipa_execucao_autonoma') {
       // % tarefas done que não foram reatribuídas (assigned_to == original_assignee ou original null)
-      const rows = (tasksDone.data || []) as any[];
+      const rows = tasksDoneIn as any[];
       if (rows.length === 0) return null;
       const auton = rows.filter(
         (r) => !r.original_assignee || r.original_assignee === r.assigned_to,
@@ -528,30 +546,34 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
     if (src === 'bd_equipa_entregas_a_tempo') {
       // % tarefas done concluídas até deadline
-      const rows = ((tasksDone.data || []) as any[]).filter((r) => r.deadline);
+      const rows = (tasksDoneIn as any[]).filter((r) => r.deadline);
       if (rows.length === 0) return null;
       const onTime = rows.filter((r) => new Date(r.updated_at) <= new Date(r.deadline + 'T23:59:59')).length;
       return Math.round((onTime / rows.length) * 1000) / 10;
     }
 
     if (src === 'bd_marketing') {
-      let rows = (channelMetrics.data || []) as any[];
+      // Para "seguidores" usar snapshot do último mês do período (não somar meses).
+      let rows = channelMetricsIn as any[];
+      if (rows.length === 0) return 0;
+      const latestMonth = Math.max(...rows.map((r) => Number(r.month || 0)));
+      rows = rows.filter((r) => Number(r.month) === latestMonth);
       if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
       return rows.reduce((s, r) => s + Number(r.followers || 0), 0);
     }
     if (src === 'bd_mkt_alcance_ig') {
-      let rows = (channelMetrics.data || []) as any[];
+      let rows = channelMetricsIn as any[];
       if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
       return rows.reduce((s, r) => s + Number(r.ig_accounts_reached || 0), 0);
     }
     if (src === 'bd_mkt_views_youtube') {
-      let rows = (channelMetrics.data || []) as any[];
+      let rows = channelMetricsIn as any[];
       if (sf.channel_id) rows = rows.filter((r) => r.channel_id === sf.channel_id);
       return rows.reduce((s, r) => s + Number(r.yt_total_views || 0), 0);
     }
     if (src === 'bd_mkt_save_share') {
       // (saves + shares) / impressions × 100
-      const rows = (contentMetrics.data || []) as any[];
+      const rows = contentMetricsIn as any[];
       const saves = rows.reduce((s, r) => s + Number(r.saves || 0), 0);
       const shares = rows.reduce((s, r) => s + Number(r.shares || 0), 0);
       const impr = rows.reduce((s, r) => s + Number(r.impressions || r.reach || 0), 0);
@@ -560,7 +582,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
     }
 
     if (src === 'bd_conteudos') {
-      let rows = (content.data || []) as any[];
+      let rows = contentIn as any[];
       if (sf.channel_id) {
         const links = (contentChannels.data || []) as any[];
         const ids = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
@@ -569,24 +591,24 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       return rows.length;
     }
     if (src === 'bd_reunioes') {
-      let rows = (meetings.data || []) as any[];
+      let rows = meetingsIn as any[];
       if (sf.department) rows = rows.filter((r) => r.department === sf.department);
       return rows.length;
     }
     if (src === 'bd_nps') {
-      let rows = (nps.data || []) as any[];
+      let rows = npsIn as any[];
       if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
       if (rows.length === 0) return null;
       const sum = rows.reduce((s, r) => s + Number(r.nps_score), 0);
       return Math.round((sum / rows.length) * 10) / 10;
     }
     if (src === 'bd_despesas') {
-      let rows = (expenses.data || []) as any[];
+      let rows = expensesIn as any[];
       if (sf.category) rows = rows.filter((r) => r.category === sf.category);
       return rows.reduce((s, r) => s + Number(r.total_with_vat || 0), 0);
     }
     if (src === 'bd_projetos') {
-      let rows = (projectsDone.data || []) as any[];
+      let rows = projectsDoneIn as any[];
       if (sf.type) rows = rows.filter((r) => r.type === sf.type);
       return rows.length;
     }
@@ -604,30 +626,30 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const rows = ((sales.data || []) as any[]).filter((s) => recurringIds.has(s.product_id));
+      const rows = (salesIn as any[]).filter((s) => recurringIds.has(s.product_id));
       const total = rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       // MRR mensal médio no intervalo
-      const monthSpan = endMonth - startMonth + 1;
+      const monthSpan = M.length;
       return Math.round((total / monthSpan) * 100) / 100;
     }
     if (src === 'bd_fin_receita_variavel') {
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const rows = ((sales.data || []) as any[]).filter((s) => !recurringIds.has(s.product_id));
+      const rows = (salesIn as any[]).filter((s) => !recurringIds.has(s.product_id));
       return Math.round(rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0) * 100) / 100;
     }
     if (src === 'bd_fin_custos_ratio') {
-      const totalRev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const totalRev = (salesIn as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       if (totalRev === 0) return null;
-      const fixed = ((expenses.data || []) as any[])
+      const fixed = (expensesIn as any[])
         .filter((e) => e.is_recurring)
         .reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
       return Math.round((fixed / totalRev) * 1000) / 10;
     }
     if (src === 'bd_fin_breakeven') {
-      const rev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
-      const cost = ((expenses.data || []) as any[]).reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+      const rev = (salesIn as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const cost = (expensesIn as any[]).reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
       return Math.round((rev - cost) * 100) / 100;
     }
     if (src === 'bd_fin_pagamentos_atraso') {
@@ -654,7 +676,7 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       return rows.length;
     }
     if (src === 'bd_produtos_ticket_medio') {
-      let rows = (sales.data || []) as any[];
+      let rows = salesIn as any[];
       if (sf.product_id) rows = rows.filter((r) => r.product_id === sf.product_id);
       if (rows.length === 0) return null;
       const avg = rows.reduce((s, r) => s + Number(r.invoice_total || 0), 0) / rows.length;
@@ -689,25 +711,25 @@ export function useKpiAutoValueRange(year: number, startMonth: number, endMonth:
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const totalRev = ((sales.data || []) as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
+      const totalRev = (salesIn as any[]).reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       if (totalRev === 0) return null;
-      const mrr = ((sales.data || []) as any[])
+      const mrr = (salesIn as any[])
         .filter((s) => recurringIds.has(s.product_id))
         .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       return Math.round((mrr / totalRev) * 1000) / 10;
     }
     if (src === 'bd_geral_velocidade_mrr') {
       // Variação MRR primeiro mês vs último mês do range (€)
-      if (months.length < 2) return 0;
+      if (M.length < 2) return 0;
       const recurringIds = new Set(
         ((productsRecurring.data || []) as any[]).filter((p) => p.cycle_renewable).map((p) => p.id),
       );
-      const rows = ((sales.data || []) as any[]).filter((s) => recurringIds.has(s.product_id));
+      const rows = (salesIn as any[]).filter((s) => recurringIds.has(s.product_id));
       const first = rows
-        .filter((r) => r.sale_month === startMonth)
+        .filter((r) => r.sale_month === mStart)
         .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       const last = rows
-        .filter((r) => r.sale_month === endMonth)
+        .filter((r) => r.sale_month === mEnd)
         .reduce((s, r) => s + Number(r.invoice_total || 0), 0);
       return Math.round((last - first) * 100) / 100;
     }
