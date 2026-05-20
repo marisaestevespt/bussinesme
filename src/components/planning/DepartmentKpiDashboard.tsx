@@ -102,7 +102,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
         </div>
         {!addingKpi && (
           <Button size="sm" variant="outline" onClick={() => setAddingKpi(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Novo KPR
+            <Plus className="h-4 w-4 mr-1" /> Nova Meta
           </Button>
         )}
       </div>
@@ -111,7 +111,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
       {view === 'cards' && !addingKpi && (
         <div className="flex justify-end">
           <Button size="sm" variant="outline" onClick={() => setAddingKpi(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Novo KPR
+            <Plus className="h-4 w-4 mr-1" /> Nova Meta
           </Button>
         </div>
       )}
