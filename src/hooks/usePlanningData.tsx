@@ -467,233 +467,39 @@ export function usePlanningData(year = currentYear) {
     onError: () => toast.error('Erro ao converter ação'),
   });
 
-  // ─── Auto-calculated values (only load when objectives need them) ──────────────────
-  const needsAutoCalc = (objectives.data || []).some((o) => o.value_source && o.value_source !== 'manual');
-  const AUTO_CACHE = { staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
+  // ─── Auto-calculated values: delegate to the unified KPI resolver ────────
+  // Single source of truth covering all 36 VALUE_SOURCES (objectives + goals
+  // + KPIs share the same logic and the same TanStack cache entries).
+  const kpiResolver = useKpiAutoValueRange(year, 1, 12);
 
-  const autoSalesRaw = useQuery({
-    queryKey: ['auto-sales-raw', year],
-    queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('invoice_total,product,product_id,sale_month').eq('sale_year', year);
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
+  // Build a synthetic DepartmentKpi-like object so we can call resolver.resolve
+  const buildKpiLike = (
+    source: string,
+    sourceFilter: Record<string, string> | null,
+    productId: string | null | undefined,
+    metricId: string | null | undefined,
+  ): DepartmentKpi => {
+    const sf: Record<string, string> = { ...(sourceFilter || {}) };
+    if (productId && !sf.product_id) sf.product_id = productId;
+    if (metricId && !sf.metric_id) sf.metric_id = metricId;
+    return {
+      id: 'synthetic', department: '', name: '', description: null, unit: null,
+      target_value: null, current_value: null, value_source: source,
+      source_filter: sf, is_active: true, sort_order: 0, notes: null,
+      last_updated_at: null,
+    };
+  };
 
-  const autoCrmRaw = useQuery({
-    queryKey: ['auto-crm-raw', year],
-    queryFn: async () => {
-      const { data } = await supabase.from('crm_leads').select('id,potential_product,potential_product_id,created_at').eq('status', 'ganho');
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
+  const productIdFromName = (productName?: string | null): string | null => {
+    if (!productName) return null;
+    return ((productsQuery.data || []) as ProductLite[]).find((p) => p.name === productName)?.id || null;
+  };
 
-  const autoActiveClients = useQuery({
-    queryKey: ['auto-active-clients'],
-    queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id').eq('status', 'ativo');
-      return (data || []).length;
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoTimeEntries = useQuery({
-    queryKey: ['auto-time-entries', year],
-    queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('duration,entry_month,category,client_id').eq('entry_year', year);
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoTasksCompleted = useQuery({
-    queryKey: ['auto-tasks-completed', year],
-    queryFn: async () => {
-      const startDate = `${year}-01-01`;
-      const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('tasks').select('id,updated_at,department').eq('status', 'done').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoTeamMembers = useQuery({
-    queryKey: ['auto-team-members'],
-    queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('id').eq('status', 'ativo');
-      return (data || []).length;
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoMarketingFollowersRaw = useQuery({
-    queryKey: ['auto-marketing-followers-raw', year],
-    queryFn: async () => {
-      const { data } = await supabase.from('channel_monthly_metrics').select('followers,channel_id,month').eq('year', year).order('month', { ascending: false });
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoContentRaw = useQuery({
-    queryKey: ['auto-content-raw', year],
-    queryFn: async () => {
-      const startDate = `${year}-01-01`;
-      const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('content_items').select('id,product_id,scheduled_at').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoContentChannels = useQuery({
-    queryKey: ['auto-content-channels', year],
-    queryFn: async () => {
-      const { data } = await supabase.from('content_channels').select('content_id,channel_id');
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoMeetingsRaw = useQuery({
-    queryKey: ['auto-meetings-raw', year],
-    queryFn: async () => {
-      const startDate = `${year}-01-01T00:00:00`;
-      const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('meetings').select('id,department,client_id,date_time').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoNpsRaw = useQuery({
-    queryKey: ['auto-nps-raw', year],
-    queryFn: async () => {
-      const startDate = `${year}-01-01`;
-      const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('client_nps_records').select('nps_score,client_id,actual_date').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoExpensesRaw = useQuery({
-    queryKey: ['auto-expenses-raw', year],
-    queryFn: async () => {
-      const startDate = `${year}-01-01`;
-      const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('financial_expenses').select('total_with_vat,category,expense_date').gte('expense_date', startDate).lte('expense_date', endDate);
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  const autoProjectsRaw = useQuery({
-    queryKey: ['auto-projects-raw', year],
-    queryFn: async () => {
-      const startDate = `${year}-01-01`;
-      const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('projects').select('id,type,client_name,updated_at').eq('status', 'concluido').is('archived_at', null).gte('updated_at', startDate).lte('updated_at', endDate);
-      return data || [];
-    },
-    enabled: needsAutoCalc,
-    ...AUTO_CACHE,
-  });
-
-  // Helper: get auto value for a source with optional source_filter
+  // Helper: get auto value for a source (annual scope)
   const getAutoValue = (source: string, productName?: string | null, metricId?: string | null, sourceFilter?: Record<string, string> | null) => {
-    const sf = sourceFilter || {};
-    if (source === 'metrica' && metricId) {
-      const metric = (metrics.data || []).find((m) => m.id === metricId);
-      return metric ? Number(metric.current_value || 0) : null;
-    }
-    if (source === 'bd_vendas' || source === 'commercial') {
-      const rows = (autoSalesRaw.data || []) as AutoSalesRow[];
-      // Prefer relational match by product_id; fall back to name only if id can't be resolved.
-      const productId = productName ? ((productsQuery.data || []) as ProductLite[]).find((p) => p.name === productName)?.id : null;
-      const filtered = productName
-        ? (productId
-            ? rows.filter((r) => r.product_id === productId)
-            : rows.filter((r) => r.product === productName))
-        : rows;
-      return sumRevenue(filtered);
-    }
-    if (source === 'bd_crm') {
-      const rows = (autoCrmRaw.data || []) as AutoCrmRow[];
-      const productId = productName ? ((productsQuery.data || []) as ProductLite[]).find((p) => p.name === productName)?.id : null;
-      const filtered = productName
-        ? (productId
-            ? rows.filter((r) => r.potential_product_id === productId)
-            : rows.filter((r) => r.potential_product === productName))
-        : rows;
-      return filtered.length;
-    }
-    if (source === 'bd_clientes') return autoActiveClients.data ?? null;
-    if (source === 'bd_tempo') {
-      let rows = (autoTimeEntries.data || []) as AutoTimeEntryRow[];
-      if (sf.category) rows = rows.filter((r) => r.category === sf.category);
-      if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
-      return rows.reduce((s, r) => s + Number(r.duration || 0), 0);
-    }
-    if (source === 'bd_tarefas') {
-      let rows = (autoTasksCompleted.data || []) as AutoTaskRow[];
-      if (sf.department) rows = rows.filter((r) => r.department === sf.department);
-      return rows.length;
-    }
-    if (source === 'bd_equipa') return autoTeamMembers.data ?? null;
-    if (source === 'bd_marketing') {
-      const allData = (autoMarketingFollowersRaw.data || []) as AutoMarketingFollowersRow[];
-      if (allData.length === 0) return 0;
-      const latestMonth = allData[0].month;
-      let latest = allData.filter((d) => d.month === latestMonth);
-      if (sf.channel_id) latest = latest.filter((d) => d.channel_id === sf.channel_id);
-      return latest.reduce((s, d) => s + Number(d.followers || 0), 0);
-    }
-    if (source === 'bd_conteudos') {
-      let rows = (autoContentRaw.data || []) as AutoContentItemRow[];
-      if (sf.channel_id) {
-        const links = (autoContentChannels.data || []) as AutoContentChannelRow[];
-        const contentIds = new Set(links.filter((l) => l.channel_id === sf.channel_id).map((l) => l.content_id));
-        rows = rows.filter((r) => contentIds.has(r.id));
-      }
-      return rows.length;
-    }
-    if (source === 'bd_reunioes') {
-      let rows = (autoMeetingsRaw.data || []) as AutoMeetingRow[];
-      if (sf.department) rows = rows.filter((r) => r.department === sf.department);
-      return rows.length;
-    }
-    if (source === 'bd_nps') {
-      let rows = (autoNpsRaw.data || []) as AutoNpsRow[];
-      if (sf.client_id) rows = rows.filter((r) => r.client_id === sf.client_id);
-      if (rows.length === 0) return null;
-      const sum = rows.reduce((s, r) => s + Number(r.nps_score), 0);
-      return Math.round((sum / rows.length) * 10) / 10;
-    }
-    if (source === 'bd_despesas') {
-      let rows = (autoExpensesRaw.data || []) as AutoExpenseRow[];
-      if (sf.category) rows = rows.filter((r) => r.category === sf.category);
-      return rows.reduce((s, r) => s + Number(r.total_with_vat || 0), 0);
-    }
-    if (source === 'bd_projetos') {
-      let rows = (autoProjectsRaw.data || []) as AutoProjectRow[];
-      if (sf.type) rows = rows.filter((r) => r.type === sf.type);
-      return rows.length;
-    }
-    return null;
+    if (!source || source === 'manual') return null;
+    const kpi = buildKpiLike(source, sourceFilter ?? null, productIdFromName(productName), metricId);
+    return kpiResolver.resolve(kpi);
   };
 
   // Products for resolving product_id → name
