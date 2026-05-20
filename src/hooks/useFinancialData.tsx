@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
@@ -126,6 +127,11 @@ export function useFinancialData(options?: FinancialDataOptions) {
     data: enableExpenses ? flattenInfiniteData(expensesQuery.data?.pages) : EMPTY_EXPENSES,
     totalCount: enableExpenses ? getInfiniteCount(expensesQuery.data?.pages) : 0,
   };
+
+  useEffect(() => {
+    if (!enableExpenses || !expensesQuery.hasNextPage || expensesQuery.isFetchingNextPage) return;
+    expensesQuery.fetchNextPage();
+  }, [enableExpenses, expensesQuery.hasNextPage, expensesQuery.isFetchingNextPage, expensesQuery.fetchNextPage]);
 
   const recurringExpensesQuery = useQuery({
     queryKey: ['recurring-expenses'],
