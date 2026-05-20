@@ -16,6 +16,9 @@ import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesT
 import { HorizonsView } from '@/components/planning/HorizonsView';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { QuarterlyObjectivesList } from '@/components/planning/QuarterlyObjectivesList';
+import { QuarterlyProgrammingView } from '@/components/planning/QuarterlyProgrammingView';
+import { QuarterlyRetrospectiveView } from '@/components/planning/QuarterlyRetrospectiveView';
+import { shiftQuarter, type QuarterStr } from '@/hooks/useQuarterlyPlan';
 import { MonthlyCockpit } from '@/components/planning/cockpit/MonthlyCockpit';
 import { StrategicSection } from '@/components/planning/StrategicSection';
 import { BusinessPlanCanvas } from '@/components/planning/BusinessPlanCanvas';
@@ -212,7 +215,7 @@ export default function PlaneamentoPage() {
                 );
               })}
             </div>
-            <QuarterlyObjectivesList
+            <QuarterlySubTabs
               planning={planning}
               year={year}
               quarter={(['T1','T2','T3','T4'] as const)[activeQuarterIdx]}
@@ -284,5 +287,54 @@ function StatCard({
         {hint && <p className="text-[10px] text-muted-foreground mt-1">{hint}</p>}
       </CardContent>
     </Card>
+  );
+}
+
+/**
+ * Sub-tabs do nível Trimestre: Retrospetiva (Q-1), Estado (Q atual)
+ * e Programação (Q+1). Permite passar o ciclo completo de análise + planeamento.
+ */
+function QuarterlySubTabs({ planning, year, quarter }: { planning: any; year: number; quarter: QuarterStr }) {
+  const prev = shiftQuarter(year, quarter, -1);
+  const next = shiftQuarter(year, quarter, 1);
+
+  return (
+    <Tabs defaultValue="estado" className="space-y-4">
+      <TabsList className="grid grid-cols-3 w-full h-auto p-1">
+        <TabsTrigger value="retro" className="py-2 text-xs">
+          <span className="font-semibold">Retrospetiva</span>
+          <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{prev.quarter} · {prev.year}</span>
+        </TabsTrigger>
+        <TabsTrigger value="estado" className="py-2 text-xs">
+          <span className="font-semibold">Estado</span>
+          <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{quarter} · {year}</span>
+        </TabsTrigger>
+        <TabsTrigger value="programa" className="py-2 text-xs">
+          <span className="font-semibold">Programação</span>
+          <span className="ml-1.5 text-[10px] text-muted-foreground tabular-nums">{next.quarter} · {next.year}</span>
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="retro" className="mt-4">
+        <p className="text-[11px] text-muted-foreground mb-3">
+          Rever o trimestre anterior: conclusão de metas, o que correu bem/mal e aprendizagens a aplicar.
+        </p>
+        <QuarterlyRetrospectiveView planning={planning} year={prev.year} quarter={prev.quarter} />
+      </TabsContent>
+
+      <TabsContent value="estado" className="mt-4">
+        <p className="text-[11px] text-muted-foreground mb-3">
+          KPIs e Key Results do trimestre vigente, por área.
+        </p>
+        <QuarterlyObjectivesList planning={planning} year={year} quarter={quarter} />
+      </TabsContent>
+
+      <TabsContent value="programa" className="mt-4">
+        <p className="text-[11px] text-muted-foreground mb-3">
+          Programar o próximo trimestre: tema, prioridades, marcos, riscos, capacidade e financeiro.
+        </p>
+        <QuarterlyProgrammingView year={next.year} quarter={next.quarter} />
+      </TabsContent>
+    </Tabs>
   );
 }
