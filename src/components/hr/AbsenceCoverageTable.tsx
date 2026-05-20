@@ -20,6 +20,7 @@ type TeamMember = {
   full_name: string;
   role_title: string | null;
   department: string | null;
+  departments: string[] | null;
   profile_id: string | null;
   custom_holidays: any;
 };
@@ -60,8 +61,21 @@ function isOwnerRole(role: string | null) {
 function suggestSubstitutes(absentMember: TeamMember | undefined, members: TeamMember[], absentMemberId: string): TeamMember[] {
   if (!absentMember) return members.filter(m => m.id !== absentMemberId);
   const others = members.filter(m => m.id !== absentMemberId);
+  const absentDepts = new Set<string>([
+    ...(absentMember.department ? [absentMember.department] : []),
+    ...((absentMember.departments as any[]) || []).filter(Boolean).map(String),
+  ]);
+  const memberDepts = (m: TeamMember) => new Set<string>([
+    ...(m.department ? [m.department] : []),
+    ...((m.departments as any[]) || []).filter(Boolean).map(String),
+  ]);
+  const sharesDept = (m: TeamMember) => {
+    if (absentDepts.size === 0) return false;
+    for (const d of memberDepts(m)) if (absentDepts.has(d)) return true;
+    return false;
+  };
   const sameRole = others.filter(m => m.role_title && absentMember.role_title && m.role_title === absentMember.role_title);
-  const sameDept = others.filter(m => m.department && absentMember.department && m.department === absentMember.department && !sameRole.includes(m));
+  const sameDept = others.filter(m => sharesDept(m) && !sameRole.includes(m));
   const owners = others.filter(m => isOwnerRole(m.role_title) && !sameRole.includes(m) && !sameDept.includes(m));
   const rest = others.filter(m => !sameRole.includes(m) && !sameDept.includes(m) && !owners.includes(m));
   return [...sameRole, ...sameDept, ...owners, ...rest];
@@ -79,7 +93,7 @@ export function AbsenceCoverageTable() {
     queryFn: async () => {
       const { data } = await supabase
         .from('team_members')
-        .select('id, full_name, role_title, department, profile_id, custom_holidays')
+        .select('id, full_name, role_title, department, departments, profile_id, custom_holidays')
         .eq('status', 'ativo')
         .order('full_name');
       return (data || []) as TeamMember[];
@@ -355,7 +369,19 @@ export function AbsenceCoverageTable() {
                       let hint = '';
                       if (absent) {
                         if (m.role_title && absent.role_title && m.role_title === absent.role_title) hint = ' (mesma função)';
-                        else if (m.department && absent.department && m.department === absent.department) hint = ' (mesmo dept.)';
+                        else if (
+                          (() => {
+                            const a = new Set<string>([
+                              ...(absent.department ? [absent.department] : []),
+                              ...((absent.departments as any[]) || []).filter(Boolean).map(String),
+                            ]);
+                            const b = [
+                              ...(m.department ? [m.department] : []),
+                              ...((m.departments as any[]) || []).filter(Boolean).map(String),
+                            ];
+                            return b.some(d => a.has(d));
+                          })()
+                        ) hint = ' (mesmo dept.)';
                         else if (isOwnerRole(m.role_title)) hint = ' (owner)';
                       }
                       return <SelectItem key={m.id} value={m.id}>{m.full_name}{hint}</SelectItem>;
