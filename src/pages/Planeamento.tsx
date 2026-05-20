@@ -20,6 +20,7 @@ import { StrategicSection } from '@/components/planning/StrategicSection';
 import { BusinessPlanCanvas } from '@/components/planning/BusinessPlanCanvas';
 import { Visao5AnosBlock } from '@/components/planning/Visao5AnosBlock';
 import { WeekFocus } from '@/components/executive/cockpit/WeekFocus';
+import { useCeoCockpit } from '@/hooks/useCeoCockpit';
 import { cn } from '@/lib/utils';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -54,6 +55,7 @@ export default function PlaneamentoPage() {
   const nivel = (params.get('nivel') as Nivel) || 'ano';
 
   const planning = usePlanningData(year);
+  const { derived } = useCeoCockpit();
 
   const mesParam = parseInt(params.get('mes') || '', 10);
   const validMes = Number.isFinite(mesParam) && mesParam >= 1 && mesParam <= 12;
@@ -253,7 +255,9 @@ export default function PlaneamentoPage() {
                     <p className="text-xs text-muted-foreground">As 1-3 ações que mais movem as metas do mês. OKRs operacionais.</p>
                   </div>
                 </div>
-                <WeekFocus />
+                {derived ? <WeekFocus derived={derived} /> : (
+                  <p className="text-xs text-muted-foreground">A carregar dados da semana…</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
