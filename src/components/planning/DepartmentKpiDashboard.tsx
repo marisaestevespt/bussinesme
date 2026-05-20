@@ -324,6 +324,7 @@ export function DepartmentKpiDashboard({ department, departmentLabel, year, view
               </table>
             </CardContent>
           </Card>
+          )}
         </>
       )}
     </div>
