@@ -21,6 +21,7 @@ import { pt } from 'date-fns/locale';
 import { isTaskOpen } from '@/lib/taskStatus';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { Eyebrow, SerifDivider, SpeechBubble, EarCard, BigKpi, DisplayItalic, Highlight } from '@/components/editorial';
+import { DepartmentKpiSummary } from '@/components/planning/DepartmentKpiSummary';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -240,6 +241,9 @@ export default function HubEquipaPage() {
 
         {/* Active absence alerts */}
         <ActiveAbsenceAlerts />
+
+        {/* KPRs do departamento Equipa */}
+        <DepartmentKpiSummary department="equipa" />
 
         {/* KPIs gigantes — editorial */}
         <WeeklySummary />
