@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   ChevronLeft, Plus, Trash2, Pencil, Check, X, ExternalLink,
-  Image as ImageIcon, Palette, Link2, Lightbulb, Settings2,
+  Image as ImageIcon, Palette, Link2, Lightbulb, Settings2, Tag as TagIcon,
 } from 'lucide-react';
 import { CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, type MarketingChannel } from '@/lib/marketing-constants';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -28,25 +28,73 @@ import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { safeUrl } from '@/lib/url';
 import { requireConfirm, confirmDestructive } from '@/lib/confirmDestructive';
 
-const IDEA_CATEGORY_OPTIONS = [
-  { value: '__none__', label: '— Sem categoria —' },
-  { value: 'publicacoes', label: 'Publicações' },
-  { value: 'stories', label: 'Stories' },
-  { value: 'caixa_perguntas', label: 'Caixa de Perguntas' },
-];
-
 type ResourceLink = { id: string; category: string; label: string; url: string; sort_order: number };
-type Idea = { id: string; idea: string; description: string | null; channel: string | null; content_type: string | null; format: string | null; category: string; created_by: string | null };
+type Idea = { id: string; idea: string; description: string | null; channel: string | null; content_type: string | null; format: string | null; tags: string[] | null; created_by: string | null };
 type IdeaView = {
   id: string;
   name: string;
-  category: string | null;
+  filter_tags: string[] | null;
   filter_channel: string | null;
   filter_content_type: string | null;
   filter_format: string | null;
   sort_order: number;
   is_system: boolean;
 };
+
+/** Inline tag editor: adicionar com Enter/vírgula, remover com X. */
+function TagsEditor({ value, onChange, placeholder, suggestions = [] }: {
+  value: string[];
+  onChange: (next: string[]) => void;
+  placeholder?: string;
+  suggestions?: string[];
+}) {
+  const [input, setInput] = useState('');
+  const addTag = (raw: string) => {
+    const t = raw.trim();
+    if (!t) return;
+    if (value.includes(t)) { setInput(''); return; }
+    onChange([...value, t]);
+    setInput('');
+  };
+  const removeTag = (t: string) => onChange(value.filter(x => x !== t));
+  const remainingSuggestions = suggestions.filter(s => !value.includes(s)).slice(0, 8);
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background p-2 min-h-9">
+        {value.map(t => (
+          <Badge key={t} variant="secondary" className="text-xs gap-1">
+            {t}
+            <button type="button" onClick={() => removeTag(t)} aria-label={`Remover ${t}`} className="hover:text-destructive">
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+        ))}
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(input); }
+            else if (e.key === 'Backspace' && !input && value.length) { removeTag(value[value.length - 1]); }
+          }}
+          onBlur={() => input && addTag(input)}
+          placeholder={value.length ? '' : (placeholder || 'Adicionar etiqueta…')}
+          className="flex-1 min-w-[120px] bg-transparent outline-none text-sm"
+        />
+      </div>
+      {remainingSuggestions.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          <span className="text-[11px] text-muted-foreground self-center mr-1">Sugestões:</span>
+          {remainingSuggestions.map(s => (
+            <button key={s} type="button" onClick={() => addTag(s)}
+              className="text-[11px] px-2 py-0.5 rounded-full border border-border hover:bg-muted">
+              + {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MarketingRecursos() {
   const navigate = useNavigate();
@@ -55,12 +103,12 @@ export default function MarketingRecursos() {
 
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [showNewIdea, setShowNewIdea] = useState(false);
-  const [newIdea, setNewIdea] = useState({ idea: '', description: '', channel: '', content_type: '', format: '', category: '__none__' });
+  const [newIdea, setNewIdea] = useState<{ idea: string; description: string; channel: string; content_type: string; format: string; tags: string[] }>({ idea: '', description: '', channel: '', content_type: '', format: '', tags: [] });
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [editingView, setEditingView] = useState<IdeaView | null>(null);
-  const [viewForm, setViewForm] = useState({ name: '', category: '__none__', filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
+  const [viewForm, setViewForm] = useState<{ name: string; filter_tags: string[]; filter_channel: string; filter_content_type: string; filter_format: string }>({ name: '', filter_tags: [], filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
   const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
-  const [editIdeaForm, setEditIdeaForm] = useState({ idea: '', description: '', channel: '', content_type: '', format: '', category: '__none__' });
+  const [editIdeaForm, setEditIdeaForm] = useState<{ idea: string; description: string; channel: string; content_type: string; format: string; tags: string[] }>({ idea: '', description: '', channel: '', content_type: '', format: '', tags: [] });
 
   // Editable link fields
   const [editingLink, setEditingLink] = useState<string | null>(null);
@@ -148,6 +196,9 @@ export default function MarketingRecursos() {
   };
 
   // ---- Ideas ----
+  // Tag suggestions = união de todas as tags já usadas
+  const allTags = Array.from(new Set((ideas || []).flatMap(i => i.tags || []))).sort();
+
   const createIdea = async () => {
     if (!newIdea.idea.trim()) return;
     await supabase.from('marketing_ideas').insert({
@@ -156,12 +207,12 @@ export default function MarketingRecursos() {
       channel: newIdea.channel || null,
       content_type: newIdea.content_type || null,
       format: newIdea.format || null,
-      category: newIdea.category && newIdea.category !== '__none__' ? newIdea.category : (activeView?.category || 'todas'),
+      tags: newIdea.tags.length ? newIdea.tags : (activeView?.filter_tags || []),
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
     setShowNewIdea(false);
-    setNewIdea({ idea: '', description: '', channel: '', content_type: '', format: '', category: '__none__' });
+    setNewIdea({ idea: '', description: '', channel: '', content_type: '', format: '', tags: [] });
     toast.success('Ideia adicionada');
   };
 
@@ -179,7 +230,7 @@ export default function MarketingRecursos() {
       channel: idea.channel || '',
       content_type: idea.content_type || '',
       format: idea.format || '',
-      category: idea.category || '__none__',
+      tags: idea.tags || [],
     });
   };
 
@@ -192,7 +243,7 @@ export default function MarketingRecursos() {
       channel: editIdeaForm.channel || null,
       content_type: editIdeaForm.content_type || null,
       format: editIdeaForm.format || null,
-      category: editIdeaForm.category && editIdeaForm.category !== '__none__' ? editIdeaForm.category : 'todas',
+      tags: editIdeaForm.tags || [],
     } as any).eq('id', editingIdea.id);
     qc.invalidateQueries({ queryKey: ['marketing-ideas'] });
     setEditingIdea(null);
@@ -200,7 +251,11 @@ export default function MarketingRecursos() {
   };
 
   const filteredIdeas = !activeView ? ideas : ideas.filter(i => {
-    if (activeView.category && i.category !== activeView.category) return false;
+    const wanted = activeView.filter_tags || [];
+    if (wanted.length > 0) {
+      const have = i.tags || [];
+      if (!wanted.every(t => have.includes(t))) return false;
+    }
     if (activeView.filter_channel && i.channel !== activeView.filter_channel) return false;
     if (activeView.filter_content_type && i.content_type !== activeView.filter_content_type) return false;
     if (activeView.filter_format && i.format !== activeView.filter_format) return false;
@@ -210,14 +265,14 @@ export default function MarketingRecursos() {
   // ---- Views CRUD ----
   const openNewView = () => {
     setEditingView(null);
-    setViewForm({ name: '', category: '__none__', filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
+    setViewForm({ name: '', filter_tags: [], filter_channel: '__none__', filter_content_type: '__none__', filter_format: '__none__' });
     setShowViewDialog(true);
   };
   const openEditView = (v: IdeaView) => {
     setEditingView(v);
     setViewForm({
       name: v.name,
-      category: v.category || '__none__',
+      filter_tags: v.filter_tags || [],
       filter_channel: v.filter_channel || '__none__',
       filter_content_type: v.filter_content_type || '__none__',
       filter_format: v.filter_format || '__none__',
@@ -228,7 +283,7 @@ export default function MarketingRecursos() {
     if (!viewForm.name.trim()) return;
     const payload = {
       name: viewForm.name.trim(),
-      category: viewForm.category === '__none__' ? null : viewForm.category,
+      filter_tags: viewForm.filter_tags.length ? viewForm.filter_tags : null,
       filter_channel: viewForm.filter_channel === '__none__' ? null : viewForm.filter_channel,
       filter_content_type: viewForm.filter_content_type === '__none__' ? null : viewForm.filter_content_type,
       filter_format: viewForm.filter_format === '__none__' ? null : viewForm.filter_format,
