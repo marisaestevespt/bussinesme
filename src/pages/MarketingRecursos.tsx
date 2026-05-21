@@ -557,13 +557,13 @@ export default function MarketingRecursos() {
               <Input value={viewForm.name} onChange={e => setViewForm(p => ({ ...p, name: e.target.value }))} placeholder="Ex.: Reels Instagram" />
             </div>
             <div>
-              <Label>Categoria</Label>
-              <Select value={viewForm.category} onValueChange={v => setViewForm(p => ({ ...p, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {IDEA_CATEGORY_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Label>Etiquetas (todas têm de estar na ideia)</Label>
+              <TagsEditor
+                value={viewForm.filter_tags}
+                onChange={(tags) => setViewForm(p => ({ ...p, filter_tags: tags }))}
+                placeholder="Adicionar etiqueta…"
+                suggestions={allTags}
+              />
             </div>
             <div>
               <Label>Canal (opcional)</Label>
@@ -646,13 +646,13 @@ export default function MarketingRecursos() {
               </Select>
             </div>
             <div>
-              <Label>Categoria</Label>
-              <Select value={newIdea.category} onValueChange={v => setNewIdea(p => ({ ...p, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {IDEA_CATEGORY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Label>Etiquetas</Label>
+              <TagsEditor
+                value={newIdea.tags}
+                onChange={(tags) => setNewIdea(p => ({ ...p, tags }))}
+                placeholder="Ex.: caixa de perguntas, produto A…"
+                suggestions={allTags}
+              />
             </div>
             <Button className="w-full" disabled={!newIdea.idea.trim()} onClick={createIdea}>Adicionar Ideia</Button>
           </div>
@@ -683,13 +683,13 @@ export default function MarketingRecursos() {
                 </Select>
               </div>
               <div>
-                <Label>Categoria</Label>
-                <Select value={editIdeaForm.category} onValueChange={v => setEditIdeaForm(p => ({ ...p, category: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {IDEA_CATEGORY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Etiquetas</Label>
+                <TagsEditor
+                  value={editIdeaForm.tags}
+                  onChange={(tags) => setEditIdeaForm(p => ({ ...p, tags }))}
+                  placeholder="Ex.: caixa de perguntas, produto A…"
+                  suggestions={allTags}
+                />
               </div>
               <div>
                 <Label>Tipo de Conteúdo</Label>
