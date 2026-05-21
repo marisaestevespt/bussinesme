@@ -474,10 +474,12 @@ export default function MarketingRecursos() {
               </Button>
             </div>
 
-            {activeView && (activeView.category || activeView.filter_channel || activeView.filter_content_type || activeView.filter_format) && (
+            {activeView && ((activeView.filter_tags && activeView.filter_tags.length) || activeView.filter_channel || activeView.filter_content_type || activeView.filter_format) && (
               <div className="flex items-center gap-1 mb-3 text-xs text-muted-foreground flex-wrap">
                 <span>Filtros:</span>
-                {activeView.category && <Badge variant="outline" className="text-xs">categoria: {IDEA_CATEGORY_OPTIONS.find(o => o.value === activeView.category)?.label || activeView.category}</Badge>}
+                {(activeView.filter_tags || []).map(t => (
+                  <Badge key={t} variant="outline" className="text-xs">#{t}</Badge>
+                ))}
                 {activeView.filter_channel && <Badge variant="outline" className="text-xs">canal: {activeView.filter_channel}</Badge>}
                 {activeView.filter_content_type && <Badge variant="outline" className="text-xs">tipo: {CONTENT_TYPE_OPTIONS.find(o => o.value === activeView.filter_content_type)?.label || activeView.filter_content_type}</Badge>}
                 {activeView.filter_format && <Badge variant="outline" className="text-xs">formato: {FORMAT_OPTIONS.find(o => o.value === activeView.filter_format)?.label || activeView.filter_format}</Badge>}
@@ -492,7 +494,7 @@ export default function MarketingRecursos() {
                     <TableHead className="w-32">Canal</TableHead>
                     <TableHead className="w-36">Tipo de Conteúdo</TableHead>
                     <TableHead className="w-32">Formato</TableHead>
-                    <TableHead className="w-32">Categoria</TableHead>
+                    <TableHead className="w-48">Etiquetas</TableHead>
                     {isOwner && <TableHead className="w-10" />}
                   </TableRow>
                 </TableHeader>
@@ -521,7 +523,13 @@ export default function MarketingRecursos() {
                         {FORMAT_OPTIONS.find(o => o.value === idea.format)?.label || idea.format}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {IDEA_CATEGORY_OPTIONS.find(o => o.value === idea.category)?.label || idea.category || '—'}
+                        <div className="flex flex-wrap gap-1">
+                          {(idea.tags && idea.tags.length > 0)
+                            ? idea.tags.map(t => (
+                                <Badge key={t} variant="outline" className="text-xs">{t}</Badge>
+                              ))
+                            : '—'}
+                        </div>
                       </TableCell>
                       {isOwner && (
                         <TableCell>
