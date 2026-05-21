@@ -5951,12 +5951,12 @@ export type Database = {
       }
       marketing_idea_views: {
         Row: {
-          category: string | null
           created_at: string
           created_by: string | null
           filter_channel: string | null
           filter_content_type: string | null
           filter_format: string | null
+          filter_tags: string[] | null
           id: string
           is_system: boolean
           name: string
@@ -5964,12 +5964,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category?: string | null
           created_at?: string
           created_by?: string | null
           filter_channel?: string | null
           filter_content_type?: string | null
           filter_format?: string | null
+          filter_tags?: string[] | null
           id?: string
           is_system?: boolean
           name: string
@@ -5977,12 +5977,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string | null
           created_at?: string
           created_by?: string | null
           filter_channel?: string | null
           filter_content_type?: string | null
           filter_format?: string | null
+          filter_tags?: string[] | null
           id?: string
           is_system?: boolean
           name?: string
@@ -5993,7 +5993,6 @@ export type Database = {
       }
       marketing_ideas: {
         Row: {
-          category: string
           channel: string | null
           content_type: string | null
           created_at: string
@@ -6002,9 +6001,9 @@ export type Database = {
           format: string | null
           id: string
           idea: string
+          tags: string[]
         }
         Insert: {
-          category?: string
           channel?: string | null
           content_type?: string | null
           created_at?: string
@@ -6013,9 +6012,9 @@ export type Database = {
           format?: string | null
           id?: string
           idea: string
+          tags?: string[]
         }
         Update: {
-          category?: string
           channel?: string | null
           content_type?: string | null
           created_at?: string
@@ -6024,6 +6023,7 @@ export type Database = {
           format?: string | null
           id?: string
           idea?: string
+          tags?: string[]
         }
         Relationships: []
       }
