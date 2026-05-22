@@ -131,7 +131,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('tasks')
-        .select('id, name, status, deadline, assigned_to')
+        .select('id, name, status, deadline, assigned_to, deliverable_id')
         .eq('project_id', projectId)
         .not('deadline', 'is', null);
       return (data || []) as MonthTask[];
