@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CalendarDays, Check, ChevronDown, ChevronRight, Eye, EyeOff, Infinity as InfinityIcon, Layers, Plus, Users as UsersIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { requireConfirm } from '@/lib/confirmDestructive';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import {
@@ -170,6 +171,10 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
 
   const deleteOccurrence = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm({
+        title: 'Eliminar ocorrência?',
+        description: 'Esta ocorrência mensal será removida. Esta ação não pode ser desfeita.',
+      });
       const { error } = await (supabase as any)
         .from('project_recurring_occurrences')
         .delete()
