@@ -11,6 +11,7 @@ import { CheckCircle2, CheckSquare, Circle, Clock, Layers, Plus, Pencil, Trash2,
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { requireConfirm } from '@/lib/confirmDestructive';
 import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { addBusinessDays } from '@/lib/holidays';
@@ -518,6 +519,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
   const deletePhase = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm({
+        title: 'Eliminar fase?',
+        description: 'Vai eliminar a fase e todas as entregas associadas. Esta ação não pode ser desfeita.',
+      });
       await supabase.from('project_deliverables').delete().eq('phase_id', id);
       await supabase.from('project_phases').delete().eq('id', id);
     },
@@ -712,6 +717,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
   const deleteDeliverable = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm({
+        title: 'Eliminar entrega?',
+        description: 'Se estiver ligada a uma reunião ou tarefa, estas também serão removidas. Esta ação não pode ser desfeita.',
+      });
       await supabase.from('project_deliverables').delete().eq('id', id);
     },
     onSuccess: () => { invalidateAll(); toast.success('Entrega removida'); },
