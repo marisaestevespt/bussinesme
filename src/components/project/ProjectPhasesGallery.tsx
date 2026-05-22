@@ -72,6 +72,7 @@ interface MonthTask {
   status: string | null;
   deadline: string | null;
   assigned_to?: string | null;
+  deliverable_id?: string | null;
 }
 
 interface ProjectMeeting {
