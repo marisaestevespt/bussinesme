@@ -208,7 +208,11 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   // Usada tanto para o card global como para o detalhe expandido por mês.
   const continuousByMonth = useMemo(() => {
     const linkedTaskIds = new Set(occurrences.map(o => o.linked_task_id).filter(Boolean) as string[]);
-    const standaloneTasks = monthTasks.filter(t => !linkedTaskIds.has(t.id));
+    // Excluímos tarefas ligadas a entregas (Onboarding, Alinhamento, Offboarding…),
+    // pois essas já aparecem na fase correspondente — não pertencem ao trabalho contínuo.
+    const standaloneTasks = monthTasks.filter(
+      t => !linkedTaskIds.has(t.id) && !t.deliverable_id,
+    );
     const map = new Map<string, { occurrences: RecurringOccurrence[]; tasks: MonthTask[] }>();
     const ensure = (k: string) => {
       if (!map.has(k)) map.set(k, { occurrences: [], tasks: [] });
