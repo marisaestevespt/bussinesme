@@ -11,6 +11,7 @@ import { CheckCircle2, CheckSquare, Circle, Clock, Layers, Plus, Pencil, Trash2,
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { requireConfirm } from '@/lib/confirmDestructive';
 import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { addBusinessDays } from '@/lib/holidays';
