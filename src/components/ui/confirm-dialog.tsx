@@ -84,12 +84,24 @@ export function DialogsProvider({ children }: { children: ReactNode }) {
   const handleConfirmClose = (result: boolean) => {
     confirmState?.resolve(result);
     setConfirmState(null);
+    // Radix por vezes deixa `pointer-events: none` no body após fechar um
+    // AlertDialog; garante que volta ao normal para o próximo clique funcionar.
+    setTimeout(() => {
+      if (document.body.style.pointerEvents === 'none') {
+        document.body.style.pointerEvents = '';
+      }
+    }, 0);
   };
 
   const handlePromptClose = (result: string | null) => {
     promptState?.resolve(result);
     setPromptState(null);
     setPromptValue('');
+    setTimeout(() => {
+      if (document.body.style.pointerEvents === 'none') {
+        document.body.style.pointerEvents = '';
+      }
+    }, 0);
   };
 
   return (
