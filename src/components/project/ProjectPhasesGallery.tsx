@@ -84,6 +84,7 @@ interface ProjectMeeting {
 
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
+  const [continuousOpen, setContinuousOpen] = useState(false);
   const [addingPhase, setAddingPhase] = useState(false);
   const [newName, setNewName] = useState('');
   const queryClient = useQueryClient();
@@ -485,6 +486,75 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
             </button>
           );
         })}
+        {hasContinuous && (
+          <button
+            type="button"
+            onClick={() => setContinuousOpen(true)}
+            className={cn(
+              'group relative flex flex-col gap-3 rounded-xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
+              continuousTotals.total > 0 && continuousTotals.done === continuousTotals.total
+                ? 'border-success/30 bg-success/5 opacity-70 shadow-none hover:opacity-90 hover:border-success/50'
+                : 'border-border/60 bg-gradient-to-br from-card to-card/80 shadow-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10'
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <InfinityIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <h3 className="text-sm font-semibold leading-tight truncate">
+                    Trabalho Contínuo
+                  </h3>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  Cadências e tarefas regulares ao longo do contrato
+                </p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary shrink-0" />
+            </div>
+
+            <Badge className="bg-muted text-muted-foreground border self-start text-[10px]">
+              {continuousByMonth.length} {continuousByMonth.length === 1 ? 'mês' : 'meses'}
+            </Badge>
+
+            <div>
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                <span>{continuousTotals.done}/{continuousTotals.total} itens</span>
+                <span className="font-semibold text-foreground">{continuousTotals.pct}%</span>
+              </div>
+              <Progress value={continuousTotals.pct} className="h-1.5" />
+            </div>
+
+            {(() => {
+              const currentBucket = continuousByMonth.find(([k]) => k === nowKey)?.[1];
+              if (!currentBucket) return null;
+              const items: { id: string; name: string; done: boolean }[] = [
+                ...currentBucket.occurrences.map(o => ({ id: `o-${o.id}`, name: o.name, done: o.status === 'concluida' })),
+                ...currentBucket.tasks.map(t => ({ id: `t-${t.id}`, name: t.name || 'Tarefa', done: isTaskDone({ status: t.status } as any) })),
+              ];
+              if (items.length === 0) return null;
+              return (
+                <div className="border-t border-border/50 pt-2 mt-1 space-y-1">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 mb-1">
+                    Este mês
+                  </div>
+                  {items.slice(0, 3).map(it => (
+                    <div key={it.id} className="flex items-center gap-2 text-[11px]">
+                      <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', it.done ? 'bg-success' : 'bg-muted-foreground/30')} />
+                      <span className={cn('truncate', it.done ? 'line-through text-muted-foreground' : 'text-foreground')}>
+                        {it.name}
+                      </span>
+                    </div>
+                  ))}
+                  {items.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground/70 pl-3.5">
+                      +{items.length - 3} itens…
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </button>
+        )}
         {offboardingPhases.map(phase => {
           const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
           const total = phaseDeliverables.length;
@@ -627,25 +697,25 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Inline: Trabalho Contínuo agrupado por mês — vista calma e estática */}
-      {hasContinuous && (
-        <section className="mt-6 rounded-xl border border-border/60 bg-muted/20 p-4 md:p-5">
-          <header className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 min-w-0">
+      {/* Dialog: Trabalho Contínuo agrupado por mês */}
+      <Dialog open={continuousOpen} onOpenChange={setContinuousOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
               <InfinityIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <h3 className="text-sm font-semibold truncate">Trabalho Contínuo</h3>
-              <span className="text-[11px] text-muted-foreground hidden sm:inline">
-                · cadências e tarefas regulares ao longo do contrato
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              Trabalho Contínuo
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 text-[11px] text-muted-foreground">
+            <span className="hidden sm:inline">Cadências e tarefas regulares ao longo do contrato</span>
+            <div className="flex items-center gap-3">
               <span><strong className="text-foreground">{continuousTotals.done}/{continuousTotals.total}</strong> itens</span>
               <span>·</span>
               <span><strong className="text-foreground">{continuousTotals.pct}%</strong></span>
               <div className="w-32"><Progress value={continuousTotals.pct} className="h-1.5" /></div>
               <AddCadenceDialog projectId={projectId} />
             </div>
-          </header>
+          </div>
           <div className="space-y-2">
                 {continuousByMonth.map(([monthKey, bucket]) => {
                   const monthDate = parseISO(monthKey + '-01');
@@ -770,8 +840,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   );
                 })}
           </div>
-        </section>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
