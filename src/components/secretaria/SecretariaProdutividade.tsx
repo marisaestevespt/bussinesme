@@ -124,8 +124,8 @@ export default function SecretariaProdutividade() {
     (myMeetings.data || []).forEach((meeting: any) => {
       const minutes = meeting.actual_duration_minutes ?? meeting.planned_duration_minutes ?? meeting.duration_minutes;
       if (!minutes || minutes <= 0) return;
-      if (meeting.status === 'por_confirmar') return;
-      // Apenas reuniões já decorridas contam como horas registadas
+      // Apenas reuniões marcadas como realizadas/terminadas contam como horas registadas
+      if (meeting.status !== 'realizada' && meeting.status !== 'terminada') return;
       const meetingDate = new Date(meeting.date_time);
       if (meetingDate > now) return;
 
