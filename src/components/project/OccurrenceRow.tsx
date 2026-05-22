@@ -205,7 +205,7 @@ export function OccurrenceRow({ occurrence: o, meetingOptions, onUpdate, onDelet
           size="sm"
           variant="ghost"
           className="h-7 text-destructive hover:text-destructive"
-          onClick={() => { if (confirm('Eliminar esta ocorrência?')) { onDelete(); setEditing(false); } }}
+          onClick={() => { onDelete(); setEditing(false); }}
         >
           <X className="h-3.5 w-3.5 mr-1" /> Eliminar
         </Button>
