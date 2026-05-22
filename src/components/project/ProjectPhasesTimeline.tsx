@@ -519,6 +519,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
   const deletePhase = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm({
+        title: 'Eliminar fase?',
+        description: 'Vai eliminar a fase e todas as entregas associadas. Esta ação não pode ser desfeita.',
+      });
       await supabase.from('project_deliverables').delete().eq('phase_id', id);
       await supabase.from('project_phases').delete().eq('id', id);
     },
@@ -713,6 +717,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
 
   const deleteDeliverable = useMutation({
     mutationFn: async (id: string) => {
+      await requireConfirm({
+        title: 'Eliminar entrega?',
+        description: 'Se estiver ligada a uma reunião ou tarefa, estas também serão removidas. Esta ação não pode ser desfeita.',
+      });
       await supabase.from('project_deliverables').delete().eq('id', id);
     },
     onSuccess: () => { invalidateAll(); toast.success('Entrega removida'); },
