@@ -697,25 +697,25 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Inline: Trabalho Contínuo agrupado por mês — vista calma e estática */}
-      {hasContinuous && (
-        <section className="mt-6 rounded-xl border border-border/60 bg-muted/20 p-4 md:p-5">
-          <header className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 min-w-0">
+      {/* Dialog: Trabalho Contínuo agrupado por mês */}
+      <Dialog open={continuousOpen} onOpenChange={setContinuousOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
               <InfinityIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <h3 className="text-sm font-semibold truncate">Trabalho Contínuo</h3>
-              <span className="text-[11px] text-muted-foreground hidden sm:inline">
-                · cadências e tarefas regulares ao longo do contrato
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              Trabalho Contínuo
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 text-[11px] text-muted-foreground">
+            <span className="hidden sm:inline">Cadências e tarefas regulares ao longo do contrato</span>
+            <div className="flex items-center gap-3">
               <span><strong className="text-foreground">{continuousTotals.done}/{continuousTotals.total}</strong> itens</span>
               <span>·</span>
               <span><strong className="text-foreground">{continuousTotals.pct}%</strong></span>
               <div className="w-32"><Progress value={continuousTotals.pct} className="h-1.5" /></div>
               <AddCadenceDialog projectId={projectId} />
             </div>
-          </header>
+          </div>
           <div className="space-y-2">
                 {continuousByMonth.map(([monthKey, bucket]) => {
                   const monthDate = parseISO(monthKey + '-01');
@@ -840,8 +840,8 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
                   );
                 })}
           </div>
-        </section>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
