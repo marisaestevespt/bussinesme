@@ -84,6 +84,7 @@ interface ProjectMeeting {
 
 export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
   const [openPhaseId, setOpenPhaseId] = useState<string | null>(null);
+  const [continuousOpen, setContinuousOpen] = useState(false);
   const [addingPhase, setAddingPhase] = useState(false);
   const [newName, setNewName] = useState('');
   const queryClient = useQueryClient();
