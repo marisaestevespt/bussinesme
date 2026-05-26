@@ -1,80 +1,114 @@
-# Plano — Frentes C + D + E (Planeamento)
 
-Continuação direta de A + B. O objetivo é fechar o ciclo: KPRs ↔ Objetivos, cadências múltiplas, e presença consistente em todas as vistas.
+# Auditoria de consistência de dados — Plano
 
----
+## Objetivo
+Garantir que em todo o lado da app aparecem todos os campos esperados, sem buracos (como aconteceu com `project_name` / `client_name` em `meetings`).
 
-## C. Ligação KPR ↔ Objetivo (single source of truth)
+O problema raiz é sempre o mesmo padrão: **colunas em cache** (`*_name`, `*_email`, `*_color`, etc.) numa tabela filha que deviam refletir a fonte original (`projects.name`, `clients.full_name`, `products.name`, …) mas ficaram dessincronizadas por:
+- registos criados antes de existir o trigger de sincronização,
+- importações / migrações antigas,
+- updates feitos no código sem passar o `*_name`.
 
-**Migração DB**
-- `ALTER TABLE department_kpis ADD COLUMN objective_id uuid NULL REFERENCES executive_objectives(id) ON DELETE SET NULL`
-- Index em `objective_id`.
-- Trigger `kpr_sync_to_planning_goals`: quando um KPR ligado a um objetivo tem `department_kpi_monthly` atualizado, faz upsert no `planning_goals` correspondente (period_type='mensal', period=`YYYY-MM`) com `target_value` / `actual_value`. Anti-loop via GUC `app.kpr_sync` (padrão já existente no projeto — ver memory `sync-anti-loop`).
-- Trigger inverso opcional: se um `planning_goals` mensal ligado a um objetivo que tem KPR vinculado é editado, propaga ao `department_kpi_monthly`.
+## Princípios da auditoria
+1. **Read-only primeiro.** Cada fase começa só com `SELECT` — nada é alterado sem te mostrar o que está partido.
+2. **Sem mexer em código aplicacional.** Nenhuma alteração a `.tsx` / `.ts` / hooks. Toda a correção é feita na BD (backfill + trigger), exatamente como em `meetings`.
+3. **Triggers idempotentes.** `BEFORE INSERT OR UPDATE OF <fk>` na tabela filha + `AFTER UPDATE OF <name>` na tabela pai. Sempre `CREATE OR REPLACE` + `DROP TRIGGER IF EXISTS`.
+4. **Anti-loop respeitado.** Se a tabela já tiver o padrão `app.<key>_sync` ou `pg_trigger_depth()` (memória *sync-anti-loop*), seguimos a mesma convenção.
+5. **Stop & report.** No fim de cada domínio mostro relatório (X linhas dessincronizadas em Y tabelas) e só avanço para correções depois de OK explícito.
 
-**UI**
-- Em `KpiForm` (DepartmentKpiDashboard + DepartmentKpisSection): novo `Select` "Objetivo anual associado" filtrado por `area === department`.
-- Badge em listagens de KPRs mostrando "ligado a: <objetivo>".
-- Em `ObjectiveDialog` (Planeamento anual): listar KPRs ligados ao objetivo (read-only com link para Dept).
+## Critério único de "está partido"
+Para cada par (`tabela_filha.fk_id`, `tabela_filha.cache_field`):
+```
+COUNT(*) FILTER (
+  WHERE fk_id IS NOT NULL
+    AND cache_field IS DISTINCT FROM (SELECT origem FROM pai WHERE id = fk_id)
+) > 0
+```
+Se > 0 → candidato a backfill + trigger. Se = 0 → marcado como ✅ saudável.
 
-## D. Cadências múltiplas (mensal + trimestral + anual)
+## Fases (1 domínio = 1 mensagem minha com relatório)
 
-**Migração DB**
-- `ALTER TABLE department_kpis ADD COLUMN quarterly_target numeric NULL, ADD COLUMN annual_target numeric NULL`.
-- `quarterly_target` é interpretado por quarter (igual em todos) — para metas distintas por trimestre criamos `department_kpi_quarterly (kpi_id, year, quarter, target_value, actual_value, analysis)` com unique `(kpi_id, year, quarter)` e RLS igual a `department_kpi_monthly`.
-- View materializada leve `v_department_kpi_progress` que agrega mensal→trimestre→ano para consumo no front.
+### Fase 1 — Reuniões e Agenda  *(já parcialmente feito)*
+- `meetings` (product/project/client) ✅ feito
+- `meeting_participants` (profile_name, profile_email?)
+- `meeting_projects` (snapshot do projeto)
+- `events` / `event_members` (product_name, type label, profile name)
 
-**UI**
-- `KpiForm` ganha 3 campos: Meta Mensal (default), Meta Trimestral, Meta Anual.
-- Em `KPRsInline` (cockpit mensal) adicionamos toggle "Mensal | Trimestral | Anual" no header do bloco de KPRs, alternando a meta e o `actual` agregado.
-- `useKpiAutoValue` ganha parâmetro `period: 'month' | 'quarter' | 'year'` e usa o mesmo `value_source` mas com janelas diferentes (mês corrente, Q corrente, ano corrente).
+### Fase 2 — Tarefas, Rotinas, Tempo
+- `tasks` (product_name, project_name, client_name, assignee_name)
+- `routines` (product_name, area, assignee)
+- `time_entries`, `task_time_entries` (member_name, task_title, project_name)
 
-## E. KPRs em todas as vistas
+### Fase 3 — Projetos e Entregas
+- `projects` (client_name, product_name)
+- `project_deliverables` (product_name, project_name, responsible_name)
+- `project_phases` / `project_recurring_occurrences` (project_name, phase_name)
+- `project_members`, `project_responsibilities` (member_name)
 
-**Weekly Align**
-- Após a lista de objetivos atuais, nova secção "KPRs em foco" com os KPRs do departamento(s) do utilizador. Cada linha: nome, meta mensal, atual auto, Δ%, mini-input de nota semanal (campo já existente `notes` em planning ou criar `department_kpi_weekly_notes` se necessário). Por agora, reusar `analysis` do mês corrente.
+### Fase 4 — Clientes / Portal
+- `client_*` (client_name, product_name) — onboarding, offboarding, renewals, requests, feedback, history, NPS
+- `portal_*` (client_name, project_name)
+- `client_portals` (client_name, project_name)
 
-**Cockpit Trimestral** (`QuarterlyCockpit`)
-- Reusar `KPRsInline` em modo `period='quarter'` dentro de cada bloco de área.
+### Fase 5 — Comercial / CRM
+- `crm_leads` (pipeline_name, stage_name, source_name, owner_name)
+- `crm_pipeline_leads`, `crm_lead_actions`, `crm_interactions`
+- `commercial_sales` (product_name, client_name, lead_name)
+- `commercial_*_goals` (product_name)
 
-**Cockpit Anual**
-- Resumo agregado (sem edição), apenas leitura: nome | meta anual | atual anual | Δ%, agrupado por área.
+### Fase 6 — Produtos
+- 26 tabelas `product_*` (product_name onde aplicável)
+- Cross-check com a memória *product-name-sync* (11 tabelas já cobertas) → identificar as restantes que ainda não têm trigger.
 
-**Hubs operacionais** (Comercial, Marketing, Financeiro, Clientes, Operação, Equipa, Produtos)
-- Adicionar componente `<DepartmentKpiSummary department="..." />` no topo de cada hub: chips horizontais com meta vs atual do mês, link "Ver detalhe →" para `/executive/planeamento/[dept]`.
+### Fase 7 — Financeiro / Fiscal
+- `financial_expenses`, `financial_payroll`, `financial_subscriptions`, `financial_documents` (category_name, contractor_name, supplier_name, client_name)
+- `iva_payments`, `fiscal_*` (period label, member_name)
+- `suppliers` referenciado
 
----
+### Fase 8 — Equipa / RH
+- `team_members` (role_name, department_name, work_area_name)
+- `member_contracts`, `member_payments`, `member_onboarding` (member_name)
+- `team_member_vacations`, `absence_coverage` (member_name, coverer_name)
+- `performance_*` (member_name, department_name)
 
-## Ficheiros estimados
+### Fase 9 — Planeamento / Executivo
+- `planning_goals`, `planning_routines`, `planning_quarter_notes` (area, owner_name, department_name)
+- `quarterly_plans`, `quarterly_items` (area_name, owner_name)
+- `executive_*` (category_name, owner_name)
+- `weekly_align_notes`, `monthly_reflection`, `monthly_reports`
 
-**Migrations** (1 ficheiro):
-- `add_kpr_objective_link_and_cadences.sql` — coluna `objective_id`, `quarterly_target`, `annual_target`, tabela `department_kpi_quarterly`, triggers de sync.
+### Fase 10 — Marca / Marketing / Conteúdos
+- `brand_*` (15 tabelas — section_name, archetype_name)
+- `marketing_*`, `content_*`, `channel_*`, `strategy_*` (channel_name, funnel_name, product_name, owner_name)
+- `traffic_*` (campaign_name, channel_name)
+- `website_pages`, `website_page_files`
 
-**Edits**:
-- `src/hooks/useKpiAutoValue.ts` — suportar `period`
-- `src/components/planning/DepartmentKpiDashboard.tsx` — UI objetivo + cadências
-- `src/components/planning/DepartmentKpisSection.tsx` — idem
-- `src/components/planning/cockpit/KPRsInline.tsx` — toggle período
-- `src/components/planning/cockpit/QuarterlyCockpit.tsx` — incluir KPRs
-- `src/components/planning/cockpit/AnnualCockpit.tsx` — resumo anual KPRs
-- `src/components/planning/WeeklyAlign*.tsx` — secção KPRs em foco
-- `src/components/planning/ObjectiveDialog.tsx` — listar KPRs vinculados
+### Fase 11 — Departamentos & KPIs
+- `departments` (color_hex em cache?)
+- `department_kpi_monthly`, `department_kpi_quarterly` (department_name, kpi_name)
+- `kpi_settings`, `metric_history`
 
-**Novos**:
-- `src/components/planning/DepartmentKpiSummary.tsx` — chips para hubs
-- Inserção do summary em 7 hubs operacionais
+### Fase 12 — Restantes (SOPs, Inovação, Mural, AI, Lançamentos, Notificações, Emails)
+- `sops` / `sop_steps` / `sop_step_documents` (category_name, owner_name)
+- `innovation_*`, `training_*`
+- `mural_posts` / `mural_comments` / `mural_reactions` (author_name)
+- `ai_conversations` / `ai_messages` (user_name)
+- `launch_data`, `launch_tasks`
+- `notifications` (actor_name, target_label)
+- `email_send_log`, `email_send_state`
 
----
+## Entregável por fase
+Para cada fase recebes uma mensagem com:
+1. **Tabela-resumo** com colunas: `tabela.coluna_cache`, `total_registos`, `dessincronizados`, `nulos_com_fk`, status (✅ / ⚠️).
+2. Para cada linha ⚠️: 3 exemplos reais (`id`, valor em cache, valor real).
+3. Proposta de correção em SQL pronta a executar (backfill + trigger no padrão já usado em `meetings`), **só executada após confirmação tua**.
 
-## Ordem de execução
+## O que esta auditoria **não** faz
+- Não toca em componentes React nem em hooks.
+- Não muda RLS, permissões, ou edge functions.
+- Não apaga colunas, mesmo que pareçam órfãs.
+- Não altera o schema (sem `ALTER TABLE`) na fase de diagnóstico.
+- Não corre nada sem mostrar antes o relatório.
 
-1. Migração DB (C + D estruturais)
-2. Atualizar `useKpiAutoValue` para suportar `period`
-3. UI dos formulários (objetivo + cadências)
-4. `KPRsInline` com toggle de período
-5. Quarterly + Annual cockpits
-6. Weekly Align
-7. Hubs operacionais (DepartmentKpiSummary)
-8. Memory: atualizar `mem://features/planning-overview` com novo modelo
-
-Cada passo é validado antes de avançar (queries DB + verificação visual no preview).
+## Estimativa
+12 fases. Cada fase = 1 ronda de queries + 1 relatório + (opcional) 1 migração de correção. Posso começar pela Fase 1 (concluir reuniões/agenda) assim que aprovares.
