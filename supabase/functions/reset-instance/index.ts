@@ -273,10 +273,12 @@ Deno.serve(async (req) => {
       "financial_contractors",
     ];
 
-    // ── FULL RESET: also delete config/structure/identity tables ──
-    // These are preserved in "data" reset but deleted in "full" reset
+    // ── FULL RESET: also clears brand identity, team and business settings ──
+    // The "skeleton" (custom fields, SOPs, departments, marketing automations,
+    // financial categories, event types, strategy/plan settings, etc.) is
+    // ALWAYS preserved — it helps the new owner fill the instance faster.
     const configTables = [
-      // Brand / visual identity (children first)
+      // Brand content (children first) — specific to the previous business
       "brand_visual_files",
       "brand_visual_cards",
       "brand_swot_items",
@@ -285,75 +287,19 @@ Deno.serve(async (req) => {
       "brand_kanban_items",
       "brand_links",
 
-      // Business plan
+      // Business plan filled cards (keep custom_columns + settings as skeleton)
       "business_plan_cards",
-      "business_plan_custom_columns",
-      "business_plan_settings",
-
-      // Strategy
-      "strategy_channel_formats",
-      "strategy_channel_frames",
-      "strategy_channel_details",
-      "strategy_editorial_lines",
-      "strategy_distribution_cards",
-      "strategy_settings",
-
-      // SOPs (children first)
-      "sop_step_documents",
-      "sop_steps",
-      "sop_categories",
-      "sops",
-
-      // Marketing config
-      "channel_pages",
-      "marketing_automations",
-      "marketing_funnels",
-      "marketing_pages",
-      "marketing_channels",
-      "marketing_channel_accounts",
-
-      // Product KPI definitions
-      "product_kpis",
-
-      // Custom fields / fonts / views
-      "custom_field_values",
-      "custom_fields",
-      "custom_fonts",
-
-      // Internal documents / library
-      "internal_documents",
-
-      // Event types
-      "event_types",
-
-      // Financial config
-      "financial_categories",
-
-      // Platform accesses
-      "platform_accesses",
-
-      // Departments
-      "department_whatsapp_links",
-      "department_links",
-      "department_covers",
-      "department_colors",
-      "departments",
-
-      // Digest / KPI settings
-      "digest_settings",
-      "kpi_settings",
-
-      // Automation settings
-      "automation_settings",
 
       // Permissions & roles (children first) — preserve user_roles (owner stays)
       "role_permissions",
       "member_sensitive_access",
       "custom_roles",
-      "team_role_presets",
 
       // Team members (after member dependencies)
       "team_members",
+
+      // Platform accesses (credentials of the previous business)
+      "platform_accesses",
 
       // Business settings & setup (last — these define the instance)
       "business_setup",
