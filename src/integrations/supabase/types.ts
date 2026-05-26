@@ -9958,7 +9958,7 @@ export type Database = {
           brainstorming: string | null
           budget: number | null
           budgeted_minutes: number | null
-          client_id: string | null
+          client_id: string
           client_name: string | null
           closure_bad: string | null
           closure_good: string | null
@@ -10007,7 +10007,7 @@ export type Database = {
           brainstorming?: string | null
           budget?: number | null
           budgeted_minutes?: number | null
-          client_id?: string | null
+          client_id: string
           client_name?: string | null
           closure_bad?: string | null
           closure_good?: string | null
@@ -10056,7 +10056,7 @@ export type Database = {
           brainstorming?: string | null
           budget?: number | null
           budgeted_minutes?: number | null
-          client_id?: string | null
+          client_id?: string
           client_name?: string | null
           closure_bad?: string | null
           closure_good?: string | null
@@ -11366,7 +11366,7 @@ export type Database = {
           payment_method: string | null
           photo_url: string | null
           presentation: string | null
-          profile_id: string | null
+          profile_id: string
           responsibilities: string | null
           role_color: string | null
           role_title: string | null
@@ -11410,7 +11410,7 @@ export type Database = {
           payment_method?: string | null
           photo_url?: string | null
           presentation?: string | null
-          profile_id?: string | null
+          profile_id: string
           responsibilities?: string | null
           role_color?: string | null
           role_title?: string | null
@@ -11454,7 +11454,7 @@ export type Database = {
           payment_method?: string | null
           photo_url?: string | null
           presentation?: string | null
-          profile_id?: string | null
+          profile_id?: string
           responsibilities?: string | null
           role_color?: string | null
           role_title?: string | null
@@ -11589,6 +11589,20 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
