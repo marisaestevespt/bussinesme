@@ -302,12 +302,14 @@ export default function PortalViewPage() {
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const ext = file.name.split('.').pop();
-        const path = `${token}/${qId}/${Date.now()}-${i}.${ext}`;
-        const { error } = await supabase.storage.from('portal-uploads').upload(path, file);
+        const fd = new FormData();
+        fd.append('portal_token', token);
+        fd.append('question_id', qId);
+        fd.append('file', file);
+        const { data, error } = await supabase.functions.invoke('portal-upload', { body: fd });
         if (error) throw error;
-        const { data: urlData } = supabase.storage.from('portal-uploads').getPublicUrl(path);
-        urls.push(urlData.publicUrl);
+        if (!data?.url) throw new Error('upload sem URL');
+        urls.push(data.url as string);
       }
       const question = questions.find(q => q.id === qId);
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
