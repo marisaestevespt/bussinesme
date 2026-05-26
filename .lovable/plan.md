@@ -1,114 +1,93 @@
+# Auditoria Pré Go-Live — Plano de Trabalho
 
-# Auditoria de consistência de dados — Plano
+Objetivo: garantir que o sistema está pronto para entregar a clientes reais, identificando e corrigindo gaps em **6 frentes**. Cada fase produz um relatório com **achados + correções aplicadas + itens diferidos** (com justificação).
 
-## Objetivo
-Garantir que em todo o lado da app aparecem todos os campos esperados, sem buracos (como aconteceu com `project_name` / `client_name` em `meetings`).
+Trabalho faseado para não partir nada — cada fase só avança após a anterior fechar.
 
-O problema raiz é sempre o mesmo padrão: **colunas em cache** (`*_name`, `*_email`, `*_color`, etc.) numa tabela filha que deviam refletir a fonte original (`projects.name`, `clients.full_name`, `products.name`, …) mas ficaram dessincronizadas por:
-- registos criados antes de existir o trigger de sincronização,
-- importações / migrações antigas,
-- updates feitos no código sem passar o `*_name`.
+---
 
-## Princípios da auditoria
-1. **Read-only primeiro.** Cada fase começa só com `SELECT` — nada é alterado sem te mostrar o que está partido.
-2. **Sem mexer em código aplicacional.** Nenhuma alteração a `.tsx` / `.ts` / hooks. Toda a correção é feita na BD (backfill + trigger), exatamente como em `meetings`.
-3. **Triggers idempotentes.** `BEFORE INSERT OR UPDATE OF <fk>` na tabela filha + `AFTER UPDATE OF <name>` na tabela pai. Sempre `CREATE OR REPLACE` + `DROP TRIGGER IF EXISTS`.
-4. **Anti-loop respeitado.** Se a tabela já tiver o padrão `app.<key>_sync` ou `pg_trigger_depth()` (memória *sync-anti-loop*), seguimos a mesma convenção.
-5. **Stop & report.** No fim de cada domínio mostro relatório (X linhas dessincronizadas em Y tabelas) e só avanço para correções depois de OK explícito.
+## Fase 1 — Segurança & RLS (1ª prioridade)
 
-## Critério único de "está partido"
-Para cada par (`tabela_filha.fk_id`, `tabela_filha.cache_field`):
-```
-COUNT(*) FILTER (
-  WHERE fk_id IS NOT NULL
-    AND cache_field IS DISTINCT FROM (SELECT origem FROM pai WHERE id = fk_id)
-) > 0
-```
-Se > 0 → candidato a backfill + trigger. Se = 0 → marcado como ✅ saudável.
+- Auditar as **99 funções SECURITY DEFINER** restantes: confirmar que cada uma faz validação interna de `auth.uid()`/permissões
+- Rever **policies RLS de tabelas sensíveis**: `financial_*`, `client_*`, `business_settings`, `user_roles`, `members`, `team_members`, `portal_*`
+- Validar **isolamento multi-tenant**: garantir que nenhum user vê dados de outro `business_settings` (se aplicável)
+- Verificar **edge functions**: validação JWT, CORS, input validation (Zod), rate limiting nos endpoints públicos do portal
+- Auditar **storage buckets**: políticas, public vs private, exposição de ficheiros sensíveis
 
-## Fases (1 domínio = 1 mensagem minha com relatório)
+## Fase 2 — Integridade de Dados
 
-### Fase 1 — Reuniões e Agenda  *(já parcialmente feito)*
-- `meetings` (product/project/client) ✅ feito
-- `meeting_participants` (profile_name, profile_email?)
-- `meeting_projects` (snapshot do projeto)
-- `events` / `event_members` (product_name, type label, profile name)
+- **Constraints em falta**: `NOT NULL`, `UNIQUE`, `CHECK` em campos críticos (emails, status enums, valores monetários)
+- **FKs sem `ON DELETE`**: identificar onde apagar um pai deixa filhos órfãos vs onde devia haver CASCADE/SET NULL explícito
+- **Dados órfãos atuais**: linhas em tabelas filhas cujo pai já foi apagado historicamente (não detetado na auditoria anterior, que viu FKs declaradas mas não dangling rows reais)
+- **Enums vs valores livres**: campos `status`/`type` em texto livre que deviam ser enums
+- **Duplicados lógicos**: e.g. 2 clientes com mesmo NIF, 2 produtos com mesmo nome, 2 leads do mesmo email
 
-### Fase 2 — Tarefas, Rotinas, Tempo
-- `tasks` (product_name, project_name, client_name, assignee_name)
-- `routines` (product_name, area, assignee)
-- `time_entries`, `task_time_entries` (member_name, task_title, project_name)
+## Fase 3 — Automações & Triggers
 
-### Fase 3 — Projetos e Entregas
-- `projects` (client_name, product_name)
-- `project_deliverables` (product_name, project_name, responsible_name)
-- `project_phases` / `project_recurring_occurrences` (project_name, phase_name)
-- `project_members`, `project_responsibilities` (member_name)
+- Inventariar **todos os triggers + cron jobs** e confirmar que correm sem erros nos últimos 7 dias
+- Validar **sync bidirecional anti-loop**: deliverable↔task, meeting↔deliverable, onboarding↔task, expense↔payment, planning↔dept
+- Confirmar **edge function crons**: `clone-recurring-phases`, `extend-supplier-expenses`, `ensure-member-payments`, `regenerate-recurring-meetings`, `generate-monthly-report` + os de notificações
+- Testar **fluxo de routines**: criar rotina diária → confirmar geração de tarefa amanhã
+- Validar **conversão lead → cliente → projeto → portal** end-to-end
 
-### Fase 4 — Clientes / Portal
-- `client_*` (client_name, product_name) — onboarding, offboarding, renewals, requests, feedback, history, NPS
-- `portal_*` (client_name, project_name)
-- `client_portals` (client_name, project_name)
+## Fase 4 — Performance & Loading
 
-### Fase 5 — Comercial / CRM
-- `crm_leads` (pipeline_name, stage_name, source_name, owner_name)
-- `crm_pipeline_leads`, `crm_lead_actions`, `crm_interactions`
-- `commercial_sales` (product_name, client_name, lead_name)
-- `commercial_*_goals` (product_name)
+- **Top queries lentas** via `pg_stat_statements` (RPC `admin_top_queries` já existe)
+- **Índices em falta**: FKs sem index, colunas usadas em `WHERE`/`ORDER BY` sem cobertura
+- **N+1 queries** no frontend: páginas que fazem queries em loop em vez de batch
+- **Bundle size + lazy loading**: páginas pesadas, componentes que deviam ser `lazy()`
+- **Web Vitals** (LCP, CLS, INP) nas 5 páginas mais usadas: Secretaria, Agenda, Tarefas, Clientes, Reuniões
+- **Realtime subscriptions**: confirmar que se desinscrevem no unmount (memory leaks)
 
-### Fase 6 — Produtos
-- 26 tabelas `product_*` (product_name onde aplicável)
-- Cross-check com a memória *product-name-sync* (11 tabelas já cobertas) → identificar as restantes que ainda não têm trigger.
+## Fase 5 — UX, Loading States & Edge Cases
 
-### Fase 7 — Financeiro / Fiscal
-- `financial_expenses`, `financial_payroll`, `financial_subscriptions`, `financial_documents` (category_name, contractor_name, supplier_name, client_name)
-- `iva_payments`, `fiscal_*` (period label, member_name)
-- `suppliers` referenciado
+- **Empty states**: cada lista/tabela tem mensagem decente quando vazia?
+- **Loading states**: skeletons consistentes, nada com flash de "no data" antes do load
+- **Error boundaries**: páginas que crasham silenciosamente?
+- **Permissões na UI**: utilizador sem permissão para um módulo vê erro feio ou redirect limpo?
+- **Mobile responsiveness**: top 10 páginas testadas em viewport 375px
+- **Formulários**: validação client-side, mensagens de erro claras, disabled durante submit
 
-### Fase 8 — Equipa / RH
-- `team_members` (role_name, department_name, work_area_name)
-- `member_contracts`, `member_payments`, `member_onboarding` (member_name)
-- `team_member_vacations`, `absence_coverage` (member_name, coverer_name)
-- `performance_*` (member_name, department_name)
+## Fase 6 — Onboarding & Fluxo de Primeiro Cliente
 
-### Fase 9 — Planeamento / Executivo
-- `planning_goals`, `planning_routines`, `planning_quarter_notes` (area, owner_name, department_name)
-- `quarterly_plans`, `quarterly_items` (area_name, owner_name)
-- `executive_*` (category_name, owner_name)
-- `weekly_align_notes`, `monthly_reflection`, `monthly_reports`
+- **Setup wizard completo** num tenant novo do zero
+- **Tour de onboarding** dispara nos sítios certos
+- **Convite de membro**: email chega, link funciona, role atribuído
+- **Portal do cliente**: criar cliente → gerar portal → cliente recebe OTP → entra → vê só o seu projeto
+- **Documentos default**: SOPs, templates, FAQs aparecem prontos a usar
+- **Reset/limpeza**: existe forma do owner limpar dados de teste antes de operar a sério?
 
-### Fase 10 — Marca / Marketing / Conteúdos
-- `brand_*` (15 tabelas — section_name, archetype_name)
-- `marketing_*`, `content_*`, `channel_*`, `strategy_*` (channel_name, funnel_name, product_name, owner_name)
-- `traffic_*` (campaign_name, channel_name)
-- `website_pages`, `website_page_files`
+---
 
-### Fase 11 — Departamentos & KPIs
-- `departments` (color_hex em cache?)
-- `department_kpi_monthly`, `department_kpi_quarterly` (department_name, kpi_name)
-- `kpi_settings`, `metric_history`
+## Como vou trabalhar
 
-### Fase 12 — Restantes (SOPs, Inovação, Mural, AI, Lançamentos, Notificações, Emails)
-- `sops` / `sop_steps` / `sop_step_documents` (category_name, owner_name)
-- `innovation_*`, `training_*`
-- `mural_posts` / `mural_comments` / `mural_reactions` (author_name)
-- `ai_conversations` / `ai_messages` (user_name)
-- `launch_data`, `launch_tasks`
-- `notifications` (actor_name, target_label)
-- `email_send_log`, `email_send_state`
+Em cada fase:
+1. **Levantamento** (read-only queries + leitura de código)
+2. **Relatório de achados** classificado por severidade: 🔴 bloqueador / 🟡 importante / 🟢 nice-to-have
+3. **Tu decides** o que corrigir agora vs adiar
+4. **Aplico correções** apenas das aprovadas
+5. **Re-validação** + atualização da memória do projeto
 
-## Entregável por fase
-Para cada fase recebes uma mensagem com:
-1. **Tabela-resumo** com colunas: `tabela.coluna_cache`, `total_registos`, `dessincronizados`, `nulos_com_fk`, status (✅ / ⚠️).
-2. Para cada linha ⚠️: 3 exemplos reais (`id`, valor em cache, valor real).
-3. Proposta de correção em SQL pronta a executar (backfill + trigger no padrão já usado em `meetings`), **só executada após confirmação tua**.
+## Tempo estimado
 
-## O que esta auditoria **não** faz
-- Não toca em componentes React nem em hooks.
-- Não muda RLS, permissões, ou edge functions.
-- Não apaga colunas, mesmo que pareçam órfãs.
-- Não altera o schema (sem `ALTER TABLE`) na fase de diagnóstico.
-- Não corre nada sem mostrar antes o relatório.
+- Fase 1 (Segurança): mais densa, ~40% do esforço total
+- Fases 2-3 (Dados + Automações): ~30%
+- Fases 4-5 (Performance + UX): ~25%
+- Fase 6 (Onboarding E2E): ~5% — faz-se uma vez no fim
 
-## Estimativa
-12 fases. Cada fase = 1 ronda de queries + 1 relatório + (opcional) 1 migração de correção. Posso começar pela Fase 1 (concluir reuniões/agenda) assim que aprovares.
+## O que NÃO faço sem perguntar
+
+- Apagar dados (mesmo órfãos)
+- Mudar enums ou tipos de colunas existentes
+- Refactors estruturais grandes (e.g. migrar tabelas)
+- Mudar policies RLS em tabelas com dados reais sem teste prévio
+
+Tudo isto fica em "achados a discutir" no relatório.
+
+---
+
+## Decisões que preciso de ti antes de começar
+
+1. **Começo pela Fase 1 (Segurança) já?** Ou queres outra ordem?
+2. **Há tenants/dados reais em produção neste momento** que eu deva tratar com cuidado extra?
+3. **Queres relatórios escritos** (markdown em `/mnt/documents`) ou só resposta no chat?
