@@ -18,7 +18,6 @@ const FinMensal = lazy(() => import('@/components/financial/FinMensal').then(m =
 const FinTrimestral = lazy(() => import('@/components/financial/FinTrimestral').then(m => ({ default: m.FinTrimestral })));
 const FinSegurancaSocial = lazy(() => import('@/components/financial/FinSegurancaSocial').then(m => ({ default: m.FinSegurancaSocial })));
 const FinAllDocuments = lazy(() => import('@/components/financial/FinAllDocuments').then(m => ({ default: m.FinAllDocuments })));
-const FinSetupFinanceiro = lazy(() => import('@/components/financial/FinSetupFinanceiro').then(m => ({ default: m.FinSetupFinanceiro })));
 const FinGoals = lazy(() => import('@/components/financial/FinGoals').then(m => ({ default: m.FinGoals })));
 const FinContabilidade = lazy(() => import('@/components/financial/FinContabilidade').then(m => ({ default: m.FinContabilidade })));
 const FinListaProdutos = lazy(() => import('@/components/financial/FinListaProdutos').then(m => ({ default: m.FinListaProdutos })));
