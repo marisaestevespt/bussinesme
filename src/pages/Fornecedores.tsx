@@ -1018,12 +1018,12 @@ export default function FornecedoresPage() {
               )}
 
               {/* Recurring expense link — create NEW recurring (hidden for member-linked suppliers) */}
-              {!linkedContract?.contract && (
+              {!linkedContract?.contract && !form._existingRecurring && (
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-normal">{form._existingRecurring ? 'Criar nova despesa recorrente' : 'Criar despesa recorrente'}</Label>
+                    <Label className="text-sm font-normal">Criar despesa recorrente</Label>
                   </div>
                   <Switch checked={form.create_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, create_recurring: v }))} />
                 </div>
