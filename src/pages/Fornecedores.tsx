@@ -850,6 +850,9 @@ export default function FornecedoresPage() {
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => setForm((f: any) => ({ ...f, email: e.target.value }))} /></div>
               <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => setForm((f: any) => ({ ...f, phone: e.target.value }))} /></div>
               <div><Label>IBAN</Label><Input value={form.iban || ''} onChange={e => setForm((f: any) => ({ ...f, iban: e.target.value }))} placeholder="PT50..." /></div>
+              <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
+              <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
+              <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
               <div><Label>Método de Pagamento</Label>
                 <Select value={form.payment_method || 'transferencia'} onValueChange={v => setForm((f: any) => ({ ...f, payment_method: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -895,75 +898,6 @@ export default function FornecedoresPage() {
                 </div>
               </div>
 
-              {/* Status & Pause */}
-              <div className="rounded-lg border border-border p-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <Label className="text-sm font-medium">Estado & Pausa</Label>
-                      <p className="text-xs text-muted-foreground">{getSupplierStatusLabel(form)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={(form.is_active ?? true) && !isPausedUntilActive(form.paused_until)}
-                      onCheckedChange={v => setForm((f: any) => ({ ...f, is_active: v, paused_until: v ? null : f.paused_until }))}
-                    />
-                    <Label className="text-xs font-normal">{getSupplierStatusLabel(form)}</Label>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-xs">Pausar despesas recorrentes</Label>
-                  {(() => {
-                    const isIndefinite = form.paused_until === INDEFINITE_PAUSE_DATE;
-                    const hasDate = !!form.paused_until && !isIndefinite;
-                    return (
-                      <>
-                        <div className="flex flex-wrap gap-2 items-center">
-                          <Input
-                            type="date"
-                            className="w-44"
-                            value={hasDate ? form.paused_until : ''}
-                            min={new Date().toISOString().slice(0, 10)}
-                            disabled={isIndefinite}
-                            onChange={e => setForm((f: any) => ({ ...f, paused_until: e.target.value || null }))}
-                          />
-                          <Button
-                            type="button"
-                            variant={isIndefinite ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setForm((f: any) => ({
-                              ...f,
-                              paused_until: isIndefinite ? null : INDEFINITE_PAUSE_DATE,
-                            }))}
-                          >
-                            {isIndefinite ? '✓ Pausado indefinidamente' : 'Pausar indefinidamente'}
-                          </Button>
-                          {form.paused_until && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setForm((f: any) => ({ ...f, paused_until: null }))}
-                            >
-                              Retomar agora
-                            </Button>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          {isIndefinite
-                            ? 'Pausado sem data de retoma. Não serão geradas despesas até clicares em "Retomar agora". O histórico fica intacto.'
-                            : hasDate
-                            ? `Não serão geradas novas despesas até ${form.paused_until}. O sistema retoma automaticamente nessa data.`
-                            : 'Escolhe uma data se sabes quando voltas, ou "Pausar indefinidamente" se não sabes.'}
-                        </p>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-
               {/* Contract dates */}
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
@@ -989,9 +923,6 @@ export default function FornecedoresPage() {
                 )}
               </div>
 
-              <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
-              <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
-              <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
               <div>
                 <Label>Descrição das transações</Label>
                 <Input
@@ -1087,12 +1018,12 @@ export default function FornecedoresPage() {
               )}
 
               {/* Recurring expense link — create NEW recurring (hidden for member-linked suppliers) */}
-              {!linkedContract?.contract && (
+              {!linkedContract?.contract && !form._existingRecurring && (
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-normal">{form._existingRecurring ? 'Criar nova despesa recorrente' : 'Criar despesa recorrente'}</Label>
+                    <Label className="text-sm font-normal">Criar despesa recorrente</Label>
                   </div>
                   <Switch checked={form.create_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, create_recurring: v }))} />
                 </div>
@@ -1154,6 +1085,77 @@ export default function FornecedoresPage() {
                 )}
               </div>
               )}
+
+              {/* Status & Pause — depois do Contrato/Recorrência para o utilizador
+                  decidir se quer Pausar/Retomar após ver os valores. */}
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <Label className="text-sm font-medium">Estado</Label>
+                      <p className="text-xs text-muted-foreground">Atualmente: <span className="font-medium">{getSupplierStatusLabel(form)}</span></p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={(form.is_active ?? true) && !isPausedUntilActive(form.paused_until)}
+                      onCheckedChange={v => setForm((f: any) => ({ ...f, is_active: v, paused_until: v ? null : f.paused_until }))}
+                    />
+                    <Label className="text-xs font-normal">Ativo</Label>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Pausar despesas recorrentes</Label>
+                  {(() => {
+                    const isIndefinite = form.paused_until === INDEFINITE_PAUSE_DATE;
+                    const hasDate = !!form.paused_until && !isIndefinite;
+                    return (
+                      <>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <Input
+                            type="date"
+                            className="w-44"
+                            value={hasDate ? form.paused_until : ''}
+                            min={new Date().toISOString().slice(0, 10)}
+                            disabled={isIndefinite}
+                            onChange={e => setForm((f: any) => ({ ...f, paused_until: e.target.value || null }))}
+                          />
+                          <Button
+                            type="button"
+                            variant={isIndefinite ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setForm((f: any) => ({
+                              ...f,
+                              paused_until: isIndefinite ? null : INDEFINITE_PAUSE_DATE,
+                            }))}
+                          >
+                            {isIndefinite ? '✓ Pausado indefinidamente' : 'Pausar indefinidamente'}
+                          </Button>
+                          {form.paused_until && (
+                            <Button
+                              type="button"
+                              variant="default"
+                              size="sm"
+                              onClick={() => setForm((f: any) => ({ ...f, paused_until: null, is_active: true }))}
+                            >
+                              Retomar agora
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {isIndefinite
+                            ? 'Pausado sem data de retoma. Não serão geradas despesas até clicares em "Retomar agora". O histórico fica intacto.'
+                            : hasDate
+                            ? `Não serão geradas novas despesas até ${form.paused_until}. O sistema retoma automaticamente nessa data.`
+                            : 'Escolhe uma data se sabes quando voltas, ou "Pausar indefinidamente" se não sabes.'}
+                        </p>
+                        <p className="text-[10px] text-warning mt-2">⚠ Lembra-te de clicar <strong>Guardar</strong> no fim para aplicar as alterações.</p>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
 
               {/* Documents */}
               <div className="space-y-2">
