@@ -241,7 +241,7 @@ function ResetSection() {
             >
               <p className="text-sm font-medium text-destructive">Reset completo (template)</p>
               <p className="text-xs text-muted-foreground">
-                Apaga tudo — dados, identidade visual, marca, processos, SOPs, equipa e configuração. Ideal para preparar template base.
+                Apaga dados + identidade da marca, equipa e papéis. Mantém o esqueleto (campos personalizados, SOPs, automações, categorias, departamentos, processos) para ajudar o próximo dono a preencher. Ideal para preparar uma instância para um novo cliente.
               </p>
             </button>
           </div>
