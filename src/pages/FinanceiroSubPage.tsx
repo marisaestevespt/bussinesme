@@ -32,7 +32,6 @@ const TITLES: Record<string, string> = {
   iva: 'IVA',
   'seguranca-social': 'Segurança Social',
   documentos: 'Documentos',
-  'setup-financeiro': 'Lista de Fornecedores',
   'lista-produtos': 'Lista de Produtos',
   contabilidade: 'Prazos Fiscais',
   previsibilidade: 'Previsibilidade',
@@ -56,8 +55,6 @@ function getFinancialOptions(section: string | undefined): FinancialDataOptions 
     case 'iva':
     case 'seguranca-social':
       return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
-    case 'setup-financeiro':
-      return { expenses: true, recurring: true, documents: true, payroll: true, contractors: true };
     case 'previsibilidade':
       return { expenses: true, recurring: true, documents: false, payroll: true, contractors: true };
     case 'entradas':
@@ -120,8 +117,6 @@ export default function FinanceiroSubPage() {
         return <FinSegurancaSocial fin={fin} expenses={expenses} currentYear={year} sales={sales} />;
       case 'documentos':
         return <FinAllDocuments />;
-      case 'setup-financeiro':
-        return <FinSetupFinanceiro fin={fin} />;
       case 'metas-financeiras': {
         const yearSales = sales.filter(s => s.sale_year === year);
         const yearExpenses = expenses.filter(e => e.expense_year === year);
