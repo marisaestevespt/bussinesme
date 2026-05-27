@@ -63,6 +63,18 @@ export const BODY_FONTS = [
 
 export const SYSTEM_FONT_DISPLAY = 'Sora';
 export const SYSTEM_FONT_BODY = 'Inter';
+export const SYSTEM_FONT_MONO = 'Special Elite';
+
+export const MONO_FONTS = [
+  'Special Elite',
+  'JetBrains Mono',
+  'IBM Plex Mono',
+  'Space Mono',
+  'Roboto Mono',
+  'Courier Prime',
+  'Cutive Mono',
+  'Inconsolata',
+] as const;
 
 // Keep GOOGLE_FONTS for backward compat
 export const GOOGLE_FONTS = [...DISPLAY_FONTS, ...BODY_FONTS] as const;
