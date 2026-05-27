@@ -393,14 +393,14 @@ export default function LeadDetailPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Ações</CardTitle>
+                <CardTitle className="text-sm">Tarefas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {actions.length === 0 && <EmptyHint>Sem ações pendentes</EmptyHint>}
+                {actions.length === 0 && <EmptyHint>Sem tarefas associadas</EmptyHint>}
                 {actions.map((a: any) => (
                   <div key={a.id} className="rounded-md border p-2 text-xs flex items-center justify-between">
-                    <span className={cn(a.completed && 'line-through text-muted-foreground')}>{a.action_text}</span>
-                    {a.completed && <Badge variant="secondary" className="text-[10px]">Feita</Badge>}
+                    <span className={cn((a.status === 'concluida' || a.status === 'done' || a.status === 'completed') && 'line-through text-muted-foreground')}>{a.name}</span>
+                    {(a.status === 'concluida' || a.status === 'done' || a.status === 'completed') && <Badge variant="secondary" className="text-[10px]">Feita</Badge>}
                   </div>
                 ))}
               </CardContent>
