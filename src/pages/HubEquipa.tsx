@@ -180,7 +180,16 @@ export default function HubEquipaPage() {
     enabled: !!user,
   });
 
-  const firstName = profile?.full_name?.split(' ')[0] || '';
+  const sanitizeName = (raw?: string | null) => {
+    if (!raw) return '';
+    let v = raw.trim();
+    if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) {
+      v = v.split('@')[0].replace(/[._-]+/g, ' ');
+      v = v.replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+    return v.split(' ')[0] || '';
+  };
+  const firstName = sanitizeName(profile?.full_name);
   const todayLabel = format(new Date(), "EEEE, d 'de' MMMM", { locale: pt });
 
   const { data: brandExpressions = [] } = useQuery({
