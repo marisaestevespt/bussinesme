@@ -12,7 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload, X, ExternalLink } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, ChevronDown, Upload, X, ExternalLink } from 'lucide-react';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 import { CrmLabelPicker, CrmLabelBadges } from './CrmLabelPicker';
 import { useCrmLabels } from '@/hooks/useCrmLabels';
 import { format, differenceInDays, parseISO } from 'date-fns';
@@ -41,22 +42,18 @@ interface LeadDetailSheetProps {
 
 export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
   const navigate = useNavigate();
-  const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
+  const { useLeadInteractions, upsertInteraction, deleteInteraction } = useCrmData();
   const { stages: CRM_STATUSES } = useCrmStages();
   const { data: commercialMembers = [] } = useCommercialMembers();
   const { labels, leadLabelsMap } = useCrmLabels();
   const [form, setForm] = useState<any>({});
   const [interactionDialog, setInteractionDialog] = useState(false);
-  const [newAction, setNewAction] = useState('');
+  const [newTaskName, setNewTaskName] = useState('');
   const [lostReasonDialog, setLostReasonDialog] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteProductId, setQuoteProductId] = useState<string | null>(null);
   const [lostReason, setLostReason] = useState('');
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
-  const [meetingDialog, setMeetingDialog] = useState(false);
-  const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
-  const [meetingTime, setMeetingTime] = useState('10:00');
-  const [meetingTitle, setMeetingTitle] = useState('');
   const qc = useQueryClient();
 
   // Product hint: base_price + ticket_type para sugerir valor ao converter
@@ -75,7 +72,55 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   });
 
   const interactions = useLeadInteractions(lead?.id || null);
-  const actions = useLeadActions(lead?.id || null);
+
+  // Lead tasks (substitui o antigo checklist `crm_lead_actions`)
+  const leadTasks = useQuery({
+    queryKey: ['lead-tasks', lead?.id],
+    enabled: !!lead?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, name, status, deadline, assigned_to')
+        .eq('lead_id', lead!.id)
+        .order('created_at', { ascending: true });
+      return data || [];
+    },
+  });
+
+  const isTaskDone = (s: string) => s === 'concluida' || s === 'done' || s === 'completed';
+
+  const addLeadTask = useMutation({
+    mutationFn: async (name: string) => {
+      if (!lead?.id) return;
+      const { error } = await supabase.from('tasks').insert({
+        name,
+        lead_id: lead.id,
+        department: 'comercial',
+        assigned_to: form.responsible_id || null,
+        status: 'por_comecar',
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['lead-tasks', lead?.id] }); qc.invalidateQueries({ queryKey: ['tasks'] }); },
+    onError: (e: any) => toast.error('Erro ao criar tarefa: ' + (e?.message || '')),
+  });
+
+  const updateLeadTask = useMutation({
+    mutationFn: async (patch: { id: string; [k: string]: any }) => {
+      const { id, ...rest } = patch;
+      const { error } = await supabase.from('tasks').update(rest as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['lead-tasks', lead?.id] }); qc.invalidateQueries({ queryKey: ['tasks'] }); },
+  });
+
+  const deleteLeadTask = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('tasks').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['lead-tasks', lead?.id] }); qc.invalidateQueries({ queryKey: ['tasks'] }); },
+  });
 
   useEffect(() => {
     if (!open) return;
