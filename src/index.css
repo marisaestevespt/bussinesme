@@ -219,7 +219,7 @@
 
   /* Vintage typewriter caption / metadata */
   .hq-typewriter {
-    font-family: 'Special Elite', 'Courier New', monospace;
+    font-family: var(--font-mono, 'Special Elite'), 'Courier New', monospace;
     letter-spacing: 0.01em;
     color: hsl(var(--brand-mocha));
   }
@@ -455,7 +455,7 @@
 .recharts-polar-angle-axis-tick text,
 .recharts-polar-radius-axis-tick text,
 .recharts-legend-item-text {
-  font-family: 'Special Elite', 'Courier New', monospace !important;
+  font-family: var(--font-mono, 'Special Elite'), 'Courier New', monospace !important;
   font-size: 10px !important;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -467,7 +467,7 @@
   border-radius: 0.25rem !important;
   border: 2px solid hsl(var(--primary) / 0.3) !important;
   background: hsl(var(--card)) !important;
-  font-family: 'Special Elite', 'Courier New', monospace !important;
+  font-family: var(--font-mono, 'Special Elite'), 'Courier New', monospace !important;
   font-size: 11px !important;
 }
 .recharts-tooltip-label {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { SYSTEM_FONT_DISPLAY, SYSTEM_FONT_BODY } from '@/lib/modules';
+import { SYSTEM_FONT_DISPLAY, SYSTEM_FONT_BODY, SYSTEM_FONT_MONO } from '@/lib/modules';
 import { BUSINESS_ACCENT_FALLBACK_HSL, BUSINESS_BRAND_FALLBACK_HSL, BUSINESS_TEXT_FALLBACK_HSL, normalizeHslTriplet } from '@/lib/portalBranding';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -66,9 +66,11 @@ function applyTheme(settings: BusinessSettings) {
   if (useSystem) {
     root.style.setProperty('--font-display', `'${SYSTEM_FONT_DISPLAY}'`);
     root.style.setProperty('--font-body', `'${SYSTEM_FONT_BODY}'`);
+    root.style.setProperty('--font-mono', `'${SYSTEM_FONT_MONO}'`);
   } else {
     root.style.setProperty('--font-display', `'${settings.font_display}'`);
     root.style.setProperty('--font-body', `'${settings.font_body}'`);
+    root.style.setProperty('--font-mono', `'${(settings as any).font_mono || SYSTEM_FONT_MONO}'`);
   }
 }
 

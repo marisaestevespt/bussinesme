@@ -1,0 +1,1 @@
+ALTER TABLE public.business_settings ADD COLUMN IF NOT EXISTS font_mono text NOT NULL DEFAULT 'Special Elite';

@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
-import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
+import { DISPLAY_FONTS, BODY_FONTS, MONO_FONTS, SYSTEM_FONT_MONO } from '@/lib/modules';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon } from 'lucide-react';
@@ -146,6 +146,7 @@ export function SettingsIdentity() {
   });
   const [fontDisplay, setFontDisplay] = useState('Cormorant Garamond');
   const [fontBody, setFontBody] = useState('DM Sans');
+  const [fontMono, setFontMono] = useState<string>(SYSTEM_FONT_MONO);
   const [uploadingFont, setUploadingFont] = useState(false);
 
   // Custom fonts
@@ -187,6 +188,7 @@ export function SettingsIdentity() {
     });
     setFontDisplay(settings.font_display);
     setFontBody(settings.font_body);
+    setFontMono(((settings as any).font_mono as string) || SYSTEM_FONT_MONO);
   }, [settings]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,6 +286,7 @@ export function SettingsIdentity() {
           accent_color: hexToHsl(colors.accent),
           font_display: fontDisplay,
           font_body: fontBody,
+          font_mono: fontMono,
         } as any)
         .eq('id', settings.id);
 
@@ -395,9 +398,10 @@ export function SettingsIdentity() {
 
         {!useSystemTheme && (
           <>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-3 gap-6">
               <FontSelector label="Fonte para títulos" value={fontDisplay} onChange={setFontDisplay} fonts={DISPLAY_FONTS} customFonts={customFonts} />
               <FontSelector label="Fonte para corpo" value={fontBody} onChange={setFontBody} fonts={BODY_FONTS} customFonts={customFonts} />
+              <FontSelector label="Fonte mono (legendas, gráficos)" value={fontMono} onChange={setFontMono} fonts={MONO_FONTS} customFonts={customFonts} />
             </div>
 
             {/* Custom font upload */}
