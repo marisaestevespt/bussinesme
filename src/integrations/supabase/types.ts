@@ -11152,6 +11152,7 @@ export type Database = {
           department: string | null
           estimated_minutes: number | null
           id: string
+          lead_id: string | null
           name: string
           notes: string | null
           onboarding_id: string | null
@@ -11177,6 +11178,7 @@ export type Database = {
           department?: string | null
           estimated_minutes?: number | null
           id?: string
+          lead_id?: string | null
           name: string
           notes?: string | null
           onboarding_id?: string | null
@@ -11202,6 +11204,7 @@ export type Database = {
           department?: string | null
           estimated_minutes?: number | null
           id?: string
+          lead_id?: string | null
           name?: string
           notes?: string | null
           onboarding_id?: string | null
@@ -11250,6 +11253,13 @@ export type Database = {
             columns: ["deliverable_id"]
             isOneToOne: false
             referencedRelation: "project_deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
             referencedColumns: ["id"]
           },
           {
