@@ -367,7 +367,7 @@ export default function LeadDetailPage() {
                 <Row label="Última atualização" value={updatedAt ? format(updatedAt, 'dd/MM/yyyy') : '—'} />
                 <Row label="Tempo no CRM" value={daysInCrm !== null ? `${daysInCrm} dia(s)` : '—'} />
                 <Row label="Interações" value={String(interactions.length)} />
-                <Row label="Ações" value={String(actions.length)} />
+                <Row label="Tarefas" value={String(actions.length)} />
               </CardContent>
             </Card>
 
