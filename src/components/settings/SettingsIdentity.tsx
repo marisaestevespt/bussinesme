@@ -398,9 +398,10 @@ export function SettingsIdentity() {
 
         {!useSystemTheme && (
           <>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-3 gap-6">
               <FontSelector label="Fonte para títulos" value={fontDisplay} onChange={setFontDisplay} fonts={DISPLAY_FONTS} customFonts={customFonts} />
               <FontSelector label="Fonte para corpo" value={fontBody} onChange={setFontBody} fonts={BODY_FONTS} customFonts={customFonts} />
+              <FontSelector label="Fonte mono (legendas, gráficos)" value={fontMono} onChange={setFontMono} fonts={MONO_FONTS} customFonts={customFonts} />
             </div>
 
             {/* Custom font upload */}
