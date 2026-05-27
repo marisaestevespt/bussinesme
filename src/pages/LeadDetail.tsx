@@ -81,11 +81,11 @@ export default function LeadDetailPage() {
   });
 
   const { data: actions = [] } = useQuery({
-    queryKey: ['crm-lead-actions', id],
+    queryKey: ['lead-tasks', id],
     queryFn: async () => {
       const { data } = await supabase
-        .from('crm_lead_actions')
-        .select('*')
+        .from('tasks')
+        .select('id, name, status, deadline')
         .eq('lead_id', id!)
         .order('created_at', { ascending: false });
       return data || [];
