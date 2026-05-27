@@ -71,7 +71,7 @@ export function usePermissions() {
         // Look up team_member directly by impersonated member id
         const { data: tm } = await supabase
           .from('team_members')
-          .select('id, department, departments, role_title, custom_role_id')
+          .select('id, department, departments, role_title, custom_role_id, custom_roles:custom_role_id(is_owner)')
           .eq('id', impersonating.member_id)
           .maybeSingle();
         teamMember = tm;
@@ -80,7 +80,7 @@ export function usePermissions() {
         if (profile) {
           const { data: tm } = await supabase
             .from('team_members')
-            .select('id, department, departments, role_title, custom_role_id')
+            .select('id, department, departments, role_title, custom_role_id, custom_roles:custom_role_id(is_owner)')
             .eq('profile_id', profile.id)
             .maybeSingle();
           teamMember = tm;
@@ -95,8 +95,13 @@ export function usePermissions() {
           setUserDepartments(depts);
           setUserRoleTitle(teamMember.role_title || '');
 
-          if (depts.includes('admin')) {
+          // Owner via custom_role: trata como acesso total (defesa em profundidade,
+          // mesmo se o trigger ainda não sincronizou o app_role.owner).
+          const isOwnerCustomRole = !!(teamMember as any).custom_roles?.is_owner;
+
+          if (depts.includes('admin') || isOwnerCustomRole) {
             setAllowedModules(new Set(['*']));
+            setUserRoleTitle(teamMember.role_title || (isOwnerCustomRole ? 'Owner' : ''));
             setLoading(false);
             if (!impersonating) {
               const { data: grants } = await supabase
