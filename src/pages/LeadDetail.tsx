@@ -81,11 +81,11 @@ export default function LeadDetailPage() {
   });
 
   const { data: actions = [] } = useQuery({
-    queryKey: ['crm-lead-actions', id],
+    queryKey: ['lead-tasks', id],
     queryFn: async () => {
       const { data } = await supabase
-        .from('crm_lead_actions')
-        .select('*')
+        .from('tasks')
+        .select('id, name, status, deadline')
         .eq('lead_id', id!)
         .order('created_at', { ascending: false });
       return data || [];
@@ -367,7 +367,7 @@ export default function LeadDetailPage() {
                 <Row label="Última atualização" value={updatedAt ? format(updatedAt, 'dd/MM/yyyy') : '—'} />
                 <Row label="Tempo no CRM" value={daysInCrm !== null ? `${daysInCrm} dia(s)` : '—'} />
                 <Row label="Interações" value={String(interactions.length)} />
-                <Row label="Ações" value={String(actions.length)} />
+                <Row label="Tarefas" value={String(actions.length)} />
               </CardContent>
             </Card>
 
@@ -393,14 +393,14 @@ export default function LeadDetailPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Ações</CardTitle>
+                <CardTitle className="text-sm">Tarefas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {actions.length === 0 && <EmptyHint>Sem ações pendentes</EmptyHint>}
+                {actions.length === 0 && <EmptyHint>Sem tarefas associadas</EmptyHint>}
                 {actions.map((a: any) => (
                   <div key={a.id} className="rounded-md border p-2 text-xs flex items-center justify-between">
-                    <span className={cn(a.completed && 'line-through text-muted-foreground')}>{a.action_text}</span>
-                    {a.completed && <Badge variant="secondary" className="text-[10px]">Feita</Badge>}
+                    <span className={cn((a.status === 'concluida' || a.status === 'done' || a.status === 'completed') && 'line-through text-muted-foreground')}>{a.name}</span>
+                    {(a.status === 'concluida' || a.status === 'done' || a.status === 'completed') && <Badge variant="secondary" className="text-[10px]">Feita</Badge>}
                   </div>
                 ))}
               </CardContent>

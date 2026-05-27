@@ -12,7 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload, X, ExternalLink } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, ChevronDown, Upload, X, ExternalLink } from 'lucide-react';
+import { NewMeetingButton } from '@/components/meeting/NewMeetingButton';
 import { CrmLabelPicker, CrmLabelBadges } from './CrmLabelPicker';
 import { useCrmLabels } from '@/hooks/useCrmLabels';
 import { format, differenceInDays, parseISO } from 'date-fns';
@@ -41,22 +42,18 @@ interface LeadDetailSheetProps {
 
 export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
   const navigate = useNavigate();
-  const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
+  const { useLeadInteractions, upsertInteraction, deleteInteraction } = useCrmData();
   const { stages: CRM_STATUSES } = useCrmStages();
   const { data: commercialMembers = [] } = useCommercialMembers();
   const { labels, leadLabelsMap } = useCrmLabels();
   const [form, setForm] = useState<any>({});
   const [interactionDialog, setInteractionDialog] = useState(false);
-  const [newAction, setNewAction] = useState('');
+  const [newTaskName, setNewTaskName] = useState('');
   const [lostReasonDialog, setLostReasonDialog] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteProductId, setQuoteProductId] = useState<string | null>(null);
   const [lostReason, setLostReason] = useState('');
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
-  const [meetingDialog, setMeetingDialog] = useState(false);
-  const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
-  const [meetingTime, setMeetingTime] = useState('10:00');
-  const [meetingTitle, setMeetingTitle] = useState('');
   const qc = useQueryClient();
 
   // Product hint: base_price + ticket_type para sugerir valor ao converter
@@ -75,7 +72,55 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   });
 
   const interactions = useLeadInteractions(lead?.id || null);
-  const actions = useLeadActions(lead?.id || null);
+
+  // Lead tasks (substitui o antigo checklist `crm_lead_actions`)
+  const leadTasks = useQuery({
+    queryKey: ['lead-tasks', lead?.id],
+    enabled: !!lead?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, name, status, deadline, assigned_to')
+        .eq('lead_id', lead!.id)
+        .order('created_at', { ascending: true });
+      return data || [];
+    },
+  });
+
+  const isTaskDone = (s: string) => s === 'concluida' || s === 'done' || s === 'completed';
+
+  const addLeadTask = useMutation({
+    mutationFn: async (name: string) => {
+      if (!lead?.id) return;
+      const { error } = await supabase.from('tasks').insert({
+        name,
+        lead_id: lead.id,
+        department: 'comercial',
+        assigned_to: form.responsible_id || null,
+        status: 'por_comecar',
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['lead-tasks', lead?.id] }); qc.invalidateQueries({ queryKey: ['tasks'] }); },
+    onError: (e: any) => toast.error('Erro ao criar tarefa: ' + (e?.message || '')),
+  });
+
+  const updateLeadTask = useMutation({
+    mutationFn: async (patch: { id: string; [k: string]: any }) => {
+      const { id, ...rest } = patch;
+      const { error } = await supabase.from('tasks').update(rest as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['lead-tasks', lead?.id] }); qc.invalidateQueries({ queryKey: ['tasks'] }); },
+  });
+
+  const deleteLeadTask = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('tasks').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['lead-tasks', lead?.id] }); qc.invalidateQueries({ queryKey: ['tasks'] }); },
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -149,10 +194,10 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     });
   };
 
-  const handleAddAction = () => {
-    if (!newAction.trim() || !lead?.id) return;
-    upsertLeadAction.mutate({ lead_id: lead.id, task: newAction });
-    setNewAction('');
+  const handleAddTask = () => {
+    if (!newTaskName.trim() || !lead?.id) return;
+    addLeadTask.mutate(newTaskName.trim());
+    setNewTaskName('');
   };
 
   const handleFileUpload = async (file: File) => {
@@ -495,11 +540,27 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 )}
               </div>
 
-              {/* Schedule meeting button */}
+              {/* Schedule meeting */}
               {lead?.id && (
-                <Button variant="outline" className="w-full" onClick={() => { setMeetingTitle(`Diagnóstico — ${form.name || 'Lead'}`); setMeetingDate(undefined); setMeetingTime('10:00'); setMeetingDialog(true); }}>
-                  <Video className="h-4 w-4 mr-2" /> Agendar Reunião
-                </Button>
+                <NewMeetingButton
+                  variant="outline"
+                  className="w-full"
+                  label="Agendar Reunião"
+                  defaultTitle={`Diagnóstico — ${form.name || 'Lead'}`}
+                  defaultDepartment="comercial"
+                  defaultMemberIds={form.responsible_id ? [form.responsible_id] : undefined}
+                  onMeetingCreated={async () => {
+                    if (lead?.id) {
+                      await supabase.from('crm_interactions').insert({
+                        lead_id: lead.id,
+                        interaction_type: 'reuniao',
+                        interaction_date: format(new Date(), 'yyyy-MM-dd'),
+                        notes: `Reunião agendada a partir da lead ${form.name || ''}`.trim(),
+                      } as any);
+                      qc.invalidateQueries({ queryKey: ['crm-interactions'] });
+                    }
+                  }}
+                />
               )}
 
               {/* Collapsible sections for saved leads */}
@@ -542,28 +603,53 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                     )}
                   </div>
 
-                  {/* Actions checklist */}
+                  {/* Tarefas da Lead */}
                   <Separator />
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">Lista de Ações ({(actions.data || []).length})</h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">Tarefas ({(leadTasks.data || []).length})</h3>
+                      <span className="text-[11px] text-muted-foreground">Sincronizadas com o módulo Tarefas</span>
+                    </div>
                     <div className="space-y-2">
-                      {(actions.data || []).map((a: any) => (
-                        <div key={a.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={a.completed}
-                            onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
-                          />
-                          <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
-                          {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
-                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
+                      {(leadTasks.data || []).map((t: any) => {
+                        const done = isTaskDone(t.status);
+                        return (
+                          <div key={t.id} className="flex items-center gap-2">
+                            <Checkbox
+                              checked={done}
+                              onCheckedChange={(checked) => updateLeadTask.mutate({ id: t.id, status: checked ? 'concluida' : 'por_comecar' })}
+                            />
+                            <Input
+                              className={cn("h-8 flex-1 border-transparent hover:border-input focus:border-input", done && "line-through text-muted-foreground")}
+                              defaultValue={t.name}
+                              onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== t.name) updateLeadTask.mutate({ id: t.id, name: v }); }}
+                            />
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground">
+                                  <CalendarIcon className="h-3 w-3 mr-1" />
+                                  {t.deadline ? format(new Date(t.deadline), 'dd/MM') : 'Data'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="end">
+                                <Calendar
+                                  mode="single"
+                                  selected={t.deadline ? new Date(t.deadline) : undefined}
+                                  onSelect={(d) => updateLeadTask.mutate({ id: t.id, deadline: d ? format(d, 'yyyy-MM-dd') : null })}
+                                  className="p-3 pointer-events-auto"
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteLeadTask.mutate(t.id)}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
+                        );
+                      })}
                     </div>
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-                      <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
-                      <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
+                      <Input placeholder="Nova tarefa..." value={newTaskName} onChange={e => setNewTaskName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddTask()} />
+                      <Button size="sm" variant="outline" onClick={handleAddTask} disabled={addLeadTask.isPending}><Plus className="h-3 w-3" /></Button>
                     </div>
                   </div>
 
@@ -618,66 +704,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               <Button variant="outline" className="flex-1" onClick={() => { setLostReasonDialog(false); setPendingStatus(null); }}>Cancelar</Button>
               <Button className="flex-1" onClick={handleLostReasonConfirm}>Confirmar</Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Schedule Meeting Dialog */}
-      <Dialog open={meetingDialog} onOpenChange={setMeetingDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Agendar Reunião</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label>Título</Label>
-              <Input value={meetingTitle} onChange={e => setMeetingTitle(e.target.value)} />
-            </div>
-            <div>
-              <Label>Data</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !meetingDate && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {meetingDate ? format(meetingDate, 'dd/MM/yyyy') : 'Selecionar data'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={meetingDate} onSelect={setMeetingDate} className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Label>Hora</Label>
-              <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} />
-            </div>
-            <Button className="w-full" disabled={!meetingDate || !meetingTitle.trim()} onClick={async () => {
-              if (!meetingDate || !meetingTitle.trim()) return;
-              const [h, m] = meetingTime.split(':').map(Number);
-              const dt = new Date(meetingDate);
-              dt.setHours(h || 10, m || 0, 0, 0);
-              const { error } = await supabase.from('meetings').insert({
-                title: meetingTitle.trim(),
-                date_time: dt.toISOString(),
-                status: 'por_confirmar',
-                meeting_type: 'standard' as any,
-                client_name: form.name || null,
-                department: 'comercial',
-              });
-              if (error) { toast.error('Erro ao criar reunião'); return; }
-              if (lead?.id) {
-                await supabase.from('crm_interactions').insert({
-                  lead_id: lead.id,
-                  interaction_type: 'reuniao',
-                  interaction_date: format(meetingDate, 'yyyy-MM-dd'),
-                  notes: `Reunião de diagnóstico agendada: ${meetingTitle}`,
-                });
-              }
-              qc.invalidateQueries({ queryKey: ['meetings'] });
-              qc.invalidateQueries({ queryKey: ['crm-interactions'] });
-              setMeetingDialog(false);
-              toast.success('Reunião agendada');
-            }}>
-              Agendar
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
