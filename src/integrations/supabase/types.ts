@@ -873,6 +873,7 @@ export type Database = {
           disabled_modules: Json
           font_body: string
           font_display: string
+          font_mono: string
           has_accountant: boolean
           id: string
           iva_exempt: boolean
@@ -919,6 +920,7 @@ export type Database = {
           disabled_modules?: Json
           font_body?: string
           font_display?: string
+          font_mono?: string
           has_accountant?: boolean
           id?: string
           iva_exempt?: boolean
@@ -965,6 +967,7 @@ export type Database = {
           disabled_modules?: Json
           font_body?: string
           font_display?: string
+          font_mono?: string
           has_accountant?: boolean
           id?: string
           iva_exempt?: boolean
