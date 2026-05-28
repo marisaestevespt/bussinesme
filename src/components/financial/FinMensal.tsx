@@ -257,6 +257,8 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
   const resultado = totalEntradas - totalSaidas;
   const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
+  const resultadoBase = totalBaseEntradas - totalBaseSaidas;
+  const margemBase = totalBaseEntradas > 0 ? Math.round(resultadoBase / totalBaseEntradas * 10000) / 100 : 0;
 
   const ssExpense = useMemo(() => monthExpenses.find(e => e.category === 'seguranca_social'), [monthExpenses]);
 
