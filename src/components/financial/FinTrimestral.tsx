@@ -53,9 +53,9 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
 
       <div id="fin-trimestral-report" className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          <StatCard tone="success" size="sm" value={formatEuro(dv.entradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />{selectedQ === 'todos' ? 'total' : selectedQ.toLowerCase()} entradas</>} />
-          <StatCard tone="destructive" size="sm" value={formatEuro(dv.saidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />{selectedQ === 'todos' ? 'total' : selectedQ.toLowerCase()} saídas</>} />
-          <StatCard tone={dv.resultado >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(dv.resultado)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />resultado</>} />
+          <StatCard tone="success" size="sm" value={formatEuro(dv.entradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />{selectedQ === 'todos' ? 'total' : selectedQ.toLowerCase()} entradas (s/ IVA)</>} />
+          <StatCard tone="destructive" size="sm" value={formatEuro(dv.saidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />{selectedQ === 'todos' ? 'total' : selectedQ.toLowerCase()} saídas (s/ IVA)</>} />
+          <StatCard tone={dv.resultado >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(dv.resultado)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />resultado (s/ IVA)</>} />
           <StatCard tone={dv.margem >= 0 ? 'gold' : 'destructive'} size="sm" value={`${dv.margem}%`} label={<><Percent className="h-3 w-3 inline mr-1.5 -mt-0.5" />margem</>} />
         </div>
 
