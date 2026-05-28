@@ -257,6 +257,8 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
   const resultado = totalEntradas - totalSaidas;
   const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
+  const resultadoBase = totalBaseEntradas - totalBaseSaidas;
+  const margemBase = totalBaseEntradas > 0 ? Math.round(resultadoBase / totalBaseEntradas * 10000) / 100 : 0;
 
   const ssExpense = useMemo(() => monthExpenses.find(e => e.category === 'seguranca_social'), [monthExpenses]);
 
@@ -380,10 +382,10 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
       <div id="fin-mensal-report" className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          <StatCard tone="success" size="sm" value={formatEuro(totalEntradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />entradas</>} />
-          <StatCard tone="destructive" size="sm" value={formatEuro(totalSaidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />saídas</>} />
-          <StatCard tone={resultado >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(resultado)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />balanço</>} />
-          <StatCard tone={margem >= 0 ? 'gold' : 'destructive'} size="sm" value={`${margem}%`} label={<><Percent className="h-3 w-3 inline mr-1.5 -mt-0.5" />margem</>} />
+          <StatCard tone="success" size="sm" value={formatEuro(totalBaseEntradas)} label={<><ArrowDownToLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />entradas (s/ IVA)</>} />
+          <StatCard tone="destructive" size="sm" value={formatEuro(totalBaseSaidas)} label={<><ArrowUpFromLine className="h-3 w-3 inline mr-1.5 -mt-0.5" />saídas (s/ IVA)</>} />
+          <StatCard tone={resultadoBase >= 0 ? 'success' : 'destructive'} size="sm" value={formatEuro(resultadoBase)} label={<><Scale className="h-3 w-3 inline mr-1.5 -mt-0.5" />balanço (s/ IVA)</>} />
+          <StatCard tone={margemBase >= 0 ? 'gold' : 'destructive'} size="sm" value={`${margemBase}%`} label={<><Percent className="h-3 w-3 inline mr-1.5 -mt-0.5" />margem</>} />
         </div>
 
         <EntradasTable
