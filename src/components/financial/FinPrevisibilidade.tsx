@@ -126,7 +126,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
     const revenueByMonth: Record<number, number> = {};
     sales.filter(s => s.sale_year === currentYear).forEach(s => {
       if (s.sale_month) {
-        revenueByMonth[s.sale_month] = (revenueByMonth[s.sale_month] || 0) + s.invoice_total;
+        revenueByMonth[s.sale_month] = (revenueByMonth[s.sale_month] || 0) + s.base_value;
       }
     });
 
