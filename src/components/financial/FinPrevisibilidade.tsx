@@ -173,8 +173,8 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
     <div className="space-y-6 mt-4">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas Previstas (Ano)</p><p className="text-lg font-bold text-success">{formatEuro(totals.entradas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas Previstas (Ano)</p><p className="text-lg font-bold text-destructive">{formatEuro(totals.saidas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas Previstas (s/ IVA)</p><p className="text-lg font-bold text-success">{formatEuro(totals.entradas)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas Previstas (c/ IVA)</p><p className="text-lg font-bold text-destructive">{formatEuro(totals.saidas)}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Impostos Previstos (Ano)</p><p className="text-lg font-bold text-warning">{formatEuro(totals.impostos)}</p>{isContabOrganizada && <p className="text-[10px] text-muted-foreground">Gerido pelo contabilista</p>}</CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço Previsto (Ano)</p><p className={`text-lg font-bold ${totals.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{formatEuro(totals.balanco)}</p></CardContent></Card>
       </div>
