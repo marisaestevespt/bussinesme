@@ -12,14 +12,16 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
     return QUARTERS.map(q => {
       const qSales = yearSales.filter(s => q.months.includes(s.sale_month || 0));
       const qExpenses = yearExpenses.filter(e => q.months.includes(e.expense_month || 0));
-      const ent = sumRevenue(qSales);
+      const entCom = sumRevenue(qSales);
       const entBase = qSales.reduce((s, v) => s + v.base_value, 0);
-      const sai = qExpenses.reduce((s, v) => s + v.total_with_vat, 0);
+      const saiCom = qExpenses.reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = qExpenses.reduce((s, v) => s + v.base_value, 0);
+      const ent = entBase;
+      const sai = saiBase;
       const resultado = ent - sai;
       const margem = ent > 0 ? Math.round(resultado / ent * 10000) / 100 : 0;
-      const ivaCobrado = ent - entBase;
-      const ivaPago = sai - saiBase;
+      const ivaCobrado = entCom - entBase;
+      const ivaPago = saiCom - saiBase;
       const ivaBalanco = ivaCobrado - ivaPago;
       const ss = qExpenses.filter(e => e.category === 'seguranca_social').reduce((s, v) => s + v.total_with_vat, 0);
       const clientSet = new Set<string>();
@@ -28,14 +30,14 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
       const byCat = new Map<string, number>();
       qExpenses.forEach(e => {
         const cat = e.category || 'outro';
-        byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+        byCat.set(cat, (byCat.get(cat) || 0) + e.base_value);
       });
       const categories: NamedValue[] = [...byCat.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
 
       const byProd = new Map<string, number>();
       qSales.forEach(s => {
         const name = s.product || 'Sem produto';
-        byProd.set(name, (byProd.get(name) || 0) + s.invoice_total);
+        byProd.set(name, (byProd.get(name) || 0) + s.base_value);
       });
       const products: NamedValue[] = [...byProd.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
 
@@ -60,8 +62,8 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
   const monthlyData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
-      const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
+      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.base_value, 0);
+      const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.base_value, 0);
       return { mes: ML[i], entradas: ent, saidas: sai, resultado: ent - sai };
     });
   }, [yearSales, yearExpenses]);
@@ -70,7 +72,7 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
     const byCat = new Map<string, number>();
     yearExpenses.forEach(e => {
       const cat = expenseLabel(e.category || 'outro');
-      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+      byCat.set(cat, (byCat.get(cat) || 0) + e.base_value);
     });
     return [...byCat.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
   }, [yearExpenses]);
@@ -79,7 +81,7 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
     const byProd = new Map<string, number>();
     yearSales.forEach(s => {
       const name = s.product || 'Sem produto';
-      byProd.set(name, (byProd.get(name) || 0) + s.invoice_total);
+      byProd.set(name, (byProd.get(name) || 0) + s.base_value);
     });
     return [...byProd.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
   }, [yearSales]);
@@ -90,11 +92,11 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
   const selectedMonthlyData = useMemo(() => {
     if (!selectedQDef) return [];
     return selectedQDef.months.map(m => {
-      const ent = sumRevenue(yearSales.filter(s => s.sale_month === m));
+      const entCom = sumRevenue(yearSales.filter(s => s.sale_month === m));
       const entBase = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.base_value, 0);
-      const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
+      const saiCom = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
       const saiBase = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.base_value, 0);
-      return { mes: ML[m - 1], entradas: ent, saidas: sai, resultado: ent - sai, ivaCobrado: ent - entBase, ivaPago: sai - saiBase };
+      return { mes: ML[m - 1], entradas: entBase, saidas: saiBase, resultado: entBase - saiBase, ivaCobrado: entCom - entBase, ivaPago: saiCom - saiBase };
     });
   }, [selectedQDef, yearSales, yearExpenses]);
 
@@ -103,7 +105,7 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
     const byProd = new Map<string, number>();
     yearSales.filter(s => selectedQDef.months.includes(s.sale_month || 0)).forEach(s => {
       const name = s.product || 'Sem produto';
-      byProd.set(name, (byProd.get(name) || 0) + s.invoice_total);
+      byProd.set(name, (byProd.get(name) || 0) + s.base_value);
     });
     return [...byProd.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
   }, [selectedQDef, yearSales, allProducts]);
@@ -113,7 +115,7 @@ export function useTrimestralData(sales: TrimSale[], expenses: TrimExpense[], cu
     const byCat = new Map<string, number>();
     yearExpenses.filter(e => selectedQDef.months.includes(e.expense_month || 0)).forEach(e => {
       const cat = expenseLabel(e.category || 'outro');
-      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+      byCat.set(cat, (byCat.get(cat) || 0) + e.base_value);
     });
     return [...byCat.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
   }, [selectedQDef, yearExpenses, allCategories]);
