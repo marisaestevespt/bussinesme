@@ -959,6 +959,8 @@ export default function PortalViewPage() {
               phases={phases}
               client={client}
               portalMaterials={[]}
+              projectAssets={projectAssets as any}
+              portalToken={portalToken || undefined}
               tasks={tasks}
               pc={pc}
               pcAlpha={pcAlpha}
