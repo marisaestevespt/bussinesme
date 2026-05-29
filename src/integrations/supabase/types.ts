@@ -12697,6 +12697,27 @@ export type Database = {
         }[]
       }
       get_portal_phases: { Args: { _token: string }; Returns: Json }
+      get_portal_project_asset_file_url: {
+        Args: { _asset_id: string; _token: string }
+        Returns: string
+      }
+      get_portal_project_assets: {
+        Args: { _token: string }
+        Returns: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          kind: string
+          mime_type: string
+          project_id: string
+          project_name: string
+          size_bytes: number
+          storage_path: string
+          title: string
+          url: string
+        }[]
+      }
       get_portal_project_history: {
         Args: { _token: string }
         Returns: {
