@@ -6,13 +6,18 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
 import { isPhaseDone, isDeliverableDone } from '@/lib/projectProgress';
-import type { PortalPhase, PortalMaterial } from '@/types/portal';
+import type { PortalPhase, PortalMaterial, PortalDeliverable } from '@/types/portal';
+
+type PortalClientContext = Record<string, unknown> & {
+  documents?: string | null;
+  drive_folder_url?: string | null;
+};
 
 interface Props {
   phases: PortalPhase[];
-  client: Record<string, any>;
+  client: PortalClientContext;
   portalMaterials: PortalMaterial[];
-  tasks: Array<Record<string, any>>;
+  tasks: Array<Record<string, unknown>>;
   pc: string;
   pcAlpha: (a: number) => string;
   hasOngoingWork?: boolean;
@@ -26,9 +31,9 @@ interface Props {
 type TaskFilter = 'pendentes' | 'concluidas' | 'todas';
 
 export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha, hasOngoingWork = false, unifiedProgress }: Props) {
-  const allDeliverables = useMemo(() => phases.flatMap((p: any) => p.deliverables || []), [phases]);
+  const allDeliverables = useMemo(() => phases.flatMap((p) => p.deliverables || []), [phases]);
   const explicitProgress = phases
-    .map((p: any) => Number(p.project_progress))
+    .map((p) => Number(p.project_progress))
     .filter((v) => Number.isFinite(v));
   const officialProgress = explicitProgress.length > 0
     ? Math.round(Array.from(new Set(explicitProgress)).reduce((sum, v) => sum + v, 0) / Array.from(new Set(explicitProgress)).length)
@@ -60,7 +65,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
     if (client.documents) items.push({ id: 'docs', label: 'Documentos', url: client.documents, type: 'link' });
     if (client.drive_folder_url) items.push({ id: 'drive', label: 'Pasta Drive', url: client.drive_folder_url, type: 'link' });
     portalMaterials.forEach((m) => items.push({ id: m.id, label: m.file_name || m.title || 'Material', url: m.file_url || '', type: 'file' }));
-    allDeliverables.forEach((d: any) => {
+    allDeliverables.forEach((d) => {
       items.push({
         id: `deliverable-${d.id}`,
         label: d.name || 'Entregável',
@@ -84,7 +89,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
     const items: Array<{ id: string; name: string; status: string; planned_end: string | null; phase_name: string }> = [];
     phases.forEach((p) => {
       const dels = Array.isArray(p.deliverables) ? p.deliverables : [];
-      dels.forEach((d: any) => {
+      dels.forEach((d: PortalDeliverable) => {
         const rt = d.responsible_type || 'equipa';
         if (rt !== 'cliente' && rt !== 'ambos') return;
         items.push({
