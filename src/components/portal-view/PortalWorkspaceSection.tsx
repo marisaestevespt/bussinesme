@@ -6,13 +6,18 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
 import { isPhaseDone, isDeliverableDone } from '@/lib/projectProgress';
-import type { PortalPhase, PortalMaterial } from '@/types/portal';
+import type { PortalPhase, PortalMaterial, PortalDeliverable } from '@/types/portal';
+
+type PortalClientContext = Record<string, unknown> & {
+  documents?: string | null;
+  drive_folder_url?: string | null;
+};
 
 interface Props {
   phases: PortalPhase[];
-  client: Record<string, any>;
+  client: PortalClientContext;
   portalMaterials: PortalMaterial[];
-  tasks: Array<Record<string, any>>;
+  tasks: Array<Record<string, unknown>>;
   pc: string;
   pcAlpha: (a: number) => string;
   hasOngoingWork?: boolean;
@@ -26,9 +31,9 @@ interface Props {
 type TaskFilter = 'pendentes' | 'concluidas' | 'todas';
 
 export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha, hasOngoingWork = false, unifiedProgress }: Props) {
-  const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
+  const allDeliverables = useMemo(() => phases.flatMap((p) => p.deliverables || []), [phases]);
   const explicitProgress = phases
-    .map((p: any) => Number(p.project_progress))
+    .map((p) => Number(p.project_progress))
     .filter((v) => Number.isFinite(v));
   const officialProgress = explicitProgress.length > 0
     ? Math.round(Array.from(new Set(explicitProgress)).reduce((sum, v) => sum + v, 0) / Array.from(new Set(explicitProgress)).length)
@@ -50,15 +55,27 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
   // de mostrar "Projeto concluído".
   const allPhasesDone = total > 0 && !activePhase;
   const showContinuous = allPhasesDone && hasOngoingWork;
-  const activeDeliverables = (activePhase && Array.isArray(activePhase.deliverables)) ? activePhase.deliverables : [];
-  const activeDDone = activeDeliverables.filter((d: any) => d.status === 'concluido').length;
+  const activeDeliverables: PortalDeliverable[] = (activePhase && Array.isArray(activePhase.deliverables)) ? activePhase.deliverables : [];
+  const activeDDone = activeDeliverables.filter((d) => d.status === 'concluido').length;
   const activeDPct = activeDeliverables.length ? Math.round((activeDDone / activeDeliverables.length) * 100) : 0;
 
-  // Materials + client links
-  const allItems: { id: string; label: string; url: string; type: 'link' | 'file' }[] = [];
-  if (client.documents) allItems.push({ id: 'docs', label: 'Documentos', url: client.documents, type: 'link' });
-  if (client.drive_folder_url) allItems.push({ id: 'drive', label: 'Pasta Drive', url: client.drive_folder_url, type: 'link' });
-  portalMaterials.forEach((m) => allItems.push({ id: m.id, label: m.file_name || m.title || 'Material', url: m.file_url || '', type: 'file' }));
+  // Materials + client links + project deliverables visible in the portal
+  const allItems: { id: string; label: string; url?: string; type: 'link' | 'file' | 'deliverable'; status?: string }[] = useMemo(() => {
+    const items: { id: string; label: string; url?: string; type: 'link' | 'file' | 'deliverable'; status?: string }[] = [];
+    if (client.documents) items.push({ id: 'docs', label: 'Documentos', url: client.documents, type: 'link' });
+    if (client.drive_folder_url) items.push({ id: 'drive', label: 'Pasta Drive', url: client.drive_folder_url, type: 'link' });
+    portalMaterials.forEach((m) => items.push({ id: m.id, label: m.file_name || m.title || 'Material', url: m.file_url || '', type: 'file' }));
+    allDeliverables.forEach((d) => {
+      items.push({
+        id: `deliverable-${d.id}`,
+        label: d.name || 'Entregável',
+        url: d.link_url || d.document_url || undefined,
+        type: 'deliverable',
+        status: d.status,
+      });
+    });
+    return items;
+  }, [allDeliverables, client.documents, client.drive_folder_url, portalMaterials]);
 
   const [matQuery, setMatQuery] = useState('');
   const filteredItems = useMemo(() => {
@@ -72,7 +89,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
     const items: Array<{ id: string; name: string; status: string; planned_end: string | null; phase_name: string }> = [];
     phases.forEach((p) => {
       const dels = Array.isArray(p.deliverables) ? p.deliverables : [];
-      dels.forEach((d: any) => {
+      dels.forEach((d: PortalDeliverable) => {
         const rt = d.responsible_type || 'equipa';
         if (rt !== 'cliente' && rt !== 'ambos') return;
         items.push({
@@ -177,7 +194,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
             <span className="text-[10px] text-muted-foreground tabular-nums">{activeDDone}/{activeDeliverables.length} · {activeDPct}%</span>
           </div>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-            {activeDeliverables.map((d: any) => {
+            {activeDeliverables.map((d) => {
               const ddone = d.status === 'concluido';
               const dactive = d.status === 'em_progresso';
               return (
@@ -345,12 +362,13 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
 
         {filteredItems.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filteredItems.map(item => (
-              <a
+            {filteredItems.map(item => {
+              const CardTag = item.url ? 'a' : 'div';
+              const done = item.status === 'concluido' || item.status === 'entregue';
+              return (
+              <CardTag
                 key={item.id}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...(item.url ? { href: item.url, target: '_blank', rel: 'noopener noreferrer' } : {})}
                 className="group block"
               >
                 <SectionCard className="p-4 hover:-translate-y-0.5 transition-transform">
@@ -360,15 +378,18 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
                   >
                     {item.type === 'link'
                       ? <FolderOpen className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />
-                      : <FileText className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />}
+                      : item.type === 'deliverable' && done
+                        ? <CheckCircle2 className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />
+                        : <FileText className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />}
                   </div>
                   <p className="text-xs font-medium leading-snug line-clamp-2 mb-2">{item.label}</p>
                   <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1 group-hover:text-foreground transition-colors">
-                    <Download className="h-3 w-3" />{item.type === 'link' ? 'Abrir' : 'Descarregar'}
+                    {item.url ? <Download className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
+                    {item.url ? (item.type === 'link' ? 'Abrir' : 'Abrir') : done ? 'Concluído' : 'Planeado'}
                   </span>
                 </SectionCard>
-              </a>
-            ))}
+              </CardTag>
+            );})}
           </div>
         ) : (
           <SectionCard className="p-8 text-center">
