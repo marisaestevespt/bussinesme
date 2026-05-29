@@ -77,6 +77,7 @@ export default function PortalViewPage() {
   const [responsibilities, setResponsibilities] = useState<Array<Record<string, any>>>([]);
   const [routines, setRoutines] = useState<Array<Record<string, any>>>([]);
   const [recurringOccurrences, setRecurringOccurrences] = useState<Array<Record<string, any>>>([]);
+  const [projectAssets, setProjectAssets] = useState<Array<Record<string, any>>>([]);
   const [requests, setRequests] = useState<PortalRequest[]>([]);
   const [accountManager, setAccountManager] = useState<{
     id: string;
@@ -146,6 +147,7 @@ export default function PortalViewPage() {
         supabase.rpc('get_portal_account_manager', { _token: realToken }),
         supabase.rpc('get_portal_client_requests', { _token: realToken }),
         rpcAny('get_portal_recurring_occurrences', { _token: realToken }),
+        rpcAny('get_portal_project_assets', { _token: realToken }),
       ]);
       const value = <T,>(index: number): T[] => {
         const result = results[index];
@@ -189,6 +191,7 @@ export default function PortalViewPage() {
       setAccountManager(amList[0] || null);
       setRequests(value<PortalRequest>(15));
       setRecurringOccurrences(value<Record<string, any>>(16));
+      setProjectAssets(value<Record<string, any>>(17));
       // Audit: log portal session (fire-and-forget)
       try { await supabase.rpc('portal_log_login', { _token: realToken }); } catch { /* ignore */ }
     } catch (error) {
