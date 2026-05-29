@@ -1,22 +1,39 @@
 import { useMemo, useState } from 'react';
 import { format, parseISO, isAfter, differenceInCalendarDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { Briefcase, FileText, FolderOpen, Download, CheckCircle2, Circle, Layers, Package, Search, Clock, AlertCircle, UserCheck } from 'lucide-react';
+import { Briefcase, FileText, FolderOpen, Download, CheckCircle2, Circle, Layers, Package, Search, Clock, AlertCircle, UserCheck, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { SectionCard, SectionTitle } from './SectionPrimitives';
 import { isPhaseDone, isDeliverableDone } from '@/lib/projectProgress';
 import type { PortalPhase, PortalMaterial, PortalDeliverable } from '@/types/portal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type PortalClientContext = Record<string, unknown> & {
   documents?: string | null;
   drive_folder_url?: string | null;
 };
 
+export interface PortalProjectAsset {
+  id: string;
+  project_id: string;
+  project_name: string | null;
+  title: string;
+  description: string | null;
+  kind: 'file' | 'link';
+  url: string | null;
+  storage_path: string | null;
+  mime_type: string | null;
+  category: string | null;
+}
+
 interface Props {
   phases: PortalPhase[];
   client: PortalClientContext;
   portalMaterials: PortalMaterial[];
+  projectAssets?: PortalProjectAsset[];
+  portalToken?: string;
   tasks: Array<Record<string, unknown>>;
   pc: string;
   pcAlpha: (a: number) => string;
@@ -30,7 +47,7 @@ interface Props {
 
 type TaskFilter = 'pendentes' | 'concluidas' | 'todas';
 
-export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks, pc, pcAlpha, hasOngoingWork = false, unifiedProgress }: Props) {
+export function PortalWorkspaceSection({ phases, client, portalMaterials, projectAssets = [], portalToken, tasks, pc, pcAlpha, hasOngoingWork = false, unifiedProgress }: Props) {
   const allDeliverables = useMemo(() => phases.flatMap((p) => p.deliverables || []), [phases]);
   const explicitProgress = phases
     .map((p) => Number(p.project_progress))
@@ -59,23 +76,45 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
   const activeDDone = activeDeliverables.filter((d) => d.status === 'concluido').length;
   const activeDPct = activeDeliverables.length ? Math.round((activeDDone / activeDeliverables.length) * 100) : 0;
 
-  // Materials + client links + project deliverables visible in the portal
-  const allItems: { id: string; label: string; url?: string; type: 'link' | 'file' | 'deliverable'; status?: string }[] = useMemo(() => {
-    const items: { id: string; label: string; url?: string; type: 'link' | 'file' | 'deliverable'; status?: string }[] = [];
+  // Materiais entregáveis: documentos/links do card "Entregáveis" de cada projeto,
+  // mais documentos/drive ligados ao cliente, mais materiais legacy do portal.
+  type MaterialItem = {
+    id: string;
+    label: string;
+    url?: string;
+    type: 'link' | 'file' | 'asset-file';
+    assetId?: string;
+    project?: string | null;
+  };
+  const allItems: MaterialItem[] = useMemo(() => {
+    const items: MaterialItem[] = [];
     if (client.documents) items.push({ id: 'docs', label: 'Documentos', url: client.documents, type: 'link' });
     if (client.drive_folder_url) items.push({ id: 'drive', label: 'Pasta Drive', url: client.drive_folder_url, type: 'link' });
     portalMaterials.forEach((m) => items.push({ id: m.id, label: m.file_name || m.title || 'Material', url: m.file_url || '', type: 'file' }));
-    allDeliverables.forEach((d) => {
-      items.push({
-        id: `deliverable-${d.id}`,
-        label: d.name || 'Entregável',
-        url: d.link_url || d.document_url || undefined,
-        type: 'deliverable',
-        status: d.status,
-      });
+    projectAssets.forEach((a) => {
+      if (a.kind === 'link') {
+        items.push({ id: `asset-${a.id}`, label: a.title, url: a.url || undefined, type: 'link', project: a.project_name });
+      } else {
+        items.push({ id: `asset-${a.id}`, label: a.title, type: 'asset-file', assetId: a.id, project: a.project_name });
+      }
     });
     return items;
-  }, [allDeliverables, client.documents, client.drive_folder_url, portalMaterials]);
+  }, [client.documents, client.drive_folder_url, portalMaterials, projectAssets]);
+
+  const openAssetFile = async (assetId: string) => {
+    if (!portalToken) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('portal-project-asset-file', {
+        body: { token: portalToken, asset_id: assetId },
+      });
+      if (error) throw error;
+      const url = (data as { url?: string })?.url;
+      if (!url) throw new Error('Sem URL');
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      toast.error('Não foi possível abrir o ficheiro');
+    }
+  };
 
   const [matQuery, setMatQuery] = useState('');
   const filteredItems = useMemo(() => {
@@ -363,33 +402,51 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
         {filteredItems.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {filteredItems.map(item => {
-              const CardTag = item.url ? 'a' : 'div';
-              const done = item.status === 'concluido' || item.status === 'entregue';
-              return (
-              <CardTag
-                key={item.id}
-                {...(item.url ? { href: item.url, target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="group block"
-              >
-                <SectionCard className="p-4 hover:-translate-y-0.5 transition-transform">
+              const isAssetFile = item.type === 'asset-file';
+              const hasUrl = !!item.url;
+              const commonInner = (
+                <SectionCard className="p-4 hover:-translate-y-0.5 transition-transform h-full">
                   <div
                     className="h-10 w-10 rounded-lg flex items-center justify-center mb-3"
                     style={{ backgroundColor: pcAlpha(0.08) }}
                   >
                     {item.type === 'link'
                       ? <FolderOpen className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />
-                      : item.type === 'deliverable' && done
-                        ? <CheckCircle2 className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />
-                        : <FileText className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />}
+                      : <FileText className="h-5 w-5" style={{ color: pc }} strokeWidth={1.5} />}
                   </div>
-                  <p className="text-xs font-medium leading-snug line-clamp-2 mb-2">{item.label}</p>
+                  <p className="text-xs font-medium leading-snug line-clamp-2 mb-1">{item.label}</p>
+                  {item.project && (
+                    <p className="text-[10px] text-muted-foreground/80 line-clamp-1 mb-1">{item.project}</p>
+                  )}
                   <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1 group-hover:text-foreground transition-colors">
-                    {item.url ? <Download className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
-                    {item.url ? (item.type === 'link' ? 'Abrir' : 'Abrir') : done ? 'Concluído' : 'Planeado'}
+                    {item.type === 'link' ? <ExternalLink className="h-3 w-3" /> : <Download className="h-3 w-3" />}
+                    Abrir
                   </span>
                 </SectionCard>
-              </CardTag>
-            );})}
+              );
+              if (isAssetFile) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => item.assetId && openAssetFile(item.assetId)}
+                    className="group block text-left"
+                  >
+                    {commonInner}
+                  </button>
+                );
+              }
+              const CardTag = hasUrl ? 'a' : 'div';
+              return (
+                <CardTag
+                  key={item.id}
+                  {...(hasUrl ? { href: item.url, target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  className="group block"
+                >
+                  {commonInner}
+                </CardTag>
+              );
+            })}
           </div>
         ) : (
           <SectionCard className="p-8 text-center">
