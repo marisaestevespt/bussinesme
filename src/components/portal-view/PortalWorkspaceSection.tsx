@@ -55,8 +55,8 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
   // de mostrar "Projeto concluído".
   const allPhasesDone = total > 0 && !activePhase;
   const showContinuous = allPhasesDone && hasOngoingWork;
-  const activeDeliverables = (activePhase && Array.isArray(activePhase.deliverables)) ? activePhase.deliverables : [];
-  const activeDDone = activeDeliverables.filter((d: any) => d.status === 'concluido').length;
+  const activeDeliverables: PortalDeliverable[] = (activePhase && Array.isArray(activePhase.deliverables)) ? activePhase.deliverables : [];
+  const activeDDone = activeDeliverables.filter((d) => d.status === 'concluido').length;
   const activeDPct = activeDeliverables.length ? Math.round((activeDDone / activeDeliverables.length) * 100) : 0;
 
   // Materials + client links + project deliverables visible in the portal
@@ -194,7 +194,7 @@ export function PortalWorkspaceSection({ phases, client, portalMaterials, tasks,
             <span className="text-[10px] text-muted-foreground tabular-nums">{activeDDone}/{activeDeliverables.length} · {activeDPct}%</span>
           </div>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-            {activeDeliverables.map((d: any) => {
+            {activeDeliverables.map((d) => {
               const ddone = d.status === 'concluido';
               const dactive = d.status === 'em_progresso';
               return (
