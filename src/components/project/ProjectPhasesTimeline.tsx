@@ -1073,17 +1073,17 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                   })()}
                                   {/* Para fazer (scheduled_date) */}
                                   {(() => {
-                                    const sched = (d as any).scheduled_date as string | null | undefined;
+                                    const sched = d.scheduled_date;
                                     const overrun = !!sched && !!d.planned_end && sched > d.planned_end;
                                     return (
                                       <div className="flex items-center justify-start min-w-0">
                                         <Input
-                                          key={`sched-${d.id}-${(d as any).scheduled_date || 'null'}`}
+                                          key={`sched-${d.id}-${d.scheduled_date || 'null'}`}
                                           type="date"
-                                          defaultValue={(d as any).scheduled_date || ''}
+                                          defaultValue={d.scheduled_date || ''}
                                           onBlur={e => {
                                             const v = e.target.value || null;
-                                            if (v !== ((d as any).scheduled_date || null)) {
+                                            if (v !== (d.scheduled_date || null)) {
                                               updateDeliverable.mutate({ id: d.id, scheduled_date: v });
                                             }
                                           }}
