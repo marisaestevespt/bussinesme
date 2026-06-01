@@ -1081,7 +1081,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                           key={`sched-${d.id}-${d.scheduled_date || 'null'}`}
                                           type="date"
                                           defaultValue={d.scheduled_date || ''}
-                                          onChange={e => {
+                                          onBlur={e => {
                                             const v = e.target.value || null;
                                             if (v !== (d.scheduled_date || null)) {
                                               updateDeliverable.mutate({ id: d.id, scheduled_date: v });
