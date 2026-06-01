@@ -1048,6 +1048,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                     return (
                                       <div className="flex items-center justify-start min-w-0">
                                         <Input
+                                          key={`sched-${d.id}-${(d as any).scheduled_date || 'null'}`}
                                           type="date"
                                           defaultValue={(d as any).scheduled_date || ''}
                                           onBlur={e => {
@@ -1068,6 +1069,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                   {/* Deadline (planned_end) */}
                                   <div className="flex items-center justify-start min-w-0">
                                     <Input
+                                      key={`end-${d.id}-${d.planned_end || 'null'}`}
                                       type="date"
                                       defaultValue={d.planned_end || ''}
                                       onBlur={e => {
