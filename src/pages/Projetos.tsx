@@ -765,22 +765,30 @@ function GalleryView({ projects, getMembersForProject, onOpen, getProjectProgres
 // ─── Calendar View ──────────────────────────────────────────────
 
 function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Project[]; month: Date; onMonthChange: (d: Date) => void; onOpen: (id: string) => void }) {
-  const start = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
-  const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start, end });
-  const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  const monthStart = startOfMonth(month);
+  const monthEnd = endOfMonth(month);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const totalDays = days.length;
   const today = new Date();
 
-  function getProjectsForDay(day: Date) {
-    return projects.filter(p => {
-      if (p.start_date && p.deadline) {
-        return isWithinInterval(day, { start: parseISO(p.start_date), end: parseISO(p.deadline) });
-      }
-      if (p.deadline && isSameDay(parseISO(p.deadline), day)) return true;
-      if (p.start_date && isSameDay(parseISO(p.start_date), day)) return true;
-      return false;
-    });
-  }
+  // Only projects that overlap the visible month
+  const visible = projects
+    .filter(p => p.start_date || p.deadline)
+    .map(p => {
+      const s = p.start_date ? parseISO(p.start_date) : (p.deadline ? parseISO(p.deadline) : null);
+      const e = p.deadline ? parseISO(p.deadline) : (p.start_date ? parseISO(p.start_date) : null);
+      if (!s || !e) return null;
+      if (e < monthStart || s > monthEnd) return null;
+      const clipStart = s < monthStart ? monthStart : s;
+      const clipEnd = e > monthEnd ? monthEnd : e;
+      const offset = differenceInDays(clipStart, monthStart);
+      const span = differenceInDays(clipEnd, clipStart) + 1;
+      return { p, offset, span, startsBefore: s < monthStart, endsAfter: e > monthEnd };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .sort((a, b) => a.offset - b.offset || b.span - a.span);
+
+  const dayWidth = `calc(100% / ${totalDays})`;
 
   return (
     <div className="rounded-lg border bg-card">
@@ -789,50 +797,95 @@ function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Pr
         <h2 className="font-semibold capitalize text-lg">{format(month, 'MMMM yyyy', { locale: pt })}</h2>
         <Button variant="ghost" aria-label="Seguinte" size="icon" onClick={() => onMonthChange(addMonths(month, 1))}><ChevronRight className="h-4 w-4" /></Button>
       </div>
-      <div className="grid grid-cols-7">
-        {weekDays.map(d => (
-          <div key={d} className="p-2 text-center text-xs font-medium text-muted-foreground border-b bg-muted/30">{d}</div>
-        ))}
-        {days.map(day => {
-          const dayProjects = getProjectsForDay(day);
-          const isToday = isSameDay(day, today);
-          return (
-            <div
-              key={day.toISOString()}
-              className={cn(
-                "min-h-[100px] p-1.5 border-b border-r relative",
-                !isSameMonth(day, month) && "bg-muted/20",
-              )}
-            >
-              <span className={cn(
-                "text-xs font-medium inline-flex items-center justify-center h-6 w-6 rounded-full",
-                isToday && "bg-primary text-primary-foreground",
-                !isSameMonth(day, month) && !isToday && "text-muted-foreground/40"
-              )}>
-                {format(day, 'd')}
-              </span>
-              <div className="space-y-0.5 mt-1">
-                {dayProjects.slice(0, 3).map(p => {
-                  const statusI = getStatusInfo(p.status);
-                  return (
+      <div className="overflow-x-auto">
+        <div className="min-w-[800px]">
+          {/* Day header */}
+          <div className="flex border-b bg-muted/30 sticky top-0">
+            <div className="w-56 shrink-0 p-2 text-xs font-medium text-muted-foreground border-r">Projeto</div>
+            <div className="flex-1 flex">
+              {days.map(day => {
+                const isToday = isSameDay(day, today);
+                const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                return (
+                  <div
+                    key={day.toISOString()}
+                    style={{ width: dayWidth }}
+                    className={cn(
+                      "text-center text-[10px] py-1 border-r last:border-r-0",
+                      isWeekend && "bg-muted/40",
+                      isToday && "bg-primary/10 font-semibold text-primary"
+                    )}
+                  >
+                    {format(day, 'd')}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Project rows */}
+          {visible.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              Sem projetos com datas neste mês.
+            </div>
+          ) : (
+            visible.map(({ p, offset, span, startsBefore, endsAfter }) => {
+              const statusI = getStatusInfo(p.status);
+              return (
+                <div key={p.id} className="flex border-b hover:bg-muted/30 transition-colors">
+                  <div className="w-56 shrink-0 p-2 border-r flex items-center gap-2 min-w-0">
+                    <span className={cn('h-2 w-2 rounded-full shrink-0', statusI.dot)} />
                     <button
-                      key={p.id}
                       onClick={() => onOpen(p.id)}
-                      className="w-full text-left rounded px-1.5 py-0.5 text-[10px] truncate hover:opacity-80 transition-opacity flex items-center gap-1"
-                      style={{ background: 'hsl(var(--accent))' }}
+                      className="text-xs font-medium truncate hover:underline text-left"
+                      title={p.name}
                     >
-                      <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', statusI.dot)} />
+                      {p.name}
+                    </button>
+                  </div>
+                  <div className="flex-1 relative h-8">
+                    {/* day grid */}
+                    <div className="absolute inset-0 flex">
+                      {days.map(day => {
+                        const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                        const isToday = isSameDay(day, today);
+                        return (
+                          <div
+                            key={day.toISOString()}
+                            style={{ width: dayWidth }}
+                            className={cn(
+                              "border-r last:border-r-0",
+                              isWeekend && "bg-muted/30",
+                              isToday && "bg-primary/5"
+                            )}
+                          />
+                        );
+                      })}
+                    </div>
+                    {/* gantt bar */}
+                    <button
+                      onClick={() => onOpen(p.id)}
+                      style={{
+                        left: `calc(${offset} * ${dayWidth} + 2px)`,
+                        width: `calc(${span} * ${dayWidth} - 4px)`,
+                      }}
+                      className={cn(
+                        "absolute top-1.5 bottom-1.5 rounded px-2 text-[10px] font-medium truncate text-left hover:opacity-90 transition-opacity flex items-center gap-1",
+                        statusI.color,
+                        "border",
+                        startsBefore && "rounded-l-none",
+                        endsAfter && "rounded-r-none"
+                      )}
+                      title={`${p.name} · ${p.start_date ? format(parseISO(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'} → ${p.deadline ? format(parseISO(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}`}
+                    >
                       <span className="truncate">{p.name}</span>
                     </button>
-                  );
-                })}
-                {dayProjects.length > 3 && (
-                  <span className="text-[9px] text-muted-foreground pl-1">+{dayProjects.length - 3} mais</span>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
