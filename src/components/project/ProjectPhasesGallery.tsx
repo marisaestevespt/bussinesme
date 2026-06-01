@@ -53,6 +53,7 @@ interface Deliverable {
   phase_id: string | null;
   assigned_to: string | null;
   planned_end: string | null;
+  scheduled_date: string | null;
 }
 
 interface RecurringOccurrence {
@@ -108,7 +109,7 @@ export function ProjectPhasesGallery({ projectId, projectStartDate }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from('project_deliverables')
-        .select('id, name, status, phase_id, assigned_to, planned_end')
+        .select('id, name, status, phase_id, assigned_to, planned_end, scheduled_date')
         .eq('project_id', projectId)
         .order('sort_order', { ascending: true });
       return (data || []) as Deliverable[];
