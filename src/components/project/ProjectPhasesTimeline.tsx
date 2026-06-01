@@ -111,10 +111,22 @@ interface Props {
   focusPhaseId?: string | null;
 }
 
-function isValidDateValue(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00`);
-  return !Number.isNaN(date.getTime()) && format(date, 'yyyy-MM-dd') === value;
+// Display: dd-mm-aaaa. Storage: yyyy-mm-dd (ISO).
+function isoToDisplay(iso?: string | null) {
+  if (!iso) return '';
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : iso;
+}
+function displayToIso(value: string): string | null {
+  const m = value.trim().match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (!m) return null;
+  const d = parseInt(m[1], 10);
+  const mo = parseInt(m[2], 10);
+  const y = parseInt(m[3], 10);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  const date = new Date(Date.UTC(y, mo - 1, d));
+  if (date.getUTCDate() !== d || date.getUTCMonth() !== mo - 1) return null;
+  return `${y.toString().padStart(4, '0')}-${mo.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
 }
 
 function EditableDateInput({
@@ -128,10 +140,10 @@ function EditableDateInput({
   className?: string;
   title?: string;
 }) {
-  const [draft, setDraft] = useState(value || '');
+  const [draft, setDraft] = useState(isoToDisplay(value));
 
   useEffect(() => {
-    setDraft(value || '');
+    setDraft(isoToDisplay(value));
   }, [value]);
 
   const commit = () => {
@@ -140,12 +152,14 @@ function EditableDateInput({
       if (value) onCommit(null);
       return;
     }
-    if (!isValidDateValue(trimmed)) {
-      setDraft(value || '');
-      toast.error('Data inválida', { description: 'Usa o formato aaaa-mm-dd.' });
+    const iso = displayToIso(trimmed);
+    if (!iso) {
+      setDraft(isoToDisplay(value));
+      toast.error('Data inválida', { description: 'Usa o formato dd-mm-aaaa.' });
       return;
     }
-    if (trimmed !== (value || '')) onCommit(trimmed);
+    if (iso !== (value || '')) onCommit(iso);
+    else setDraft(isoToDisplay(iso));
   };
 
   return (
@@ -158,11 +172,11 @@ function EditableDateInput({
       onKeyDown={(e) => {
         if (e.key === 'Enter') e.currentTarget.blur();
         if (e.key === 'Escape') {
-          setDraft(value || '');
+          setDraft(isoToDisplay(value));
           e.currentTarget.blur();
         }
       }}
-      placeholder="aaaa-mm-dd"
+      placeholder="dd-mm-aaaa"
       className={cn('tabular-nums', className)}
       title={title}
     />
