@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
+  DropdownMenuItem, DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import {
   Video, CheckSquare, User, Users, Link2, FileText, Plus, Upload,
@@ -273,7 +273,7 @@ export function DeliverableFormatCell({
 
   // ── Render badge with format menu ─────────────────────────────────
   return (
-    <div className="flex items-center gap-1.5 min-w-0">
+    <div className="flex w-full items-start gap-1.5 min-w-0">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
@@ -318,49 +318,36 @@ export function DeliverableFormatCell({
       )}
       {fmt === 'reuniao' && (
         d.meeting_id ? (
-          <div className="flex items-center gap-1 min-w-0">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
             <button
               type="button"
               onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
-              className="text-[11px] text-primary hover:underline text-left whitespace-nowrap"
+              className="block w-full truncate text-left text-[11px] font-medium text-primary hover:underline"
               title={linkedMeeting?.title || 'Abrir reunião'}
             >
               {linkedMeeting?.title || 'reunião ligada'}
             </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground shrink-0"
-                  title="Opções da reunião"
-                >
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem className="text-xs gap-2" onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}>
-                  <ExternalLink className="h-3.5 w-3.5" /> Abrir reunião
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-xs gap-2" onClick={() => setMeetPickerOpen(true)}>
-                  <Paperclip className="h-3.5 w-3.5" /> Trocar reunião…
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-xs gap-2 text-destructive focus:text-destructive"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    if (confirm('Desligar a reunião desta entrega? A reunião não é apagada.')) {
-                      unlinkMeeting();
-                    }
-                  }}
-                >
-                  <Unlink className="h-3.5 w-3.5" /> Desligar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex flex-wrap items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[10px]" onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}>
+                <ExternalLink className="mr-1 h-3 w-3" /> Abrir
+              </Button>
+              <Button variant="outline" size="sm" className="h-6 px-1.5 text-[10px]" onClick={() => setMeetPickerOpen(true)}>
+                <Paperclip className="mr-1 h-3 w-3" /> Trocar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-1.5 text-[10px] text-destructive hover:text-destructive"
+                onClick={() => {
+                  if (confirm('Desligar a reunião desta entrega? A reunião não é apagada.')) unlinkMeeting();
+                }}
+              >
+                <Unlink className="mr-1 h-3 w-3" /> Desligar
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="flex items-center gap-0.5">
+          <div className="flex flex-wrap items-center gap-1">
             <NewMeetingButton
               defaultProjectId={projectId}
               defaultProjectName={projectName ?? undefined}
@@ -374,19 +361,19 @@ export function DeliverableFormatCell({
             >
               <button
                 type="button"
-                className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-primary/10 text-primary"
+                className="inline-flex h-6 items-center rounded border px-1.5 text-[10px] text-primary hover:bg-primary/10"
                 title="Criar reunião"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="mr-1 h-3 w-3" /> Criar
               </button>
             </NewMeetingButton>
             <button
               type="button"
               onClick={() => setMeetPickerOpen(true)}
-              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground"
+              className="inline-flex h-6 items-center rounded border px-1.5 text-[10px] text-muted-foreground hover:bg-muted"
               title="Ligar reunião existente"
             >
-              <Paperclip className="h-3 w-3" />
+              <Paperclip className="mr-1 h-3 w-3" /> Ligar
             </button>
           </div>
         )
