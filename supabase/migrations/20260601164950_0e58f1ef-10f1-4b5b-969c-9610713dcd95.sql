@@ -1,0 +1,1 @@
+CREATE POLICY "backups_owner_select" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'backups' AND public.is_owner());
