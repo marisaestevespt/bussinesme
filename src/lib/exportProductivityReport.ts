@@ -46,6 +46,15 @@ const CAT_LABELS: Record<string, string> = {
 
 function h(n: number) { return (Math.round(n * 100) / 100).toFixed(1); }
 
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function exportProductivityReport(data: ReportData) {
   const { entries, tasks, completedTasks, overdueTasks, projects, periodStart, periodEnd } = data;
 
@@ -143,8 +152,8 @@ th { font-weight: 600; background: #f9fafb; border-bottom: 2px solid #d1d5db; }
 @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style></head><body>
 <div class="header">
-  <div><h1>Relatório de Produtividade</h1><span class="muted">${data.memberName}</span></div>
-  <div style="text-align:right"><span class="muted">${data.periodLabel}</span><br/><span style="font-size:9px" class="muted">Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}</span></div>
+  <div><h1>Relatório de Produtividade</h1><span class="muted">${esc(data.memberName)}</span></div>
+  <div style="text-align:right"><span class="muted">${esc(data.periodLabel)}</span><br/><span style="font-size:9px" class="muted">Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}</span></div>
 </div>
 
 <!-- RESUMO -->
@@ -159,11 +168,11 @@ th { font-weight: 600; background: #f9fafb; border-bottom: 2px solid #d1d5db; }
 <h2>Distribuição por Categoria</h2>
 ${totalHours > 0 ? `<div class="cat-bar">${Object.entries(byCategory).map(([cat, hrs], i) => {
   const colors = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#6b7280'];
-  return `<div style="width:${(hrs/totalHours*100).toFixed(1)}%;background:${colors[i % colors.length]}" title="${CAT_LABELS[cat] || cat}: ${h(hrs)}h"></div>`;
+  return `<div style="width:${(hrs/totalHours*100).toFixed(1)}%;background:${colors[i % colors.length]}" title="${esc(CAT_LABELS[cat] || cat)}: ${h(hrs)}h"></div>`;
 }).join('')}</div>
 <div class="cat-legend">${Object.entries(byCategory).map(([cat, hrs], i) => {
   const colors = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#6b7280'];
-  return `<span><span class="cat-dot" style="background:${colors[i % colors.length]}"></span>${CAT_LABELS[cat] || cat}: ${h(hrs)}h (${(hrs/totalHours*100).toFixed(0)}%)</span>`;
+  return `<span><span class="cat-dot" style="background:${colors[i % colors.length]}"></span>${esc(CAT_LABELS[cat] || cat)}: ${h(hrs)}h (${(hrs/totalHours*100).toFixed(0)}%)</span>`;
 }).join('')}</div>` : '<p class="muted">Sem registos.</p>'}
 
 <!-- POR PROJETO -->
@@ -172,7 +181,7 @@ ${totalHours > 0 ? `<div class="cat-bar">${Object.entries(byCategory).map(([cat,
 <thead><tr><th>Projeto</th><th class="text-right">Horas</th><th class="text-right">%</th><th class="text-right">Registos</th></tr></thead>
 <tbody>
 ${Object.values(byProject).sort((a, b) => b.hours - a.hours).map(p => 
-  `<tr><td>${p.name}</td><td class="text-right mono">${h(p.hours)}h</td><td class="text-right">${totalHours > 0 ? (p.hours/totalHours*100).toFixed(0) : 0}%</td><td class="text-right">${p.entries.length}</td></tr>`
+  `<tr><td>${esc(p.name)}</td><td class="text-right mono">${h(p.hours)}h</td><td class="text-right">${totalHours > 0 ? (p.hours/totalHours*100).toFixed(0) : 0}%</td><td class="text-right">${p.entries.length}</td></tr>`
 ).join('')}
 <tr class="bold"><td>Total</td><td class="text-right mono">${h(totalHours)}h</td><td class="text-right">100%</td><td class="text-right">${entries.length}</td></tr>
 </tbody></table>
@@ -183,7 +192,7 @@ ${taskRanking.length === 0 ? '<p class="muted">Sem tempo associado a tarefas.</p
 <thead><tr><th>#</th><th>Tarefa</th><th class="text-right">Horas</th><th class="text-right">%</th></tr></thead>
 <tbody>
 ${taskRanking.slice(0, 20).map((t, i) =>
-  `<tr><td>${i+1}</td><td>${t.name}</td><td class="text-right mono">${h(t.hours)}h</td><td class="text-right">${totalHours > 0 ? (t.hours/totalHours*100).toFixed(0) : 0}%</td></tr>`
+  `<tr><td>${i+1}</td><td>${esc(t.name)}</td><td class="text-right mono">${h(t.hours)}h</td><td class="text-right">${totalHours > 0 ? (t.hours/totalHours*100).toFixed(0) : 0}%</td></tr>`
 ).join('')}
 </tbody></table>`}
 
@@ -193,7 +202,7 @@ ${completedTasks.length === 0 ? '<p class="muted">Nenhuma tarefa concluída nest
 <thead><tr><th>Tarefa</th><th>Concluída em</th></tr></thead>
 <tbody>
 ${completedTasks.map(t =>
-  `<tr><td>${t.name}</td><td>${t.updated_at ? format(parseISO(t.updated_at), 'dd/MM/yyyy') : '—'}</td></tr>`
+  `<tr><td>${esc(t.name)}</td><td>${t.updated_at ? format(parseISO(t.updated_at), 'dd/MM/yyyy') : '—'}</td></tr>`
 ).join('')}
 </tbody></table>`}
 
@@ -203,7 +212,7 @@ ${overdueTasks.length > 0 ? `<h2 class="red">Tarefas em Atraso (${overdueTasks.l
 <thead><tr><th>Tarefa</th><th>Prazo</th></tr></thead>
 <tbody>
 ${overdueTasks.map(t =>
-  `<tr><td>${t.name}</td><td class="red">${t.deadline ? format(parseISO(t.deadline), 'dd/MM/yyyy') : '—'}</td></tr>`
+  `<tr><td>${esc(t.name)}</td><td class="red">${t.deadline ? format(parseISO(t.deadline), 'dd/MM/yyyy') : '—'}</td></tr>`
 ).join('')}
 </tbody></table>` : ''}
 
@@ -216,18 +225,18 @@ ${dailyRows.map(d => {
   const overExpected = d.dayHours >= data.expectedDailyHours;
   return `<div class="day-section">
   <div class="day-header">
-    <h3 style="margin:0">${dayLabel}</h3>
+    <h3 style="margin:0">${esc(dayLabel)}</h3>
     <span class="mono bold ${overExpected ? 'green' : ''}">${h(d.dayHours)}h</span>
   </div>
-  ${d.dayProjects.length > 0 ? `<div style="margin-bottom:3px">${d.dayProjects.map(p => `<span class="tag">${p}</span>`).join('')}</div>` : ''}
+  ${d.dayProjects.length > 0 ? `<div style="margin-bottom:3px">${d.dayProjects.map(p => `<span class="tag">${esc(p)}</span>`).join('')}</div>` : ''}
   <table style="margin-bottom:0">
   <thead><tr><th>Descrição</th><th>Categoria</th><th class="text-right">Duração</th></tr></thead>
   <tbody>
   ${d.dayEntries.map(e => 
-    `<tr><td>${e.description || '—'}</td><td>${CAT_LABELS[e.category] || e.category}</td><td class="text-right mono">${h(Number(e.duration))}h</td></tr>`
+    `<tr><td>${esc(e.description || '—')}</td><td>${esc(CAT_LABELS[e.category] || e.category)}</td><td class="text-right mono">${h(Number(e.duration))}h</td></tr>`
   ).join('')}
   </tbody></table>
-  ${d.dayTasks.length > 0 ? `<div style="margin-top:3px;font-size:9px" class="muted">Tarefas: ${d.dayTasks.join(', ')}</div>` : ''}
+  ${d.dayTasks.length > 0 ? `<div style="margin-top:3px;font-size:9px" class="muted">Tarefas: ${esc(d.dayTasks.join(', '))}</div>` : ''}
   </div>`;
 }).join('')}
 
