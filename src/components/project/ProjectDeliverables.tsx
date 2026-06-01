@@ -427,7 +427,8 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                   const si = getStatusInfo(d.status);
                   const assignee = d.assigned_to ? profiles.find(p => p.id === d.assigned_to) : null;
                   const displayDeadline = d.computed_deadline;
-                  const isOverdue = displayDeadline && d.status !== 'entregue' && new Date(displayDeadline) < new Date();
+                  const doneStatuses = ['entregue', 'concluido', 'concluida', 'completed', 'done'];
+                  const isOverdue = displayDeadline && !doneStatuses.includes(d.status) && new Date(displayDeadline) < new Date();
                   const linkedTask = taskByDeliverable.get(d.id);
                   const realMin = linkedTask ? (timeByTask[linkedTask.id] || 0) : 0;
                   const estMin = (d as any).estimated_minutes ?? null;
