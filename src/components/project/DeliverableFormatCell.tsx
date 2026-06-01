@@ -347,9 +347,10 @@ export function DeliverableFormatCell({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-xs gap-2 text-destructive focus:text-destructive"
-                  onClick={() => {
+                  onSelect={(e) => {
+                    e.preventDefault();
                     if (confirm('Desligar a reunião desta entrega? A reunião não é apagada.')) {
-                      updateFields.mutate({ meeting_id: null });
+                      unlinkMeeting();
                     }
                   }}
                 >
@@ -357,41 +358,6 @@ export function DeliverableFormatCell({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Popover open={meetPickerOpen} onOpenChange={setMeetPickerOpen}>
-              <PopoverTrigger asChild>
-                <span className="sr-only" />
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-72 p-2 max-h-80 overflow-auto">
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground px-1 pb-1.5">
-                  Reuniões deste projeto
-                </div>
-                {projectMeetings.length === 0 ? (
-                  <div className="text-xs text-muted-foreground p-2">Sem reuniões neste projeto.</div>
-                ) : (
-                  <div className="space-y-0.5">
-                    {projectMeetings.map((m: any) => {
-                      const isCurrent = m.id === d.meeting_id;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => { if (!isCurrent) linkExisting(m.id); else setMeetPickerOpen(false); }}
-                          className="w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded text-xs hover:bg-muted"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium">{m.title || '(sem título)'}</div>
-                            <div className="text-[10px] text-muted-foreground">
-                              {m.date_time ? new Date(m.date_time).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data'}
-                            </div>
-                          </div>
-                          {isCurrent && <span className="text-[9px] text-primary shrink-0">atual</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
           </div>
         ) : (
           <div className="flex items-center gap-0.5">
@@ -414,54 +380,64 @@ export function DeliverableFormatCell({
                 <Plus className="h-3 w-3" />
               </button>
             </NewMeetingButton>
-            <Popover open={meetPickerOpen} onOpenChange={setMeetPickerOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground"
-                  title="Ligar reunião existente"
-                >
-                  <Paperclip className="h-3 w-3" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-72 p-2 max-h-80 overflow-auto">
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground px-1 pb-1.5">
-                  Reuniões deste projeto
-                </div>
-                {projectMeetings.length === 0 ? (
-                  <div className="text-xs text-muted-foreground p-2">Sem reuniões neste projeto.</div>
-                ) : (
-                  <div className="space-y-0.5">
-                    {projectMeetings.map((m: any) => {
-                      const linked = linkedSet.has(m.id);
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => {
-                            if (linked) {
-                              if (!confirm('Esta reunião já está ligada a outra entrega. Mudar a ligação?')) return;
-                            }
-                            linkExisting(m.id);
-                          }}
-                          className="w-full text-left flex items-center justify-between gap-2 px-2 py-1.5 rounded text-xs hover:bg-muted"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium">{m.title || '(sem título)'}</div>
-                            <div className="text-[10px] text-muted-foreground">
-                              {m.date_time ? new Date(m.date_time).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data'}
-                            </div>
-                          </div>
-                          {linked && <span className="text-[9px] text-warning shrink-0">já ligada</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
+            <button
+              type="button"
+              onClick={() => setMeetPickerOpen(true)}
+              className="text-[10px] inline-flex items-center px-1 py-0.5 rounded hover:bg-muted text-muted-foreground"
+              title="Ligar reunião existente"
+            >
+              <Paperclip className="h-3 w-3" />
+            </button>
           </div>
         )
+      )}
+
+      {fmt === 'reuniao' && (
+        <Dialog open={meetPickerOpen} onOpenChange={setMeetPickerOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base">Reuniões deste projeto</DialogTitle>
+              <DialogDescription className="text-xs">
+                Escolhe uma reunião existente para ligar a esta entrega.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-80 overflow-auto -mx-2 px-2">
+              {projectMeetings.length === 0 ? (
+                <div className="text-xs text-muted-foreground p-3 text-center">
+                  Sem reuniões neste projeto.
+                </div>
+              ) : (
+                <div className="space-y-0.5">
+                  {projectMeetings.map((m: any) => {
+                    const isCurrent = m.id === d.meeting_id;
+                    const linked = !isCurrent && linkedSet.has(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          if (isCurrent) { setMeetPickerOpen(false); return; }
+                          if (linked && !confirm('Esta reunião já está ligada a outra entrega. Mudar a ligação?')) return;
+                          linkExisting(m.id);
+                        }}
+                        className="w-full text-left flex items-center justify-between gap-2 px-2 py-2 rounded text-xs hover:bg-muted"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium">{m.title || '(sem título)'}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {m.date_time ? new Date(m.date_time).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'sem data'}
+                          </div>
+                        </div>
+                        {isCurrent && <span className="text-[9px] text-primary shrink-0">atual</span>}
+                        {linked && <span className="text-[9px] text-warning shrink-0">já ligada</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {fmt === 'link' && (
