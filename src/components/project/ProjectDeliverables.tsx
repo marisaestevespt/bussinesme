@@ -230,18 +230,20 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const enrichedDeliverables = useMemo(() => {
     return deliverables.map(d => ({
       ...d,
-      computed_deadline: d.deadline,
-      _nextDate: d.deadline ? new Date(d.deadline) : null,
+      computed_deadline: (d as any).scheduled_date ?? d.deadline,
+      _nextDate: ((d as any).scheduled_date ?? d.deadline)
+        ? new Date(((d as any).scheduled_date ?? d.deadline) as string)
+        : null,
     }));
   }, [deliverables]);
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const finalDeadline = deadline ? format(deadline, 'yyyy-MM-dd') : null;
+      const finalDate = deadline ? format(deadline, 'yyyy-MM-dd') : null;
       const { error } = await (supabase.from('project_deliverables') as any).insert({
         project_id: projectId,
         name,
-        deadline: finalDeadline,
+        scheduled_date: finalDate,
         assigned_to: assignedTo || null,
         sort_order: deliverables.length,
       });
@@ -294,7 +296,10 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
 
   const updateDeadline = useMutation({
     mutationFn: async ({ id, deadline: newDeadline }: { id: string; deadline: string }) => {
-      const { error } = await supabase.from('project_deliverables').update({ deadline: newDeadline }).eq('id', id);
+      const { error } = await supabase
+        .from('project_deliverables')
+        .update({ scheduled_date: newDeadline } as never)
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
