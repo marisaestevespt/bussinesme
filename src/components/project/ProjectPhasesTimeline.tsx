@@ -143,6 +143,7 @@ function EditableDateInput({
   const [draft, setDraft] = useState(isoToDisplay(value));
   const [isEditing, setIsEditing] = useState(false);
   const pendingIsoRef = useRef<string | null | undefined>(undefined);
+  const skipNextCommitRef = useRef(false);
 
   useEffect(() => {
     if (isEditing) return;
@@ -177,12 +178,20 @@ function EditableDateInput({
       onChange={(e) => setDraft(e.target.value)}
       onFocus={() => setIsEditing(true)}
       onBlur={() => {
+        if (skipNextCommitRef.current) {
+          skipNextCommitRef.current = false;
+          pendingIsoRef.current = undefined;
+          setDraft(isoToDisplay(value));
+          setIsEditing(false);
+          return;
+        }
         commit();
         setIsEditing(false);
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') e.currentTarget.blur();
         if (e.key === 'Escape') {
+          skipNextCommitRef.current = true;
           setDraft(isoToDisplay(value));
           e.currentTarget.blur();
         }
