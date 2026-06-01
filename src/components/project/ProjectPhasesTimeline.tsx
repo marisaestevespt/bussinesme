@@ -1005,11 +1005,27 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                           <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
                             <div className="grid items-start gap-2" style={{ gridTemplateColumns: '16px minmax(0,1fr) 120px 120px 110px minmax(260px, 1.2fr) 110px' }}>
                               {isEditingThis ? (
-                                <div className="col-span-7 flex items-center gap-2">
-                                  <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
-                                    onKeyDown={e => e.key === 'Enter' && saveEditDel(d.id)} />
-                                  <Button size="sm" className="h-5 px-1" onClick={() => saveEditDel(d.id)}><Check className="h-2.5 w-2.5" /></Button>
-                                  <Button size="sm" variant="ghost" className="h-5 px-1" onClick={() => setEditingDel(null)}><X className="h-2.5 w-2.5" /></Button>
+                                <div className="col-span-7 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-6 text-xs flex-1"
+                                      onKeyDown={e => e.key === 'Enter' && saveEditDel(d.id)} />
+                                    <Button size="sm" className="h-6 px-2" onClick={() => saveEditDel(d.id)}><Check className="h-2.5 w-2.5" /></Button>
+                                    <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => setEditingDel(null)}><X className="h-2.5 w-2.5" /></Button>
+                                  </div>
+                                  {(d.deliverable_type === 'reuniao' || d.is_meeting) && (
+                                    <div className="rounded-md border bg-muted/20 p-2">
+                                      <div className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Reunião ligada</div>
+                                      <DeliverableFormatCell
+                                        deliverable={d as any}
+                                        projectId={projectId}
+                                        projectName={projectCtx?.name}
+                                        clientId={projectCtx?.client_id ?? null}
+                                        clientName={projectCtx?.clients?.full_name ?? null}
+                                        defaultDepartment={projectDefaultDepartment}
+                                        defaultMemberIds={computeMeetingMembers(d)}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
                               ) : (
                                 <>
