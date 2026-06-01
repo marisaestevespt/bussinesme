@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -109,6 +109,64 @@ interface Props {
   projectId: string;
   projectStartDate?: string | null;
   focusPhaseId?: string | null;
+}
+
+function isValidDateValue(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00`);
+  return !Number.isNaN(date.getTime()) && format(date, 'yyyy-MM-dd') === value;
+}
+
+function EditableDateInput({
+  value,
+  onCommit,
+  className,
+  title,
+}: {
+  value?: string | null;
+  onCommit: (value: string | null) => void;
+  className?: string;
+  title?: string;
+}) {
+  const [draft, setDraft] = useState(value || '');
+
+  useEffect(() => {
+    setDraft(value || '');
+  }, [value]);
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (!trimmed) {
+      if (value) onCommit(null);
+      return;
+    }
+    if (!isValidDateValue(trimmed)) {
+      setDraft(value || '');
+      toast.error('Data inválida', { description: 'Usa o formato aaaa-mm-dd.' });
+      return;
+    }
+    if (trimmed !== (value || '')) onCommit(trimmed);
+  };
+
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape') {
+          setDraft(value || '');
+          e.currentTarget.blur();
+        }
+      }}
+      placeholder="aaaa-mm-dd"
+      className={cn('tabular-nums', className)}
+      title={title}
+    />
+  );
 }
 
 export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseId }: Props) {
@@ -1077,16 +1135,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                     const overrun = !!sched && !!d.planned_end && sched > d.planned_end;
                                     return (
                                       <div className="flex items-center justify-start min-w-0">
-                                        <Input
-                                          key={`sched-${d.id}-${d.scheduled_date || 'null'}`}
-                                          type="date"
-                                          defaultValue={d.scheduled_date || ''}
-                                          onBlur={e => {
-                                            const v = e.target.value || null;
-                                            if (v !== (d.scheduled_date || null)) {
-                                              updateDeliverable.mutate({ id: d.id, scheduled_date: v });
-                                            }
-                                          }}
+                                        <EditableDateInput
+                                          value={d.scheduled_date || ''}
+                                          onCommit={(v) => updateDeliverable.mutate({ id: d.id, scheduled_date: v })}
                                           className={cn(
                                             'h-6 text-[10px] tabular-nums w-full px-1.5',
                                             overrun && 'border-warning text-warning bg-warning/5'
@@ -1098,16 +1149,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                   })()}
                                   {/* Deadline (planned_end) */}
                                   <div className="flex items-center justify-start min-w-0">
-                                    <Input
-                                      key={`end-${d.id}-${d.planned_end || 'null'}`}
-                                      type="date"
-                                      defaultValue={d.planned_end || ''}
-                                      onBlur={e => {
-                                        const v = e.target.value || null;
-                                        if (v !== (d.planned_end || null)) {
-                                          tryUpdateWithConflictCheck({ sourceTable: 'project_deliverables', sourceId: d.id, field: 'planned_end', newValue: v });
-                                        }
-                                      }}
+                                    <EditableDateInput
+                                      value={d.planned_end || ''}
+                                      onCommit={(v) => tryUpdateWithConflictCheck({ sourceTable: 'project_deliverables', sourceId: d.id, field: 'planned_end', newValue: v })}
                                       className="h-6 text-[10px] tabular-nums w-full px-1.5 font-medium"
                                       title="Deadline (prazo limite)"
                                     />
