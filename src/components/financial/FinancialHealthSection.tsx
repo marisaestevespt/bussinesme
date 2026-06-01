@@ -63,7 +63,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
       s => s.sale_year === nextYear && s.sale_month === nextMonth,
     );
     const scheduledTotal = scheduledSales.reduce(
-      (sum, s) => sum + (Number(s.invoice_total) || 0),
+      (sum, s) => sum + (Number(s.base_value) || 0),
       0,
     );
     const scheduledClients = new Set(
