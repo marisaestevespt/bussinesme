@@ -48,7 +48,7 @@ const PROJECT_TYPES = [
   { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-success/15 text-success border-success' },
 ];
 
-import { PROJECT_STATUSES, getProjectStatusInfo, isProjectOverdue } from '@/lib/projectStatus';
+import { PROJECT_STATUSES, PROJECT_TERMINAL_STATUSES, getProjectStatusInfo, isProjectOverdue } from '@/lib/projectStatus';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 const DEPARTMENTS = [
@@ -710,9 +710,10 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 
 function GalleryView({ projects, getMembersForProject, onOpen, getProjectProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getProjectProgress: (project: Project) => number }) {
   const { getPhotoUrl } = useTeamPhotos();
+  const visible = projects.filter(p => !PROJECT_TERMINAL_STATUSES.includes(p.status as any));
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {projects.map(p => {
+      {visible.map(p => {
         const typeI = getTypeInfo(p.type);
         const members = getMembersForProject(p.id);
         return (
