@@ -41,6 +41,7 @@ export type ClientLike = {
 
 export type SaleLike = {
   invoice_total?: number | string | null;
+  base_value?: number | string | null;
   client?: string | null;
 };
 
@@ -211,7 +212,8 @@ export function revenueConcentration(
   topClients: ConcentrationEntry[];
   alerts: ConcentrationEntry[];
 } {
-  const totalRevenue = sales.reduce((s, sale) => s + (Number(sale.invoice_total) || 0), 0);
+  const saleBase = (sale: SaleLike) => Number(sale.base_value) || 0;
+  const totalRevenue = sales.reduce((s, sale) => s + saleBase(sale), 0);
   if (totalRevenue === 0) {
     return { total: 0, entries: [], topClients: [], alerts: [] };
   }
@@ -219,7 +221,7 @@ export function revenueConcentration(
   const byClient = new Map<string, number>();
   for (const sale of sales) {
     const name = sale.client || 'Sem cliente';
-    byClient.set(name, (byClient.get(name) || 0) + (Number(sale.invoice_total) || 0));
+    byClient.set(name, (byClient.get(name) || 0) + saleBase(sale));
   }
 
   const entries: ConcentrationEntry[] = [...byClient.entries()]
