@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -141,14 +141,21 @@ function EditableDateInput({
   title?: string;
 }) {
   const [draft, setDraft] = useState(isoToDisplay(value));
+  const [isEditing, setIsEditing] = useState(false);
+  const pendingIsoRef = useRef<string | null | undefined>(undefined);
+  const skipNextCommitRef = useRef(false);
 
   useEffect(() => {
+    if (isEditing) return;
+    if (pendingIsoRef.current !== undefined && pendingIsoRef.current !== (value || null)) return;
+    pendingIsoRef.current = undefined;
     setDraft(isoToDisplay(value));
-  }, [value]);
+  }, [isEditing, value]);
 
   const commit = () => {
     const trimmed = draft.trim();
     if (!trimmed) {
+      pendingIsoRef.current = null;
       if (value) onCommit(null);
       return;
     }
@@ -158,8 +165,9 @@ function EditableDateInput({
       toast.error('Data inválida', { description: 'Usa o formato dd-mm-aaaa.' });
       return;
     }
+    pendingIsoRef.current = iso;
+    setDraft(isoToDisplay(iso));
     if (iso !== (value || '')) onCommit(iso);
-    else setDraft(isoToDisplay(iso));
   };
 
   return (
@@ -168,10 +176,22 @@ function EditableDateInput({
       inputMode="numeric"
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
+      onFocus={() => setIsEditing(true)}
+      onBlur={() => {
+        if (skipNextCommitRef.current) {
+          skipNextCommitRef.current = false;
+          pendingIsoRef.current = undefined;
+          setDraft(isoToDisplay(value));
+          setIsEditing(false);
+          return;
+        }
+        commit();
+        setIsEditing(false);
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') e.currentTarget.blur();
         if (e.key === 'Escape') {
+          skipNextCommitRef.current = true;
           setDraft(isoToDisplay(value));
           e.currentTarget.blur();
         }
@@ -557,7 +577,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
 
-      await supabase.from('project_phases').update(updates as never).eq('id', id);
+      const { error } = await supabase.from('project_phases').update(updates as never).eq('id', id);
+      if (error) throw error;
 
       // Check for delay AFTER saving — return info for cascade prompt
       if (fields.planned_end && typeof fields.planned_end === 'string') {
@@ -580,6 +601,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
         }
       }
     },
+    onError: (e: Error) => toast.error('Erro ao guardar fase', { description: e.message }),
   });
 
   const addPhase = useMutation({
@@ -619,7 +641,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
-      await supabase.from('project_deliverables').update(fields as never).eq('id', id);
+      const { error } = await supabase.from('project_deliverables').update(fields as never).eq('id', id);
+      if (error) throw error;
 
       // Check for delay AFTER saving
       if (fields.planned_end && typeof fields.planned_end === 'string') {
@@ -983,13 +1006,21 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                         <div className="flex items-center gap-1">
                           <CalendarDays className="h-3 w-3 text-muted-foreground" />
                           <span className="text-[10px] text-muted-foreground">Início:</span>
-                          <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_start || ''}
-                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_start || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_phases', sourceId: phase.id, field: 'planned_start', newValue: v }); }} />
+                          <EditableDateInput
+                            value={phase.planned_start || ''}
+                            onCommit={(v) => tryUpdateWithConflictCheck({ sourceTable: 'project_phases', sourceId: phase.id, field: 'planned_start', newValue: v })}
+                            className="h-6 text-[10px] w-28 px-1.5"
+                            title="Início da fase"
+                          />
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-muted-foreground">Fim:</span>
-                          <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_end || ''}
-                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_end || null)) tryUpdateWithConflictCheck({ sourceTable: 'project_phases', sourceId: phase.id, field: 'planned_end', newValue: v }); }} />
+                          <EditableDateInput
+                            value={phase.planned_end || ''}
+                            onCommit={(v) => tryUpdateWithConflictCheck({ sourceTable: 'project_phases', sourceId: phase.id, field: 'planned_end', newValue: v })}
+                            className="h-6 text-[10px] w-28 px-1.5"
+                            title="Fim da fase"
+                          />
                         </div>
                       </div>
                     </div>
