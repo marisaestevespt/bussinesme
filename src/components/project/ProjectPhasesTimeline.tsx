@@ -577,7 +577,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
 
-      await supabase.from('project_phases').update(updates as never).eq('id', id);
+      const { error } = await supabase.from('project_phases').update(updates as never).eq('id', id);
+      if (error) throw error;
 
       // Check for delay AFTER saving — return info for cascade prompt
       if (fields.planned_end && typeof fields.planned_end === 'string') {
@@ -600,6 +601,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
         }
       }
     },
+    onError: (e: Error) => toast.error('Erro ao guardar fase', { description: e.message }),
   });
 
   const addPhase = useMutation({
@@ -639,7 +641,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
-      await supabase.from('project_deliverables').update(fields as never).eq('id', id);
+      const { error } = await supabase.from('project_deliverables').update(fields as never).eq('id', id);
+      if (error) throw error;
 
       // Check for delay AFTER saving
       if (fields.planned_end && typeof fields.planned_end === 'string') {
