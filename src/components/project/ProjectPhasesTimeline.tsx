@@ -948,7 +948,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                             {phase.planned_end ? format(new Date(phase.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                           </span>
                         )}
-                        <div className="opacity-0 group-hover/phase:opacity-100 flex items-center gap-0.5 transition-opacity">
+                        <div className="flex items-center gap-0.5 opacity-40 group-hover/phase:opacity-100 focus-within:opacity-100 transition-opacity">
                           <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => startEditPhase(phase)}>
                             <Pencil className="h-3 w-3" />
                           </Button>
@@ -1126,7 +1126,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                     />
                                   </div>
                                   {/* Ações */}
-                                  <div className="opacity-0 group-hover/del:opacity-100 flex items-center justify-end gap-1 transition-opacity">
+                                  <div className="flex items-center justify-end gap-1 opacity-40 group-hover/del:opacity-100 focus-within:opacity-100 transition-opacity">
                                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => startEditDel(d)} title="Editar nome">
                                       <Pencil className="h-3 w-3" />
                                     </Button>
@@ -1166,7 +1166,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                       </Button>
                     </div>
                   ) : (
-                    <Button variant="ghost" size="sm" className="h-5 text-[10px] mt-1 pl-1 opacity-0 group-hover/phase:opacity-100 transition-opacity"
+                    <Button variant="ghost" size="sm" className="h-5 text-[10px] mt-1 pl-1 opacity-50 group-hover/phase:opacity-100 transition-opacity"
                       onClick={() => { setAddingDelPhase(phase.id); setNewName(''); }}>
                       <Plus className="h-2.5 w-2.5 mr-0.5" /> Entrega
                     </Button>

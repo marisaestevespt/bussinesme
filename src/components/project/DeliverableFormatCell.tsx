@@ -318,36 +318,46 @@ export function DeliverableFormatCell({
       )}
       {fmt === 'reuniao' && (
         d.meeting_id ? (
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex min-w-0 flex-1 items-center gap-1">
             <button
               type="button"
               onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
-              className="block w-full truncate text-left text-[11px] font-medium text-primary hover:underline"
+              className="min-w-0 flex-1 truncate text-left text-[11px] text-primary hover:underline"
               title={linkedMeeting?.title || 'Abrir reunião'}
             >
               {linkedMeeting?.title || 'reunião ligada'}
             </button>
-            <div className="flex flex-wrap items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[10px]" onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}>
-                <ExternalLink className="mr-1 h-3 w-3" /> Abrir
-              </Button>
-              <Button variant="outline" size="sm" className="h-6 px-1.5 text-[10px]" onClick={() => setMeetPickerOpen(true)}>
-                <Paperclip className="mr-1 h-3 w-3" /> Trocar
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-1.5 text-[10px] text-destructive hover:text-destructive"
+            <div className="flex shrink-0 items-center gap-0.5 opacity-60 hover:opacity-100 focus-within:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={() => navigate(`/hub/reunioes/${d.meeting_id}`)}
+                className="inline-flex h-5 w-5 items-center justify-center rounded hover:bg-muted text-muted-foreground"
+                title="Abrir reunião"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setMeetPickerOpen(true)}
+                className="inline-flex h-5 w-5 items-center justify-center rounded hover:bg-muted text-muted-foreground"
+                title="Trocar reunião"
+              >
+                <Paperclip className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   if (confirm('Desligar a reunião desta entrega? A reunião não é apagada.')) unlinkMeeting();
                 }}
+                className="inline-flex h-5 w-5 items-center justify-center rounded text-destructive hover:bg-destructive/10"
+                title="Desligar reunião"
               >
-                <Unlink className="mr-1 h-3 w-3" /> Desligar
-              </Button>
+                <Unlink className="h-3 w-3" />
+              </button>
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex items-center gap-1">
             <NewMeetingButton
               defaultProjectId={projectId}
               defaultProjectName={projectName ?? undefined}
@@ -361,7 +371,7 @@ export function DeliverableFormatCell({
             >
               <button
                 type="button"
-                className="inline-flex h-6 items-center rounded border px-1.5 text-[10px] text-primary hover:bg-primary/10"
+                className="inline-flex h-5 items-center rounded border border-primary/30 px-1.5 text-[10px] text-primary hover:bg-primary/10"
                 title="Criar reunião"
               >
                 <Plus className="mr-1 h-3 w-3" /> Criar
@@ -370,7 +380,7 @@ export function DeliverableFormatCell({
             <button
               type="button"
               onClick={() => setMeetPickerOpen(true)}
-              className="inline-flex h-6 items-center rounded border px-1.5 text-[10px] text-muted-foreground hover:bg-muted"
+              className="inline-flex h-5 items-center rounded border border-border/60 px-1.5 text-[10px] text-muted-foreground hover:bg-muted"
               title="Ligar reunião existente"
             >
               <Paperclip className="mr-1 h-3 w-3" /> Ligar
