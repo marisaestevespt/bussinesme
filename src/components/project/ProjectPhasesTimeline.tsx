@@ -59,6 +59,7 @@ interface ProjectDeliverable {
   offset_trigger: string;
   planned_start: string | null;
   planned_end: string | null;
+  scheduled_date?: string | null;
   is_meeting?: boolean;
   meeting_id?: string | null;
   deliverable_type?: string | null;
@@ -557,10 +558,19 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
       }
       return null;
     },
+    onMutate: async ({ id, ...fields }) => {
+      await qc.cancelQueries({ queryKey: delKey });
+      const previous = qc.getQueryData<ProjectDeliverable[]>(delKey);
+      qc.setQueryData<ProjectDeliverable[]>(delKey, (old) =>
+        old?.map((d) => (d.id === id ? ({ ...d, ...fields } as ProjectDeliverable) : d)) ?? old
+      );
+      return { previous };
+    },
     onSuccess: (delayInfo) => {
       qc.invalidateQueries({ queryKey: delKey });
       qc.invalidateQueries({ queryKey: ['project-tasks', projectId] });
       qc.invalidateQueries({ queryKey: ['linked-tasks', projectId] });
+      qc.invalidateQueries({ queryKey: taskKey });
       if (delayInfo) {
         const diff = differenceInCalendarDays(parseISO(delayInfo.newEnd), parseISO(delayInfo.originalEnd));
         if (diff > 0) {
@@ -570,6 +580,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
           }
         }
       }
+    },
+    onError: (e: Error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(delKey, context.previous);
+      toast.error('Erro ao guardar entrega', { description: e.message });
     },
   });
 
@@ -1059,17 +1073,17 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate, focusPhaseI
                                   })()}
                                   {/* Para fazer (scheduled_date) */}
                                   {(() => {
-                                    const sched = (d as any).scheduled_date as string | null | undefined;
+                                    const sched = d.scheduled_date;
                                     const overrun = !!sched && !!d.planned_end && sched > d.planned_end;
                                     return (
                                       <div className="flex items-center justify-start min-w-0">
                                         <Input
-                                          key={`sched-${d.id}-${(d as any).scheduled_date || 'null'}`}
+                                          key={`sched-${d.id}-${d.scheduled_date || 'null'}`}
                                           type="date"
-                                          defaultValue={(d as any).scheduled_date || ''}
-                                          onBlur={e => {
+                                          defaultValue={d.scheduled_date || ''}
+                                          onChange={e => {
                                             const v = e.target.value || null;
-                                            if (v !== ((d as any).scheduled_date || null)) {
+                                            if (v !== (d.scheduled_date || null)) {
                                               updateDeliverable.mutate({ id: d.id, scheduled_date: v });
                                             }
                                           }}
