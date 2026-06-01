@@ -183,6 +183,19 @@ export function DeliverableFormatCell({
     toast.success('Reunião ligada');
   };
 
+  const unlinkMeeting = () => {
+    updateFields.mutate(
+      { meeting_id: null },
+      {
+        onSuccess: () => {
+          invalidate();
+          qc.invalidateQueries({ queryKey: ['deliverable-linked-meeting'] });
+          toast.success('Reunião desligada');
+        },
+      },
+    );
+  };
+
   // Fallback: fetch the project's client full_name directly when not provided
   // (some callers pass null because the embedded join `clients(...)` is dropped by RLS).
   const { data: fetchedClientName } = useQuery({
