@@ -46,6 +46,15 @@ const CAT_LABELS: Record<string, string> = {
 
 function h(n: number) { return (Math.round(n * 100) / 100).toFixed(1); }
 
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function exportProductivityReport(data: ReportData) {
   const { entries, tasks, completedTasks, overdueTasks, projects, periodStart, periodEnd } = data;
 
