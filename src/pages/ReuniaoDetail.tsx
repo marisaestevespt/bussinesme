@@ -20,6 +20,7 @@ import {
   CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat, ListTodo, MessageSquare, Clock, Video, Link2, FolderOpen, CheckSquare, Lightbulb, RefreshCw,
 } from 'lucide-react';
 import { CreateTasksFromMeetingDialog } from '@/components/meeting/CreateTasksFromMeetingDialog';
+import { MEETING_STATUSES, type MeetingStatusValue } from '@/lib/meetingStatus';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -54,15 +55,9 @@ import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 // ─── Types ──────────────────────────────────────────────────────
 
-type MeetingStatus = 'por_confirmar' | 'por_organizar' | 'confirmada' | 'terminada';
 type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico' | 'inicial';
-
-const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
-  { value: 'por_organizar', label: 'Por organizar', color: '#3b82f6' },
-  { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
-  { value: 'confirmada', label: 'Confirmada', color: '#10b981' },
-  { value: 'terminada', label: 'Terminada', color: '#6b7280' },
-];
+type MeetingStatus = MeetingStatusValue;
+const STATUSES = MEETING_STATUSES.map(s => ({ value: s.value, label: s.label, color: s.dotColor }));
 
 interface CheckItem { text: string; checked: boolean; }
 
