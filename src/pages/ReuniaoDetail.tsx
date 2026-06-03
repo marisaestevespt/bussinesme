@@ -697,13 +697,6 @@ function ReuniaoDetailPageInner() {
   const showClientSection = true;
   const showProjectField = true;
 
-  const statusBadgeColors: Record<string, string> = {
-    por_organizar: 'bg-info/15 text-info border-info/30',
-    por_confirmar: 'bg-warning/15 text-warning border-warning/30',
-    confirmada: 'bg-success/15 text-success border-success/30',
-    terminada: 'bg-muted text-muted-foreground border-muted',
-  };
-
   return (
     <AppLayout>
       <div className="w-full space-y-6">
