@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { EditableText } from '../EditableText';
-import { AddButton, EditableStringList, SectionLabel, SubBlock } from './shared';
+import { AddButton, EditableStringList, SectionLabel, SubBlock, STRONG_CARD } from './shared';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,7 +43,7 @@ export function BlockMapaEmocional({
       {/* 2x2 emotional panels */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {PANELS.map((p) => (
-          <Card key={p.key} className={cn('border', p.tint)}>
+          <Card key={p.key} className={cn("border-2 shadow-card hover:shadow-elegant transition-all", p.tint)}>
             <CardContent className="p-4">
               <SectionLabel>{p.label}</SectionLabel>
               <EditableStringList
@@ -79,7 +79,7 @@ export function BlockMapaEmocional({
       <SubBlock title="Glossário">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {(data.glossario || []).map((g, i) => (
-            <Card key={i} className="group relative">
+            <Card key={i} className={cn("group relative", STRONG_CARD)}>
               <button
                 onClick={() => deleteGloss(i)}
                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive z-10 transition-opacity"

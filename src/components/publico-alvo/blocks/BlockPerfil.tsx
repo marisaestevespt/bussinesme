@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { EditableText } from '../EditableText';
-import { EditableStringList, SectionLabel, SubBlock } from './shared';
+import { EditableStringList, SectionLabel, SubBlock, STRONG_CARD } from './shared';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,7 +40,7 @@ export function BlockPerfil({ data, onChange }: { data: PerfilData; onChange: (d
       <SubBlock title="Dimensões do perfil">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {data.cards.map((c, i) => (
-            <Card key={i} className="group relative">
+            <Card key={i} className={cn("group relative", STRONG_CARD)}>
               <button
                 onClick={() => deleteCard(i)}
                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive z-10 transition-opacity"
@@ -69,7 +69,7 @@ export function BlockPerfil({ data, onChange }: { data: PerfilData; onChange: (d
 
       {/* Duas listas: precisa ter / não encaixa */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className={cn('border-l-[3px] border-success bg-success/5')}>
+        <Card className={cn('border-l-[5px] border-success bg-success/10 border-2 border-success/40 shadow-card hover:shadow-elegant transition-all')}>
           <CardContent className="p-4">
             <SectionLabel>Precisa ter</SectionLabel>
             <EditableStringList
@@ -82,7 +82,7 @@ export function BlockPerfil({ data, onChange }: { data: PerfilData; onChange: (d
             />
           </CardContent>
         </Card>
-        <Card className={cn('border-l-[3px] border-destructive bg-destructive/5')}>
+        <Card className={cn('border-l-[5px] border-destructive bg-destructive/10 border-2 border-destructive/40 shadow-card hover:shadow-elegant transition-all')}>
           <CardContent className="p-4">
             <SectionLabel>Não encaixa se</SectionLabel>
             <EditableStringList

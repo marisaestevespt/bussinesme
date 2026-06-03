@@ -3,6 +3,16 @@ import { Plus, Trash2 } from 'lucide-react';
 import { EditableText } from '../EditableText';
 import { cn } from '@/lib/utils';
 
+/**
+ * Stronger card chrome for público-alvo blocks: thicker border, darker
+ * accent, present shadow and slightly tinted surface so cards stand out
+ * against the page background.
+ */
+export const STRONG_CARD = 'border-2 border-primary/45 shadow-card bg-card hover:border-primary/70 hover:shadow-elegant transition-all';
+
+/** Same as STRONG_CARD but with a subtly sunken/tinted surface. */
+export const STRONG_CARD_SUNKEN = 'border-2 border-primary/45 shadow-card bg-muted/30 hover:border-primary/70 hover:shadow-elegant transition-all';
+
 export function EditableListItem({
   value,
   onSave,

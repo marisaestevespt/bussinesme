@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { EditableText } from '../EditableText';
-import { AddButton, EditableStringList, SectionLabel } from './shared';
+import { AddButton, EditableStringList, SectionLabel, STRONG_CARD } from './shared';
 import { Trash2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -65,7 +65,7 @@ export function BlockPersonas({ data, onChange }: { data: PersonasData; onChange
         </p>
       )}
       {items.map((p, i) => (
-        <Card key={p.id} className="group relative overflow-hidden">
+        <Card key={p.id} className={cn("group relative overflow-hidden", STRONG_CARD)}>
           <button
             onClick={() => deleteP(i)}
             className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive z-10 transition-opacity"
