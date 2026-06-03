@@ -9,6 +9,7 @@ import { EntitySection } from '@/components/layout/entity';
 import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { getTaskStatusInfo } from '@/lib/taskStatus';
+import { getMeetingStatusInfo } from '@/lib/meetingStatus';
 import { Handshake, CheckSquare, Plus, Video, ChevronRight, Clock } from 'lucide-react';
 import { getInitials } from '@/pages/Projetos';
 import type { ProjectFull, Task, Meeting, Profile } from '@/hooks/useProjectDetailData';
@@ -139,26 +140,20 @@ export function ProjectProcessosSection({
             {meetingList.map((m: Meeting & { client_id?: string | null; visible_in_portal?: boolean }) => {
               const isPast = m.date_time && new Date(m.date_time) < now;
               const isInternal = m.client_id && m.visible_in_portal === false;
-              const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
-                por_confirmar: { label: 'Por confirmar', variant: 'outline' },
-                confirmada: { label: 'Confirmada', variant: 'default' },
-                terminada: { label: 'Terminada', variant: 'secondary' },
-                realizada: { label: 'Realizada', variant: 'secondary' },
-                cancelada: { label: 'Cancelada', variant: 'destructive' },
-              };
-              const fallback = isPast
-                ? { label: 'Realizada', variant: 'secondary' as const }
-                : { label: 'Por confirmar', variant: 'outline' as const };
-              const statusInfo = (m.status && statusMap[m.status]) || fallback;
+              const fallbackStatus = isPast ? 'realizada' : 'por_confirmar';
+              const statusInfo = getMeetingStatusInfo(m.status || fallbackStatus);
               return (
                 <div
                   key={m.id}
                   className="px-4 py-2.5 text-sm grid grid-cols-[100px_1fr_auto] gap-3 items-center cursor-pointer hover:bg-muted/40"
                   onClick={() => navigate(`/hub/reunioes/${m.id}`)}
                 >
-                  <Badge variant={statusInfo.variant} className="text-[10px] justify-center">
+                  <span
+                    className="inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-medium"
+                    style={{ backgroundColor: `${statusInfo.dotColor}20`, color: statusInfo.dotColor }}
+                  >
                     {statusInfo.label}
-                  </Badge>
+                  </span>
                   <div className="min-w-0">
                     <p className="font-medium truncate flex items-center gap-2">
                       {m.title}
