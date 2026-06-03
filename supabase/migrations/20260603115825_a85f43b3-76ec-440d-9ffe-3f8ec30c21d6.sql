@@ -1,0 +1,2 @@
+UPDATE public.products SET cycle_duration = 5 WHERE id = 'cd2c22a5-793e-46d5-9d98-2b91dac47c48';
+UPDATE public.projects SET deadline = (start_date + INTERVAL '5 months')::date WHERE product_id = 'cd2c22a5-793e-46d5-9d98-2b91dac47c48';
