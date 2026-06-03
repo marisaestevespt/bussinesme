@@ -62,7 +62,7 @@ export function BlockJornada({ data, onChange }: { data: JornadaData; onChange: 
       <SubBlock title="Escala de consciência">
         <div className="space-y-3">
           {data.niveis.map((n, i) => (
-            <Card key={i} className="group relative">
+            <Card key={i} className={cn("group relative", STRONG_CARD)}>
               <button
                 onClick={() => deleteNivel(i)}
                 className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive z-10 transition-opacity"
@@ -119,7 +119,7 @@ export function BlockJornada({ data, onChange }: { data: JornadaData; onChange: 
             { k: 'morna' as const, title: 'Morna', tint: 'border-warning/40 bg-warning/5' },
             { k: 'quente' as const, title: 'Quente', tint: 'border-destructive/40 bg-destructive/5' },
           ]).map(({ k, title, tint }) => (
-            <Card key={k} className={cn('border', tint)}>
+            <Card key={k} className={cn("border-2 shadow-card hover:shadow-elegant transition-all", tint)}>
               <CardContent className="p-4 space-y-2">
                 <p className="font-semibold text-sm text-foreground">{title}</p>
                 <EditableText

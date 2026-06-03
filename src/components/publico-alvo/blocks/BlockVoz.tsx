@@ -89,7 +89,7 @@ export function BlockVoz({ data, onChange }: { data: VozData; onChange: (d: VozD
       <SubBlock title="Frases de posicionamento">
         <div className="space-y-3">
           {data.frases.map((f, i) => (
-            <Card key={i} className="group relative">
+            <Card key={i} className={cn("group relative", STRONG_CARD)}>
               <button
                 onClick={() => deleteFrase(i)}
                 className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 text-destructive/60 hover:text-destructive z-10 transition-opacity"
