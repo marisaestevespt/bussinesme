@@ -20,6 +20,7 @@ import {
   CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat, ListTodo, MessageSquare, Clock, Video, Link2, FolderOpen, CheckSquare, Lightbulb, RefreshCw,
 } from 'lucide-react';
 import { CreateTasksFromMeetingDialog } from '@/components/meeting/CreateTasksFromMeetingDialog';
+import { MEETING_STATUSES, type MeetingStatusValue } from '@/lib/meetingStatus';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
