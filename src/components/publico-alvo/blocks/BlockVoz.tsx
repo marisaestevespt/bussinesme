@@ -1,5 +1,5 @@
 import { EditableText } from '../EditableText';
-import { AddButton, SectionLabel, SubBlock } from './shared';
+import { AddButton, SectionLabel, SubBlock, STRONG_CARD } from './shared';
 import { Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
