@@ -54,15 +54,9 @@ import { useSectorConfig } from '@/hooks/useSectorConfig';
 
 // ─── Types ──────────────────────────────────────────────────────
 
-type MeetingStatus = 'por_confirmar' | 'por_organizar' | 'confirmada' | 'terminada';
 type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico' | 'inicial';
-
-const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
-  { value: 'por_organizar', label: 'Por organizar', color: '#3b82f6' },
-  { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
-  { value: 'confirmada', label: 'Confirmada', color: '#10b981' },
-  { value: 'terminada', label: 'Terminada', color: '#6b7280' },
-];
+type MeetingStatus = MeetingStatusValue;
+const STATUSES = MEETING_STATUSES.map(s => ({ value: s.value, label: s.label, color: s.dotColor }));
 
 interface CheckItem { text: string; checked: boolean; }
 
