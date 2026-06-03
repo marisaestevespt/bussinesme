@@ -148,9 +148,12 @@ export function ProjectProcessosSection({
                   className="px-4 py-2.5 text-sm grid grid-cols-[100px_1fr_auto] gap-3 items-center cursor-pointer hover:bg-muted/40"
                   onClick={() => navigate(`/hub/reunioes/${m.id}`)}
                 >
-                  <Badge variant={statusInfo.variant} className="text-[10px] justify-center">
+                  <span
+                    className="inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-medium"
+                    style={{ backgroundColor: `${statusInfo.dotColor}20`, color: statusInfo.dotColor }}
+                  >
                     {statusInfo.label}
-                  </Badge>
+                  </span>
                   <div className="min-w-0">
                     <p className="font-medium truncate flex items-center gap-2">
                       {m.title}
