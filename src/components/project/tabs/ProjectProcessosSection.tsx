@@ -9,6 +9,7 @@ import { EntitySection } from '@/components/layout/entity';
 import { ProjectResponsibilities } from '@/components/project/ProjectResponsibilities';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { getTaskStatusInfo } from '@/lib/taskStatus';
+import { getMeetingStatusInfo } from '@/lib/meetingStatus';
 import { Handshake, CheckSquare, Plus, Video, ChevronRight, Clock } from 'lucide-react';
 import { getInitials } from '@/pages/Projetos';
 import type { ProjectFull, Task, Meeting, Profile } from '@/hooks/useProjectDetailData';
@@ -139,17 +140,8 @@ export function ProjectProcessosSection({
             {meetingList.map((m: Meeting & { client_id?: string | null; visible_in_portal?: boolean }) => {
               const isPast = m.date_time && new Date(m.date_time) < now;
               const isInternal = m.client_id && m.visible_in_portal === false;
-              const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
-                por_confirmar: { label: 'Por confirmar', variant: 'outline' },
-                confirmada: { label: 'Confirmada', variant: 'default' },
-                terminada: { label: 'Terminada', variant: 'secondary' },
-                realizada: { label: 'Realizada', variant: 'secondary' },
-                cancelada: { label: 'Cancelada', variant: 'destructive' },
-              };
-              const fallback = isPast
-                ? { label: 'Realizada', variant: 'secondary' as const }
-                : { label: 'Por confirmar', variant: 'outline' as const };
-              const statusInfo = (m.status && statusMap[m.status]) || fallback;
+              const fallbackStatus = isPast ? 'realizada' : 'por_confirmar';
+              const statusInfo = getMeetingStatusInfo(m.status || fallbackStatus);
               return (
                 <div
                   key={m.id}
