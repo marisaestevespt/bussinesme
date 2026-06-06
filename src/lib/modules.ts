@@ -62,7 +62,7 @@ export const BODY_FONTS = [
 ] as const;
 
 export const SYSTEM_FONT_DISPLAY = 'Sora';
-export const SYSTEM_FONT_BODY = 'Inter';
+export const SYSTEM_FONT_BODY = 'Montserrat';
 export const SYSTEM_FONT_MONO = 'Special Elite';
 
 export const MONO_FONTS = [

@@ -89,7 +89,7 @@ export default {
       },
       fontFamily: {
         display: ["var(--font-display, 'Cormorant Garamond')", "Georgia", "serif"],
-        body: ["var(--font-body, 'Inter')", "system-ui", "sans-serif"],
+        body: ["var(--font-body, 'Montserrat')", "system-ui", "sans-serif"],
         typewriter: ["'Special Elite'", "'Courier New'", "monospace"],
       },
       boxShadow: {
