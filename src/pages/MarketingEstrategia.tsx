@@ -298,32 +298,32 @@ export default function MarketingEstrategia() {
           {/* Distribuição de Conteúdo */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4">Distribuição de Conteúdo</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {DIST_COLUMNS.map(col => {
                 const colCards = distCards.filter(c => c.column_key === col.key);
                 return (
                   <div key={col.key} className="flex flex-col">
-                    <div className={cn('rounded-lg px-2 py-2 mb-2 text-center', col.headerBg)}>
-                      <span className={cn('text-xs font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
-                      <span className={cn('ml-1.5 text-[10px] font-medium', col.headerText, 'opacity-60')}>({colCards.length})</span>
+                    <div className={cn('rounded-lg px-3 py-2.5 mb-3 text-center', col.headerBg)}>
+                      <span className={cn('text-sm font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
+                      <span className={cn('ml-1.5 text-xs font-medium', col.headerText, 'opacity-60')}>({colCards.length})</span>
                     </div>
-                    <div className="space-y-2 flex-1 min-h-[120px]">
+                    <div className="space-y-3 flex-1 min-h-[120px]">
                       {colCards.map(card => (
                         <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDialog(card)}>
-                          <CardContent className="p-2.5 space-y-1">
-                            <p className="text-xs font-medium text-foreground truncate">{card.title || 'Sem título'}</p>
-                            {card.channel && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">{card.channel}</Badge>}
-                            {card.description && <p className="text-[10px] text-muted-foreground truncate">{card.description}</p>}
+                          <CardContent className="p-4 space-y-2">
+                            <p className="text-sm font-medium text-foreground line-clamp-2">{card.title || 'Sem título'}</p>
+                            {card.channel && <Badge variant="secondary" className="text-xs px-2 py-0 h-5">{card.channel}</Badge>}
+                            {card.description && <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>}
                             <div className="flex items-center gap-2">
-                              {card.link_url && <ExternalLink className="h-2.5 w-2.5 text-info" />}
-                              {(card.files as any[])?.length > 0 && <Paperclip className="h-2.5 w-2.5 text-muted-foreground" />}
+                              {card.link_url && <ExternalLink className="h-3.5 w-3.5 text-info" />}
+                              {(card.files as any[])?.length > 0 && <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />}
                             </div>
-                            {isOwner && <Button variant="ghost" aria-label="Eliminar" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDistCard(card.id); }}><Trash2 className="h-3 w-3 text-destructive" /></Button>}
+                            {isOwner && <Button variant="ghost" aria-label="Eliminar" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDistCard(card.id); }}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
                           </CardContent>
                         </Card>
                       ))}
                     </div>
-                    {isOwner && <Button variant="ghost" size="sm" className={cn('w-full mt-2 text-xs', col.addColor)} onClick={() => openAddDialog(col.key)}><Plus className="h-3 w-3 mr-1" />Adicionar</Button>}
+                    {isOwner && <Button variant="ghost" size="sm" className={cn('w-full mt-3 text-sm', col.addColor)} onClick={() => openAddDialog(col.key)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar</Button>}
                   </div>
                 );
               })}
