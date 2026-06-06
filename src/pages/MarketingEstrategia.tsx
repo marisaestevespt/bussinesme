@@ -311,9 +311,9 @@ export default function MarketingEstrategia() {
                       {colCards.map(card => (
                         <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDialog(card)}>
                           <CardContent className="p-4 space-y-2">
-                            <p className="text-sm font-medium text-foreground line-clamp-2">{card.title || 'Sem título'}</p>
+                            <p className="text-sm font-medium text-foreground truncate">{card.title || 'Sem título'}</p>
                             {card.channel && <Badge variant="secondary" className="text-xs px-2 py-0 h-5">{card.channel}</Badge>}
-                            {card.description && <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>}
+                            {card.description && <p className="text-xs text-muted-foreground truncate">{card.description}</p>}
                             <div className="flex items-center gap-2">
                               {card.link_url && <ExternalLink className="h-3.5 w-3.5 text-info" />}
                               {(card.files as any[])?.length > 0 && <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />}
