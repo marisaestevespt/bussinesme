@@ -1,6 +1,6 @@
-export const BUSINESS_BRAND_FALLBACK_HSL = '351 56% 28%';
-export const BUSINESS_ACCENT_FALLBACK_HSL = '26 40% 39%';
-export const BUSINESS_TEXT_FALLBACK_HSL = '0 0% 16%';
+export const BUSINESS_BRAND_FALLBACK_HSL = '347 66% 15%';   /* #3f0d18 */
+export const BUSINESS_ACCENT_FALLBACK_HSL = '356 28% 45%';  /* #955357 */
+export const BUSINESS_TEXT_FALLBACK_HSL = '202 96% 11%';    /* #012235 */
 
 type PortalBrandingLike = {
   primary_color?: string | null;
