@@ -96,7 +96,7 @@ export function FinAlertasMes({ year, month }: Props) {
             detail: `${label} referencia um fornecedor que já não existe.`,
           });
         } else {
-          if (sup.is_active === false && status !== 'pago') {
+          if (sup.is_active === false && isUnpaid) {
             out.push({
               key: `inactive-${e.id}`,
               severity: 'medium',
