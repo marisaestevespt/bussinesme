@@ -871,11 +871,11 @@ export default function GestaoMarcaPage() {
                       {card.cover_url ? (
                         <img src={visualDisplayUrls[card.cover_url] || card.cover_url} alt={card.title} className="w-full h-full object-cover" />
                       ) : (
-                        <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
+                        <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
                       )}
                     </div>
-                    <CardContent className="p-2">
-                      <p className="text-xs font-medium text-foreground text-center truncate">{card.title}</p>
+                    <CardContent className="p-3">
+                      <p className="text-sm font-medium text-foreground text-center truncate">{card.title}</p>
                     </CardContent>
                     {isOwner && (
                       <Button
@@ -894,10 +894,10 @@ export default function GestaoMarcaPage() {
                   onClick={() => setShowFolderSystem(true)}
                 >
                   <div className="aspect-square bg-primary/5 flex items-center justify-center overflow-hidden">
-                    <FolderOpen className="h-8 w-8 text-primary/60" />
+                    <FolderOpen className="h-12 w-12 text-primary/60" />
                   </div>
-                  <CardContent className="p-2">
-                    <p className="text-xs font-medium text-foreground text-center truncate">Sistema de Pastas</p>
+                  <CardContent className="p-3">
+                    <p className="text-sm font-medium text-foreground text-center truncate">Sistema de Pastas</p>
                   </CardContent>
                 </Card>
               </div>
