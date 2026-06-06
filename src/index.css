@@ -55,15 +55,15 @@
     --radius-lg: 0.375rem;
     --radius-xl: 0.5rem;
 
-    /* Sidebar — deep navy #012235 (Lyrata) */
-    --sidebar-background: 202 96% 11%;
-    --sidebar-foreground: 43 36% 86%;
-    --sidebar-primary: 220 26% 64%;
-    --sidebar-primary-foreground: 202 96% 11%;
-    --sidebar-accent: 202 60% 16%;
+    /* Sidebar — bordô #3f0d18 com texto creme #fcfbf7 (Lyrata) */
+    --sidebar-background: 347 66% 15%;
+    --sidebar-foreground: 48 46% 98%;
+    --sidebar-primary: 48 46% 98%;
+    --sidebar-primary-foreground: 347 66% 15%;
+    --sidebar-accent: 347 50% 25%;
     --sidebar-accent-foreground: 48 46% 98%;
-    --sidebar-border: 202 50% 18%;
-    --sidebar-ring: 220 26% 64%;
+    --sidebar-border: 347 40% 30%;
+    --sidebar-ring: 48 46% 98%;
 
     /* Extended brand tokens — Lyrata official */
     --brand-primary: 347 66% 15%;     /* #3f0d18 bordô */
