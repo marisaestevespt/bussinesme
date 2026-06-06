@@ -185,29 +185,43 @@ export default function MarketingEstrategia() {
               placeholder="Define aqui o foco estratégico do teu marketing" className="min-h-[80px] resize-none" readOnly={!isOwner} />
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Linha Editorial */}
-            <section>
+          {/* Linha Editorial — full width para os campos terem espaço */}
+          <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold text-foreground">Linha Editorial</h2>
                 {isOwner && <Button variant="outline" size="sm" onClick={addEditorialLine}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar</Button>}
               </div>
               <Card>
                 <CardContent className="p-0">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm table-fixed">
                     <thead><tr className="border-b bg-muted/30">
-                      <th className="text-left p-3 font-medium text-muted-foreground">Pilar</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Descrição</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground">Tipos de Conteúdo</th>
-                      {isOwner && <th className="w-10" />}
+                      <th className="text-left p-3 font-medium text-muted-foreground w-[20%]">Pilar</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground w-[45%]">Descrição</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground w-[30%]">Tipos de Conteúdo</th>
+                      {isOwner && <th className="w-[5%]" />}
                     </tr></thead>
                     <tbody>
                       {editorialLines.length === 0 && <tr><td colSpan={4} className="p-6 text-center text-muted-foreground italic">Nenhum pilar definido.</td></tr>}
                       {editorialLines.map(line => (
-                        <tr key={line.id} className="border-b last:border-0 group">
-                          <td className="p-2"><Input value={line.pilar} className="h-8 text-sm border-transparent hover:border-input focus:border-input" onChange={e => updateEditorialLine(line.id, 'pilar', e.target.value)} placeholder="Ex: Educação" readOnly={!isOwner} /></td>
-                          <td className="p-2"><Input value={line.descricao} className="h-8 text-sm border-transparent hover:border-input focus:border-input" onChange={e => updateEditorialLine(line.id, 'descricao', e.target.value)} placeholder="Descrição do pilar" readOnly={!isOwner} /></td>
-                          <td className="p-2"><Input value={line.tipos_conteudo} className="h-8 text-sm border-transparent hover:border-input focus:border-input" onChange={e => updateEditorialLine(line.id, 'tipos_conteudo', e.target.value)} placeholder="Tipos de conteúdo" readOnly={!isOwner} /></td>
+                        <tr key={line.id} className="border-b last:border-0 group align-top">
+                          <td className="p-2">
+                            <Textarea defaultValue={line.pilar} rows={2}
+                              className="text-sm border-transparent hover:border-input focus:border-input resize-y min-h-[40px]"
+                              onBlur={e => { if (e.target.value !== line.pilar) updateEditorialLine(line.id, 'pilar', e.target.value); }}
+                              placeholder="Ex: Educação" readOnly={!isOwner} />
+                          </td>
+                          <td className="p-2">
+                            <Textarea defaultValue={line.descricao} rows={2}
+                              className="text-sm border-transparent hover:border-input focus:border-input resize-y min-h-[40px]"
+                              onBlur={e => { if (e.target.value !== line.descricao) updateEditorialLine(line.id, 'descricao', e.target.value); }}
+                              placeholder="Descrição do pilar" readOnly={!isOwner} />
+                          </td>
+                          <td className="p-2">
+                            <Textarea defaultValue={line.tipos_conteudo} rows={2}
+                              className="text-sm border-transparent hover:border-input focus:border-input resize-y min-h-[40px]"
+                              onBlur={e => { if (e.target.value !== line.tipos_conteudo) updateEditorialLine(line.id, 'tipos_conteudo', e.target.value); }}
+                              placeholder="Tipos de conteúdo" readOnly={!isOwner} />
+                          </td>
                           {isOwner && <td className="p-2"><Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteEditorialLine(line.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></td>}
                         </tr>
                       ))}
@@ -215,17 +229,16 @@ export default function MarketingEstrategia() {
                   </table>
                 </CardContent>
               </Card>
-            </section>
+          </section>
 
-            {/* Posicionamento */}
-            <section>
+          {/* Posicionamento */}
+          <section>
               <h2 className="text-lg font-semibold text-foreground mb-3">Posicionamento da Marca</h2>
               <Card><CardContent className="p-4">
                 <Textarea value={posicionamento} onChange={e => setPosicionamento(e.target.value)} onBlur={() => upsertSetting('posicionamento', posicionamento)}
                   placeholder="Define aqui o posicionamento da tua marca" className="min-h-[100px] resize-none" readOnly={!isOwner} />
               </CardContent></Card>
-            </section>
-          </div>
+          </section>
 
           {/* Links rápidos — full width colorful cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
