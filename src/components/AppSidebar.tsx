@@ -126,7 +126,7 @@ function NavSection({
                         to={item.url}
                         end
                         className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
-                        activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium hover:!bg-sidebar-primary/20"
+                        activeClassName="bg-secondary text-primary font-medium hover:bg-secondary/90"
                       >
                         <div className="flex items-center gap-3">
                           <Icon className="h-4 w-4 shrink-0 transition-colors" strokeWidth={1.7} />
@@ -216,7 +216,7 @@ export function AppSidebar() {
                           to={fav.page_path}
                           end
                           className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
-                          activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium hover:!bg-sidebar-primary/20"
+                          activeClassName="bg-secondary text-primary font-medium hover:bg-secondary/90"
                         >
                           <div className="flex items-center gap-3">
                             <Icon className="h-4 w-4 shrink-0 transition-colors" strokeWidth={1.7} />
@@ -250,7 +250,7 @@ export function AppSidebar() {
                   to="/definicoes"
                   end
                   className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
-                  activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium"
+                  activeClassName="bg-secondary text-primary font-medium hover:bg-secondary/90"
                 >
                   <div className="flex items-center gap-3">
                     <Settings className="h-4 w-4 shrink-0" strokeWidth={1.7} />
@@ -266,7 +266,7 @@ export function AppSidebar() {
                 to="/ajuda"
                 end
                 className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
-                activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium"
+                activeClassName="bg-secondary text-primary font-medium hover:bg-secondary/90"
               >
                 <div className="flex items-center gap-3">
                   <LifeBuoy className="h-4 w-4 shrink-0" strokeWidth={1.7} />
