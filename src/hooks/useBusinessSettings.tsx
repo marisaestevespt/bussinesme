@@ -41,7 +41,7 @@ function applyTheme(settings: BusinessSettings) {
   const useSystem = settings.use_system_theme ?? true;
   const root = document.documentElement;
   const primary = normalizeHslTriplet(settings.primary_color, BUSINESS_BRAND_FALLBACK_HSL);
-  const secondary = normalizeHslTriplet(settings.secondary_color, '3 42% 74%');
+  const secondary = normalizeHslTriplet(settings.secondary_color, '43 36% 86%');
   const background = normalizeHslTriplet(settings.background_color, '33 43% 96%');
   const text = normalizeHslTriplet(settings.text_color, BUSINESS_TEXT_FALLBACK_HSL);
   const accentColor = normalizeHslTriplet(settings.accent_color || settings.secondary_color, BUSINESS_ACCENT_FALLBACK_HSL);
