@@ -87,11 +87,8 @@ export default function MarketingEstrategia() {
     qc.invalidateQueries({ queryKey: ['strategy-settings'] });
   };
 
-  const [foco, setFoco] = useState('');
-  useEffect(() => { setFoco(getSetting('foco')); }, [settings]);
-
-  const [posicionamento, setPosicionamento] = useState('');
-  useEffect(() => { setPosicionamento(getSetting('posicionamento')); }, [settings]);
+  const focoValue = getSetting('foco');
+  const posicionamentoValue = getSetting('posicionamento');
 
   const addEditorialLine = async () => {
     await supabase.from('strategy_editorial_lines').insert({ pilar: '', descricao: '', tipos_conteudo: '', sort_order: editorialLines.length } as any);
@@ -181,8 +178,14 @@ export default function MarketingEstrategia() {
           {/* Foco */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-3">Foco Estratégico</h2>
-            <Textarea value={foco} onChange={e => setFoco(e.target.value)} onBlur={() => upsertSetting('foco', foco)}
-              placeholder="Define aqui o foco estratégico do teu marketing" className="min-h-[80px] resize-none" readOnly={!isOwner} />
+            <Textarea
+              key={`foco-${focoValue}`}
+              defaultValue={focoValue}
+              onBlur={e => { if (e.target.value !== focoValue) upsertSetting('foco', e.target.value); }}
+              placeholder="Define aqui o foco estratégico do teu marketing"
+              className="min-h-[80px] resize-y"
+              readOnly={!isOwner}
+            />
           </section>
 
           {/* Linha Editorial — full width para os campos terem espaço */}
@@ -235,8 +238,14 @@ export default function MarketingEstrategia() {
           <section>
               <h2 className="text-lg font-semibold text-foreground mb-3">Posicionamento da Marca</h2>
               <Card><CardContent className="p-4">
-                <Textarea value={posicionamento} onChange={e => setPosicionamento(e.target.value)} onBlur={() => upsertSetting('posicionamento', posicionamento)}
-                  placeholder="Define aqui o posicionamento da tua marca" className="min-h-[100px] resize-none" readOnly={!isOwner} />
+                <Textarea
+                  key={`pos-${posicionamentoValue}`}
+                  defaultValue={posicionamentoValue}
+                  onBlur={e => { if (e.target.value !== posicionamentoValue) upsertSetting('posicionamento', e.target.value); }}
+                  placeholder="Define aqui o posicionamento da tua marca"
+                  className="min-h-[100px] resize-y"
+                  readOnly={!isOwner}
+                />
               </CardContent></Card>
           </section>
 
