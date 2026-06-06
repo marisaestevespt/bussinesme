@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
@@ -79,11 +79,11 @@ export default function MarketingEstrategia() {
 
   const upsertSetting = async (key: string, value: string) => {
     const existing = settings.find(s => s.key === key);
-    if (existing) {
-      await supabase.from('strategy_settings').update({ value } as any).eq('id', existing.id);
-    } else {
-      await supabase.from('strategy_settings').insert({ key, value } as any);
-    }
+    const { error } = existing
+      ? await supabase.from('strategy_settings').update({ value } as any).eq('id', existing.id)
+      : await supabase.from('strategy_settings').insert({ key, value } as any);
+    if (error) { toast.error('Erro ao guardar'); return; }
+    toast.success('Guardado');
     qc.invalidateQueries({ queryKey: ['strategy-settings'] });
   };
 
