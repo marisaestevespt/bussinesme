@@ -332,17 +332,17 @@ export default function MarketingEstrategia() {
 
           {/* Distribution card dialog */}
           <Dialog open={distDialog.open} onOpenChange={open => !open && setDistDialog({ open: false, columnKey: '' })}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>{distDialog.editId ? 'Editar Conteúdo' : 'Novo Conteúdo'}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <Label className="text-xs">Nome</Label>
+                  <Label className="text-sm">Nome</Label>
                   <Input value={distForm.title} onChange={e => setDistForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: Post educativo" />
                 </div>
                 <div>
-                  <Label className="text-xs">Canal</Label>
+                  <Label className="text-sm">Canal</Label>
                   <Select value={distForm.channel} onValueChange={v => setDistForm(f => ({ ...f, channel: v }))}>
                     <SelectTrigger><SelectValue placeholder="Selecionar canal" /></SelectTrigger>
                     <SelectContent>
@@ -353,8 +353,8 @@ export default function MarketingEstrategia() {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">Descrição</Label>
-                  <Textarea value={distForm.description} onChange={e => setDistForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes do conteúdo" className="resize-none min-h-[60px]" />
+                  <Label className="text-sm">Descrição</Label>
+                  <Textarea value={distForm.description} onChange={e => setDistForm(f => ({ ...f, description: e.target.value }))} placeholder="Detalhes do conteúdo" className="resize-y min-h-[100px]" />
                 </div>
                 <div>
                   <Label className="text-xs">Link</Label>
