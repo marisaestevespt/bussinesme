@@ -298,11 +298,12 @@ export default function MarketingEstrategia() {
           {/* Distribuição de Conteúdo */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4">Distribuição de Conteúdo</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {DIST_COLUMNS.map(col => {
-                const colCards = distCards.filter(c => c.column_key === col.key);
-                return (
-                  <div key={col.key} className="flex flex-col">
+            <div className="overflow-x-auto -mx-2 px-2 pb-3">
+              <div className="flex gap-4 min-w-max">
+                {DIST_COLUMNS.map(col => {
+                  const colCards = distCards.filter(c => c.column_key === col.key);
+                  return (
+                    <div key={col.key} className="flex flex-col w-72 shrink-0">
                     <div className={cn('rounded-lg px-3 py-2.5 mb-3 text-center', col.headerBg)}>
                       <span className={cn('text-sm font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
                       <span className={cn('ml-1.5 text-xs font-medium', col.headerText, 'opacity-60')}>({colCards.length})</span>
@@ -311,9 +312,9 @@ export default function MarketingEstrategia() {
                       {colCards.map(card => (
                         <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDialog(card)}>
                           <CardContent className="p-4 space-y-2">
-                            <p className="text-sm font-medium text-foreground truncate">{card.title || 'Sem título'}</p>
+                            <p className="text-sm font-medium text-foreground break-words">{card.title || 'Sem título'}</p>
                             {card.channel && <Badge variant="secondary" className="text-xs px-2 py-0 h-5">{card.channel}</Badge>}
-                            {card.description && <p className="text-xs text-muted-foreground truncate">{card.description}</p>}
+                            {card.description && <p className="text-xs text-muted-foreground break-words line-clamp-3">{card.description}</p>}
                             <div className="flex items-center gap-2">
                               {card.link_url && <ExternalLink className="h-3.5 w-3.5 text-info" />}
                               {(card.files as any[])?.length > 0 && <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -324,9 +325,10 @@ export default function MarketingEstrategia() {
                       ))}
                     </div>
                     {isOwner && <Button variant="ghost" size="sm" className={cn('w-full mt-3 text-sm', col.addColor)} onClick={() => openAddDialog(col.key)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar</Button>}
-                  </div>
-                );
-              })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </section>
 
