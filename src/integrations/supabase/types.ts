@@ -12472,6 +12472,29 @@ export type Database = {
         }[]
       }
       get_client_portal_health: { Args: { _client_id: string }; Returns: Json }
+      get_my_profile: {
+        Args: never
+        Returns: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string | null
+          icon: Json | null
+          id: string
+          onboarding_completed: boolean
+          phone: string | null
+          role_title: string | null
+          updated_at: string
+          user_id: string
+          work_schedule: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_portal_account_manager: {
         Args: { _token: string }
         Returns: {
@@ -12774,6 +12797,29 @@ export type Database = {
           title: string
           weekday: number
         }[]
+      }
+      get_profile_admin: {
+        Args: { _user_id: string }
+        Returns: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string | null
+          icon: Json | null
+          id: string
+          onboarding_completed: boolean
+          phone: string | null
+          role_title: string | null
+          updated_at: string
+          user_id: string
+          work_schedule: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_profiles_basic: {
         Args: never
