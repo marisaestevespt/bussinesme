@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { SectionCard, SectionTitle } from './SectionPrimitives';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import type { PortalPayment } from '@/types/portal';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -15,9 +17,29 @@ interface Props {
   setSelectedPayment: (p: PortalPayment | null) => void;
   pc: string;
   statusLabel: (s: string) => { text: string; cls: string };
+  portalToken?: string;
 }
 
-export function PortalPaymentsSection({ payments, selectedPayment, setSelectedPayment, pc, statusLabel }: Props) {
+export function PortalPaymentsSection({ payments, selectedPayment, setSelectedPayment, pc, statusLabel, portalToken }: Props) {
+  const handleDownload = async (saleId: string, fileUrl: string, name: string) => {
+    if (!portalToken) {
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('portal-payment-file', {
+        body: { token: portalToken, sale_id: saleId, file_url: fileUrl },
+      });
+      if (error || !data?.url) {
+        toast.error('Não foi possível abrir o documento');
+        return;
+      }
+      window.open(data.url as string, '_blank', 'noopener,noreferrer');
+    } catch {
+      toast.error('Não foi possível abrir o documento');
+    }
+    void name;
+  };
   return (
     <>
       <div className="space-y-5">
@@ -85,9 +107,15 @@ export function PortalPaymentsSection({ payments, selectedPayment, setSelectedPa
                       const url = (d as { url?: string }).url || (typeof d === 'string' ? d : '');
                       const name = (d as { name?: string; file_name?: string }).name || (d as { file_name?: string }).file_name || `Documento ${i + 1}`;
                       return (
-                        <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm hover:underline py-1" style={{ color: pc }}>
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleDownload(p.id, url, name)}
+                          className="flex items-center gap-2 text-sm hover:underline py-1 text-left"
+                          style={{ color: pc }}
+                        >
                           <Download className="h-3.5 w-3.5" />{name}
-                        </a>
+                        </button>
                       );
                     })}
                   </div>
