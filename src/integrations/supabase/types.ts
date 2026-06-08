@@ -12708,6 +12708,10 @@ export type Database = {
           sort_order: number
         }[]
       }
+      get_portal_payment_file_path: {
+        Args: { _file_url: string; _sale_id: string; _token: string }
+        Returns: string
+      }
       get_portal_payment_methods: { Args: { _token: string }; Returns: Json }
       get_portal_payments: {
         Args: { _token: string }
