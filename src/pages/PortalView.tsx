@@ -1119,6 +1119,7 @@ export default function PortalViewPage() {
             setSelectedPayment={setSelectedPayment}
             pc={pc}
             statusLabel={statusLabel}
+            portalToken={portalToken || undefined}
           />
         )}
 
