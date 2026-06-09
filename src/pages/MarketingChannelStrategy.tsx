@@ -366,34 +366,36 @@ export default function MarketingChannelStrategy() {
           {/* Distribuição de Conteúdo deste canal */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4">Distribuição de Conteúdo</h2>
-            <div className="grid grid-cols-4 lg:grid-cols-8 gap-2">
-              {DIST_COLUMNS.map(col => {
-                const colCards = channelDistCards.filter(c => c.column_key === col.key);
-                return (
-                  <div key={col.key} className="flex flex-col">
-                    <div className={cn('rounded-lg px-1.5 py-1.5 mb-2 text-center', col.headerBg)}>
-                      <span className={cn('text-[10px] font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
-                      {colCards.length > 0 && <span className={cn('ml-1 text-[9px] font-medium opacity-60', col.headerText)}>({colCards.length})</span>}
+            <div className="overflow-x-auto -mx-2 px-2 pb-3">
+              <div className="flex gap-4 min-w-max">
+                {DIST_COLUMNS.map(col => {
+                  const colCards = channelDistCards.filter(c => c.column_key === col.key);
+                  return (
+                    <div key={col.key} className="flex flex-col w-72 shrink-0">
+                      <div className={cn('rounded-lg px-3 py-2.5 mb-3 text-center', col.headerBg)}>
+                        <span className={cn('text-sm font-semibold uppercase tracking-wider', col.headerText)}>{col.label}</span>
+                        <span className={cn('ml-1.5 text-xs font-medium', col.headerText, 'opacity-60')}>({colCards.length})</span>
+                      </div>
+                      <div className="space-y-3 flex-1 min-h-[120px]">
+                        {colCards.map(card => (
+                          <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDist(card)}>
+                            <CardContent className="p-4 space-y-2">
+                              <p className="text-sm font-medium text-foreground break-words">{card.title || 'Sem título'}</p>
+                              {card.description && <p className="text-xs text-muted-foreground break-words line-clamp-3">{card.description}</p>}
+                              <div className="flex items-center gap-2">
+                                {card.link_url && <ExternalLink className="h-3.5 w-3.5 text-info" />}
+                                {(card.files as any[])?.length > 0 && <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />}
+                              </div>
+                              {isOwner && <Button variant="ghost" aria-label="Eliminar" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDist(card.id); }}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                      {isOwner && <Button variant="ghost" size="sm" className={cn('w-full mt-3 text-sm', col.addColor)} onClick={() => openAddDist(col.key)}><Plus className="h-3.5 w-3.5 mr-1" />Adicionar</Button>}
                     </div>
-                    <div className="space-y-2 flex-1 min-h-[80px]">
-                      {colCards.map(card => (
-                        <Card key={card.id} className={cn('group relative cursor-pointer', col.cardBorder)} onClick={() => isOwner && openEditDist(card)}>
-                          <CardContent className="p-2 space-y-0.5">
-                            <p className="text-[11px] font-medium text-foreground truncate">{card.title}</p>
-                            {card.description && <p className="text-[9px] text-muted-foreground truncate">{card.description}</p>}
-                            <div className="flex items-center gap-1">
-                              {card.link_url && <ExternalLink className="h-2 w-2 text-info" />}
-                              {(card.files as any[])?.length > 0 && <Paperclip className="h-2 w-2 text-muted-foreground" />}
-                            </div>
-                            {isOwner && <Button variant="ghost" aria-label="Eliminar" size="icon" className="absolute top-0.5 right-0.5 h-4 w-4 opacity-0 group-hover:opacity-100" onClick={e => { e.stopPropagation(); deleteDist(card.id); }}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    {isOwner && <Button variant="ghost" size="sm" className="w-full mt-1 text-[10px] text-muted-foreground h-6" onClick={() => openAddDist(col.key)}><Plus className="h-2.5 w-2.5 mr-0.5" />Adicionar</Button>}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </section>
 
