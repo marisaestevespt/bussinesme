@@ -94,10 +94,13 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
   // Queries
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles', 'active-team'],
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url');
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name, avatar_url, team_members!inner(status)')
+        .eq('team_members.status', 'ativo');
       return data || [];
     },
   });

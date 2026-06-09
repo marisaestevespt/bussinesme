@@ -51,9 +51,12 @@ export function CreateTasksFromMeetingDialog({
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles', 'active-team'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, user_id, full_name');
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name, team_members!inner(status)')
+        .eq('team_members.status', 'ativo');
       return data || [];
     },
   });

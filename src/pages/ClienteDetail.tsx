@@ -431,9 +431,12 @@ function ClienteDetailPageInner() {
   // Create meeting
   // Profiles and projects for MeetingFormDialog
   const { data: meetingProfiles = [] } = useQuery({
-    queryKey: ['profiles-for-meetings'],
+    queryKey: ['profiles-for-meetings', 'active-team'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url, role_title');
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name, avatar_url, role_title, team_members!inner(status)')
+        .eq('team_members.status', 'ativo');
       return (data || []) as { id: string; user_id: string; full_name: string | null; avatar_url: string | null; role_title: string | null }[];
     },
   });

@@ -57,7 +57,8 @@ export default function CrmPipelines() {
         const { data: tms } = await supabase
           .from('team_members')
           .select('profile_id, profiles!inner(user_id)')
-          .in('custom_role_id', commercialRoleIds);
+          .in('custom_role_id', commercialRoleIds)
+          .eq('status', 'ativo');
         commercialUserIds = ((tms || []) as any[]).map(t => t.profiles?.user_id).filter(Boolean);
       }
       const allUserIds = [...new Set([...ownerIds, ...commercialUserIds])];
