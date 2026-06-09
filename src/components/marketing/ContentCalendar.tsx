@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -162,11 +162,24 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
   );
 }
 
+const STORAGE_KEY = 'content-calendar-month';
+
 export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly, profiles, attachments, onCreateForDate }: Props) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+    if (saved) {
+      const d = new Date(saved);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return new Date();
+  });
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, currentMonth.toISOString());
+  }, [currentMonth]);
 
   const handleDrop = useCallback(async (newStatus: string) => {
     if (!draggingId) return;
