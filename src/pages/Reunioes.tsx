@@ -130,9 +130,12 @@ export function useClientsList() {
 
 export function useProfiles() {
   return useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles', 'active-team'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url, role_title');
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name, avatar_url, role_title, team_members!inner(status)')
+        .eq('team_members.status', 'ativo');
       if (error) throw error;
       return data as Profile[];
     },
