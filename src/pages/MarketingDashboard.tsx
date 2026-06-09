@@ -93,7 +93,7 @@ export default function MarketingDashboard() {
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
   const weekContent = contentItems.filter(item => {
-    if (!item.scheduled_at || item.status === 'publicado') return false;
+    if (!item.scheduled_at) return false;
     return isWithinInterval(new Date(item.scheduled_at), { start: weekStart, end: weekEnd });
   });
 
