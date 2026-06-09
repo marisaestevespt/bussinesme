@@ -1,6 +1,19 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getPaletteColor } from '@/lib/departmentColorPalette';
+import { DEPARTMENT_COLOR_PALETTE } from '@/lib/departmentColorPalette';
+
+// Deterministic auto-color fallback: hash the key into the palette
+// (skipping 'gray' so default values still look distinct).
+const AUTO_PALETTE = DEPARTMENT_COLOR_PALETTE.filter(c => c.key !== 'gray');
+function autoColorKey(deptValue: string): string {
+  let h = 0;
+  for (let i = 0; i < deptValue.length; i++) {
+    h = (h * 31 + deptValue.charCodeAt(i)) | 0;
+  }
+  const idx = Math.abs(h) % AUTO_PALETTE.length;
+  return AUTO_PALETTE[idx].key;
+}
 
 type ColorMap = Record<string, string>; // department_value -> color_key
 
@@ -41,11 +54,11 @@ export function useDepartmentColors() {
 
   const getBadgeClass = useCallback((deptValue: string, fallback?: string) => {
     const key = colors[deptValue];
-    if (!key) return fallback || getPaletteColor('gray').badgeClass;
+    if (!key) return fallback || getPaletteColor(autoColorKey(deptValue)).badgeClass;
     return getPaletteColor(key).badgeClass;
   }, [colors]);
 
-  const getColorKey = useCallback((deptValue: string) => colors[deptValue] || 'gray', [colors]);
+  const getColorKey = useCallback((deptValue: string) => colors[deptValue] || autoColorKey(deptValue), [colors]);
 
   const setColor = useCallback(async (deptValue: string, colorKey: string) => {
     // Optimistic update
