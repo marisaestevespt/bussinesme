@@ -309,6 +309,7 @@ const App = () => (
     <TooltipProvider>
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <GlobalRealtimeProvider>
           <ImpersonationProvider>
