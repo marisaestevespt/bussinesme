@@ -112,10 +112,15 @@ export default function ConteudoDetailPage() {
   });
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles', 'active-team'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name');
-      return data || [];
+      const { data } = await supabase
+        .from('team_members')
+        .select('profile_id, full_name, status')
+        .eq('status', 'ativo')
+        .not('profile_id', 'is', null)
+        .order('full_name');
+      return (data || []).map((m: any) => ({ id: m.profile_id, full_name: m.full_name }));
     },
   });
 
