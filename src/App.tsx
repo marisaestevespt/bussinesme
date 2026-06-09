@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider, MutationCache } from "@tanstack/react-query";
+import ScrollToTop from "@/components/ScrollToTop";
 import { isConfirmCancelled } from "@/lib/confirmDestructive";
 import { AppTabsProvider } from "@/hooks/useAppTabs";
 import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
