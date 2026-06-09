@@ -618,8 +618,10 @@ export default function ConteudoDetailPage() {
                       type="button"
                       onClick={() => setSelectedChannels(prev => checked ? prev.filter(i => i !== ch.id) : [...prev, ch.id])}
                       className={cn(
-                        'text-xs px-2 py-1 rounded-md border transition',
-                        checked ? 'bg-primary/10 border-primary/30 text-foreground' : 'bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/60'
+                        'text-xs px-2 py-0.5 rounded-md border transition inline-flex items-center font-medium',
+                        checked
+                          ? getBadgeClass(`marketing_channel:${ch.name}`)
+                          : 'bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/60 opacity-70'
                       )}
                     >
                       {ch.name}
