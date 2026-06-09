@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { AutoTextarea } from '@/components/AutoTextarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -208,20 +209,20 @@ export default function MarketingEstrategia() {
                       {editorialLines.map(line => (
                         <tr key={line.id} className="border-b last:border-0 group align-top">
                           <td className="p-2">
-                            <Textarea defaultValue={line.pilar} rows={2}
-                              className="text-sm border-transparent hover:border-input focus:border-input resize-y min-h-[40px]"
+                            <AutoTextarea defaultValue={line.pilar}
+                              className="text-sm border-transparent hover:border-input focus:border-input"
                               onBlur={e => { if (e.target.value !== line.pilar) updateEditorialLine(line.id, 'pilar', e.target.value); }}
                               placeholder="Ex: Educação" readOnly={!isOwner} />
                           </td>
                           <td className="p-2">
-                            <Textarea defaultValue={line.descricao} rows={2}
-                              className="text-sm border-transparent hover:border-input focus:border-input resize-y min-h-[40px]"
+                            <AutoTextarea defaultValue={line.descricao}
+                              className="text-sm border-transparent hover:border-input focus:border-input"
                               onBlur={e => { if (e.target.value !== line.descricao) updateEditorialLine(line.id, 'descricao', e.target.value); }}
                               placeholder="Descrição do pilar" readOnly={!isOwner} />
                           </td>
                           <td className="p-2">
-                            <Textarea defaultValue={line.tipos_conteudo} rows={2}
-                              className="text-sm border-transparent hover:border-input focus:border-input resize-y min-h-[40px]"
+                            <AutoTextarea defaultValue={line.tipos_conteudo}
+                              className="text-sm border-transparent hover:border-input focus:border-input"
                               onBlur={e => { if (e.target.value !== line.tipos_conteudo) updateEditorialLine(line.id, 'tipos_conteudo', e.target.value); }}
                               placeholder="Tipos de conteúdo" readOnly={!isOwner} />
                           </td>
