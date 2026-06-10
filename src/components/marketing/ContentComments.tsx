@@ -50,6 +50,14 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
     enabled: !!contentItemId,
   });
 
+  const didAutoOpen = useRef(false);
+  useEffect(() => {
+    if (comments.length > 0 && !didAutoOpen.current) {
+      setCollapsed(false);
+      didAutoOpen.current = true;
+    }
+  }, [comments.length]);
+
   const authorIds = Array.from(new Set(comments.map(c => c.author_id)));
   const { data: profilesMap = {} } = useQuery({
     queryKey: ['comment-profiles', authorIds.join(',')],
