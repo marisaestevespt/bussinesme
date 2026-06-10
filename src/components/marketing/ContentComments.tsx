@@ -36,13 +36,6 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
   const [showResolved, setShowResolved] = useState(false);
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(true);
-  const didAutoOpen = useRef(false);
-  useEffect(() => {
-    if (comments.length > 0 && !didAutoOpen.current) {
-      setCollapsed(false);
-      didAutoOpen.current = true;
-    }
-  }, [comments.length]);
 
   const { data: comments = [] } = useQuery({
     queryKey: ['content-item-comments', contentItemId],
