@@ -154,7 +154,7 @@ export default function SecretariaPage() {
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
-        <PageHeader title={`${greetingText()}, ${firstName}.`} subtitle={format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })} department="secretaria" />
+        <PageHeader title={firstName ? `${greetingText()}, ${firstName}.` : `${greetingText()}.`} subtitle={format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })} department="secretaria" />
 
         {/* Navigation cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
