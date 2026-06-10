@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -49,6 +49,14 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
     },
     enabled: !!contentItemId,
   });
+
+  const didAutoOpen = useRef(false);
+  useEffect(() => {
+    if (comments.length > 0 && !didAutoOpen.current) {
+      setCollapsed(false);
+      didAutoOpen.current = true;
+    }
+  }, [comments.length]);
 
   const authorIds = Array.from(new Set(comments.map(c => c.author_id)));
   const { data: profilesMap = {} } = useQuery({
