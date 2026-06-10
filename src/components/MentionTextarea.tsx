@@ -241,18 +241,41 @@ export function MentionTextarea({
 
 /** Renders text with @mentions highlighted */
 export function RichText({ text, className }: { text: string; className?: string }) {
-  // Match @Name (word characters, spaces up to next @ or end, but greedy match names)
-  const parts = text.split(/(@[\p{L}\p{M}\s]+?)(?=\s@|\s*$|[.!?,;:\n])/u);
+  const { data: names = [] } = useQuery({
+    queryKey: ['profiles-mention-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('full_name');
+      return (data || [])
+        .map((p: any) => p.full_name as string | null)
+        .filter((n): n is string => !!n)
+        .sort((a, b) => b.length - a.length); // longest first for greedy match
+    },
+    staleTime: 60000,
+  });
 
-  return (
-    <span className={className}>
-      {parts.map((part, i) =>
-        part.startsWith('@') ? (
-          <span key={i} className="font-medium text-primary">{part}</span>
-        ) : (
-          <span key={i}>{part}</span>
-        )
-      )}
-    </span>
-  );
+  const nodes: React.ReactNode[] = [];
+  let i = 0;
+  let key = 0;
+  while (i < text.length) {
+    if (text[i] === '@') {
+      const rest = text.slice(i + 1);
+      const match = names.find((n) => rest.startsWith(n));
+      if (match) {
+        nodes.push(
+          <span key={key++} className="font-medium text-primary">
+            @{match}
+          </span>
+        );
+        i += 1 + match.length;
+        continue;
+      }
+    }
+    // accumulate plain text until next @
+    const nextAt = text.indexOf('@', i + 1);
+    const end = nextAt === -1 ? text.length : nextAt;
+    nodes.push(<span key={key++}>{text.slice(i, end)}</span>);
+    i = end;
+  }
+
+  return <span className={className}>{nodes}</span>;
 }
