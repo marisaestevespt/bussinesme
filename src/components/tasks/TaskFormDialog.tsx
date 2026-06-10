@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -23,7 +24,7 @@ import { useDepartmentColors } from '@/hooks/useDepartmentColors';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
-import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText } from 'lucide-react';
+import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText, Megaphone, ExternalLink } from 'lucide-react';
 import { User, Building, FolderOpen, Briefcase, Hash, Flag, ListTodo } from 'lucide-react';
 import {
   EntitySection,
@@ -69,6 +70,7 @@ interface TaskFormDialogProps {
 export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadline, defaultProjectId, defaultClientId, onSuccess }: TaskFormDialogProps) {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { startTimer: globalStartTimer } = useActiveTimer();
   const { coverages: absenceCoverages } = useAbsenceCoverage();
   const { getPhotoUrl } = useTeamPhotos();
@@ -156,6 +158,21 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     queryFn: async () => {
       const { data } = await supabase.from('sops').select('id, sop_id, name, estimated_time').order('name');
       return (data || []) as { id: string; sop_id: string; name: string; estimated_time: number | null }[];
+    },
+  });
+
+  // Conteúdo associado (quando a tarefa foi gerada a partir de um content_item)
+  const linkedContentId = editingTask?.content_id as string | undefined;
+  const { data: linkedContent } = useQuery({
+    queryKey: ['task-linked-content', linkedContentId],
+    enabled: !!linkedContentId && open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('content_items')
+        .select('id, title, status, scheduled_at, format, cover_url')
+        .eq('id', linkedContentId!)
+        .maybeSingle();
+      return data;
     },
   });
 
@@ -560,6 +577,32 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
             </EntityProperties>
 
             {/* Recorrência removida — usar Rotinas para tarefas recorrentes */}
+
+            {/* ── Conteúdo associado ────────────────────────── */}
+            {linkedContent && (
+              <button
+                type="button"
+                onClick={() => { onOpenChange(false); navigate(`/hub/marketing/conteudos/${linkedContent.id}`); }}
+                className="w-full flex items-center gap-3 p-3 rounded-lg border bg-accent-violet/10 border-accent-violet/30 hover:bg-accent-violet/20 transition text-left"
+              >
+                {linkedContent.cover_url ? (
+                  <img src={linkedContent.cover_url} alt="" className="h-10 w-10 rounded object-cover shrink-0" />
+                ) : (
+                  <div className="h-10 w-10 rounded bg-accent-violet/20 flex items-center justify-center shrink-0">
+                    <Megaphone className="h-5 w-5 text-accent-violet" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs uppercase tracking-wide text-accent-violet font-medium">Conteúdo associado</div>
+                  <div className="text-sm font-medium truncate">{linkedContent.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {linkedContent.format || 'Conteúdo'}
+                    {linkedContent.scheduled_at && ` · ${format(parseISO(linkedContent.scheduled_at), "d MMM yyyy", { locale: pt })}`}
+                  </div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-accent-violet shrink-0" />
+              </button>
+            )}
 
             {/* ── Hierarquia ─────────────────────────────────── */}
             <EntitySection
