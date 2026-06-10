@@ -71,7 +71,7 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
     const { error } = await supabase
       .from('content_item_comments' as any)
       .insert({ content_item_id: contentItemId, author_id: user.id, body: body.trim(), parent_id });
-    if (error) { toast.error('Erro ao publicar comentário'); return; }
+    if (error) { console.error('comment insert error', error); toast.error(`Erro ao publicar comentário: ${error.message}`); return; }
     // Notifica utilizadores mencionados
     notifyMentions(
       body,
