@@ -2868,7 +2868,7 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "content_item_comments_content_item_id_fkey"

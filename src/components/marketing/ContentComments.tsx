@@ -57,10 +57,10 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
       if (authorIds.length === 0) return {};
       const { data } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', authorIds);
+        .select('id, user_id, full_name, avatar_url')
+        .in('user_id', authorIds);
       const map: Record<string, Profile> = {};
-      (data || []).forEach((p: any) => { map[p.id] = p; });
+      (data || []).forEach((p: any) => { map[p.user_id] = p; });
       return map;
     },
     enabled: authorIds.length > 0,
@@ -71,7 +71,7 @@ export function ContentComments({ contentItemId, contextLabel }: { contentItemId
     const { error } = await supabase
       .from('content_item_comments' as any)
       .insert({ content_item_id: contentItemId, author_id: user.id, body: body.trim(), parent_id });
-    if (error) { console.error('comment insert error', error); toast.error(`Erro ao publicar comentário: ${error.message}`); return; }
+    if (error) { console.error('comment insert error', error); toast.error('Erro ao publicar comentário'); return; }
     // Notifica utilizadores mencionados
     notifyMentions(
       body,
