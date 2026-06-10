@@ -11148,6 +11148,7 @@ export type Database = {
           assigned_to: string | null
           client_id: string | null
           content_id: string | null
+          content_phase: string | null
           created_at: string
           created_by: string | null
           deadline: string | null
@@ -11174,6 +11175,7 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           content_id?: string | null
+          content_phase?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
@@ -11200,6 +11202,7 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           content_id?: string | null
+          content_phase?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
