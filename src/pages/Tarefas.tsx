@@ -142,7 +142,7 @@ export default function TarefasPage() {
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      let query = supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,original_assignee,created_by,department,project_id,client_id,notes,parent_task_id,estimated_minutes,tag,created_at,updated_at', { count: 'exact' }).order('created_at', { ascending: false });
+      let query = supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,original_assignee,created_by,department,project_id,client_id,notes,parent_task_id,estimated_minutes,tag,sop_id,content_id,created_at,updated_at', { count: 'exact' }).order('created_at', { ascending: false });
       if (filterStatus) {
         query = query.eq('status', filterStatus);
       }
