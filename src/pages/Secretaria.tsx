@@ -66,8 +66,18 @@ export default function SecretariaPage() {
   const onboarding = useMyOnboarding(teamMember.data?.id);
   const qc = useQueryClient();
 
-  const displayName = impersonating?.full_name || teamMember.data?.full_name || profile.data?.full_name || '';
-  const firstName = displayName.split(' ')[0] || 'Utilizador';
+  // Fallback chain: impersonation > team member > profile > auth metadata > email local-part.
+  // Nunca cair em "Utilizador" — preferir mostrar nada do que um nome genérico.
+  const metaFullName = (user?.user_metadata as any)?.full_name as string | undefined;
+  const emailLocal = user?.email ? user.email.split('@')[0] : '';
+  const displayName =
+    impersonating?.full_name ||
+    teamMember.data?.full_name ||
+    profile.data?.full_name ||
+    metaFullName ||
+    emailLocal ||
+    '';
+  const firstName = displayName.split(/[\s.]/)[0] || '';
 
   // Absence conflict alerts (owner only, hidden during impersonation)
   const absenceAlerts = useQuery({
