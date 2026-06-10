@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -23,7 +24,7 @@ import { useDepartmentColors } from '@/hooks/useDepartmentColors';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTeamPhotos } from '@/hooks/useTeamPhotos';
-import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText } from 'lucide-react';
+import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText, Megaphone, ExternalLink } from 'lucide-react';
 import { User, Building, FolderOpen, Briefcase, Hash, Flag, ListTodo } from 'lucide-react';
 import {
   EntitySection,
@@ -69,6 +70,7 @@ interface TaskFormDialogProps {
 export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadline, defaultProjectId, defaultClientId, onSuccess }: TaskFormDialogProps) {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { startTimer: globalStartTimer } = useActiveTimer();
   const { coverages: absenceCoverages } = useAbsenceCoverage();
   const { getPhotoUrl } = useTeamPhotos();
@@ -156,6 +158,21 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     queryFn: async () => {
       const { data } = await supabase.from('sops').select('id, sop_id, name, estimated_time').order('name');
       return (data || []) as { id: string; sop_id: string; name: string; estimated_time: number | null }[];
+    },
+  });
+
+  // Conteúdo associado (quando a tarefa foi gerada a partir de um content_item)
+  const linkedContentId = editingTask?.content_id as string | undefined;
+  const { data: linkedContent } = useQuery({
+    queryKey: ['task-linked-content', linkedContentId],
+    enabled: !!linkedContentId && open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('content_items')
+        .select('id, title, status, scheduled_at, format, cover_url')
+        .eq('id', linkedContentId!)
+        .maybeSingle();
+      return data;
     },
   });
 
