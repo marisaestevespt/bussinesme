@@ -1,0 +1,1 @@
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.content_item_comments TO authenticated; GRANT ALL ON public.content_item_comments TO service_role;
