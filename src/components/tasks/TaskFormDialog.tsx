@@ -578,6 +578,32 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
             {/* Recorrência removida — usar Rotinas para tarefas recorrentes */}
 
+            {/* ── Conteúdo associado ────────────────────────── */}
+            {linkedContent && (
+              <button
+                type="button"
+                onClick={() => { onOpenChange(false); navigate(`/hub/marketing/conteudos/${linkedContent.id}`); }}
+                className="w-full flex items-center gap-3 p-3 rounded-lg border bg-accent-violet/10 border-accent-violet/30 hover:bg-accent-violet/20 transition text-left"
+              >
+                {linkedContent.cover_url ? (
+                  <img src={linkedContent.cover_url} alt="" className="h-10 w-10 rounded object-cover shrink-0" />
+                ) : (
+                  <div className="h-10 w-10 rounded bg-accent-violet/20 flex items-center justify-center shrink-0">
+                    <Megaphone className="h-5 w-5 text-accent-violet" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs uppercase tracking-wide text-accent-violet font-medium">Conteúdo associado</div>
+                  <div className="text-sm font-medium truncate">{linkedContent.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {linkedContent.format || 'Conteúdo'}
+                    {linkedContent.scheduled_at && ` · ${format(parseISO(linkedContent.scheduled_at), "d MMM yyyy", { locale: pt })}`}
+                  </div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-accent-violet shrink-0" />
+              </button>
+            )}
+
             {/* ── Hierarquia ─────────────────────────────────── */}
             <EntitySection
               title="Hierarquia"
