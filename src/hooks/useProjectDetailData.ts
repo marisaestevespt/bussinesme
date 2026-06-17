@@ -50,7 +50,7 @@ export async function calcTotalTime(projectId: string): Promise<number> {
     0,
   );
   const timeEntryTotal = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
-  return timeEntryTotal + meetingTime;
+  return Math.round(timeEntryTotal + meetingTime);
 }
 
 // ─── Hook ───────────────────────────────────────────────────────
