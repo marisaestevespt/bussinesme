@@ -547,7 +547,7 @@ function ClienteDetailPageInner() {
   const [renewAvencaValue, setRenewAvencaValue] = useState('');
   const [renewPaymentMethodType, setRenewPaymentMethodType] = useState('');
 
-  const activeProjects = clientProjects.filter((p: any) => !['concluido', 'cancelado', 'arquivado'].includes(p.status));
+  const activeProjects = clientProjects.filter((p: any) => !['concluido', 'cancelado', 'arquivo'].includes(p.status));
 
   const openRenewDialog = () => {
     setRenewProduct(form.current_product || '');
