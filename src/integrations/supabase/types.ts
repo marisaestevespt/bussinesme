@@ -13049,6 +13049,7 @@ export type Database = {
         }
         Returns: string
       }
+      storage_path_first_uuid: { Args: { _name: string }; Returns: string }
       suggest_task_estimate: {
         Args: {
           _deliverable_template_id?: string
