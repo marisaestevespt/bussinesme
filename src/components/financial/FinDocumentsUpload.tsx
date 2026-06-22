@@ -15,9 +15,21 @@ interface Props {
   documents: FinDocItem[];
   onUpdate: (docs: FinDocItem[]) => void;
   saving?: boolean;
+  /** Prefixo aplicado ao nome do ficheiro guardado, e.g. "2026_IVA" ou "2026_SS". */
+  namePrefix?: string;
 }
 
-export function FinDocumentsUpload({ title = 'Documentos & Declarações', documents, onUpdate, saving }: Props) {
+function sanitizePart(s: string): string {
+  return (s || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    .slice(0, 60);
+}
+
+export function FinDocumentsUpload({ title = 'Documentos & Declarações', documents, onUpdate, saving, namePrefix }: Props) {
   const [uploading, setUploading] = useState(false);
   const [label, setLabel] = useState('');
 
@@ -25,8 +37,15 @@ export function FinDocumentsUpload({ title = 'Documentos & Declarações', docum
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const ext = file.name.split('.').pop();
-    const path = `declarations/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const originalBase = file.name.replace(/\.[^.]+$/, '');
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const prefix = sanitizePart(namePrefix || `${mm}${yyyy}`);
+    const suffix = sanitizePart(label || originalBase);
+    const friendly = `${prefix}${suffix ? `_${suffix}` : ''}.${ext}`;
+    const path = `declarations/${Date.now()}-${Math.random().toString(36).slice(2)}-${friendly}`;
     const { error } = await supabase.storage.from('financial-files').upload(path, file);
     if (error) {
       toast.error('Erro ao carregar ficheiro');
@@ -35,9 +54,9 @@ export function FinDocumentsUpload({ title = 'Documentos & Declarações', docum
     }
     const { data: urlData } = supabase.storage.from('financial-files').getPublicUrl(path);
     const newDoc: FinDocItem = {
-      name: file.name,
+      name: friendly,
       url: urlData.publicUrl,
-      label: label.trim() || file.name,
+      label: label.trim() || friendly,
       uploaded_at: new Date().toISOString(),
     };
     onUpdate([...documents, newDoc]);

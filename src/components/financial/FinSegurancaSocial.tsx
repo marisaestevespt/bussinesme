@@ -167,6 +167,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
           title={`Declarações de Segurança Social — ${currentYear}`}
           documents={ssDocuments}
           onUpdate={handleDocsUpdate}
+          namePrefix={`${currentYear}_SS`}
         />
       </div>
     </div>
