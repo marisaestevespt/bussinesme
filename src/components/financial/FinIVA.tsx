@@ -375,6 +375,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
         title={`Declarações de IVA — ${currentYear}`}
         documents={ivaDocuments}
         onUpdate={handleDocsUpdate}
+        namePrefix={`${currentYear}_IVA`}
       />
 
       {/* Auto-liquidação UE */}
