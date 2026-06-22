@@ -480,7 +480,7 @@ function ClienteDetailPageInner() {
     queryKey: ['projects', 'client', form.full_name],
     queryFn: async () => {
       if (!form.full_name) return [];
-      const { data } = await supabase.from('projects').select('id, name, status, created_at, archived_at').eq('client_name', form.full_name).is('archived_at', null).order('created_at', { ascending: false });
+      const { data } = await supabase.from('projects').select('id, name, status, created_at, archived_at').eq('client_name', form.full_name).order('created_at', { ascending: false });
       return data || [];
     },
     enabled: !!form.full_name && !isNew,
@@ -547,7 +547,7 @@ function ClienteDetailPageInner() {
   const [renewAvencaValue, setRenewAvencaValue] = useState('');
   const [renewPaymentMethodType, setRenewPaymentMethodType] = useState('');
 
-  const activeProjects = clientProjects.filter((p: any) => !['concluido', 'cancelado', 'arquivo'].includes(p.status));
+  const activeProjects = clientProjects.filter((p: any) => !p.archived_at && !['concluido', 'cancelado', 'arquivo'].includes(p.status));
 
   const openRenewDialog = () => {
     setRenewProduct(form.current_product || '');
