@@ -203,10 +203,8 @@ export default function ProjetosPage() {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
       let q = supabase.from('projects').select('*', { count: 'exact' }).order('created_at', { ascending: false });
-      // Um projeto conta como arquivado se tiver archived_at preenchido OU status = 'arquivo'
-      q = showArchived
-        ? q.or('archived_at.not.is.null,status.eq.arquivo')
-        : q.is('archived_at', null).neq('status', 'arquivo');
+      // archived_at e status='arquivo' são sincronizados por trigger no Postgres
+      q = showArchived ? q.not('archived_at', 'is', null) : q.is('archived_at', null);
       const { data, error, count } = await q.range(from, to);
       if (error) throw error;
       return { data: (data || []) as Project[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
