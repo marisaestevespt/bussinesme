@@ -17,6 +17,7 @@ import type { useQueryClient } from '@tanstack/react-query';
 import { ExpenseStatusSelect } from '../InlineStatusSelect';
 import { CategorySelect } from '../CategorySelect';
 import { InvoiceUpload, type DocEntry } from '../InvoiceUpload';
+import { buildExpenseFileName } from '../expenseFileName';
 import { VatDeductibleCell } from '../VatDeductibleCell';
 import { formatEuro } from '@/lib/formatting';
 import { locationLabel, EXPENSE_LOCATIONS } from '@/lib/labelMaps';
@@ -449,6 +450,10 @@ export function NewExpenseDialog({ open, onOpenChange, month, currentYear, fin }
           <InvoiceUpload
             documents={Array.isArray(expForm.documents) ? expForm.documents : []}
             onChange={docs => setExpForm(f => ({ ...f, documents: docs }))}
+            suggestedName={buildExpenseFileName({
+              expenseDate: `${currentYear}-${String(month).padStart(2, '0')}-15`,
+              expenseName: expForm.description || expForm.category,
+            })}
           />
           <Button className="w-full" onClick={saveExpense}>Guardar</Button>
         </div>

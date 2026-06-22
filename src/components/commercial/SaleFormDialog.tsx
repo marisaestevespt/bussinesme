@@ -355,6 +355,14 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
             documents={form.documents}
             onChange={docs => setForm(f => ({ ...f, documents: docs }))}
             label="Ficheiros (faturas, comprovativos, recibos)"
+            suggestedName={(() => {
+              const d = form.payment_date ? new Date(form.payment_date) : null;
+              if (!d || isNaN(d.getTime())) return undefined;
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const yyyy = d.getFullYear();
+              const who = (form.client || '').toString().replace(/[^a-zA-Z0-9]+/g, '_').slice(0, 40);
+              return who ? `${mm}${yyyy}_${who}` : `${mm}${yyyy}`;
+            })()}
           />
           <Button className="w-full" onClick={handleSave}>Guardar</Button>
         </div>
