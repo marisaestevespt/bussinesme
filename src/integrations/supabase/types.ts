@@ -9730,6 +9730,7 @@ export type Database = {
           id: string
           is_offboarding: boolean
           is_onboarding: boolean
+          is_recurring: boolean
           linked_sop_id: string | null
           name: string
           offset_days: number | null
@@ -9754,6 +9755,7 @@ export type Database = {
           id?: string
           is_offboarding?: boolean
           is_onboarding?: boolean
+          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -9778,6 +9780,7 @@ export type Database = {
           id?: string
           is_offboarding?: boolean
           is_onboarding?: boolean
+          is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
