@@ -368,6 +368,14 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
             documents={Array.isArray(form.documents) ? form.documents : []}
             onChange={docs => setForm((f: any) => ({ ...f, documents: docs }))}
             label="Ficheiros (faturas, comprovativos, recibos)"
+            suggestedName={(() => {
+              const d = form.payment_date_obj || (form.payment_date ? new Date(form.payment_date) : null);
+              if (!d || isNaN(d.getTime?.() ?? NaN)) return undefined;
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const yyyy = d.getFullYear();
+              const who = (form.client || '').toString().replace(/[^a-zA-Z0-9]+/g, '_').slice(0, 40);
+              return who ? `${mm}${yyyy}_${who}` : `${mm}${yyyy}`;
+            })()}
           />
 
           {isOwner && (
