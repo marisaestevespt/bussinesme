@@ -46,6 +46,26 @@ import { EntityIconPicker, parseIcon } from '@/components/entity-icon';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+// Hoisted to module scope so identities are stable across renders.
+// Defining these inside the component body (or an IIFE inside JSX) was
+// causing inputs to lose focus after every keystroke because React would
+// unmount/remount the subtree on each render.
+const PropertyRow = ({ icon: Icon, label, children }: { icon: any; label: React.ReactNode; children: React.ReactNode }) => (
+  <div className="grid grid-cols-[150px_1fr] items-center py-1.5 border-b border-border/50">
+    <div className="flex items-center gap-2 text-xs text-muted-foreground pr-3 mr-3 border-r border-border/50 self-stretch py-1">
+      <Icon className="h-3.5 w-3.5" />
+      <span>{label}</span>
+    </div>
+    <div className="min-w-0 text-sm">{children}</div>
+  </div>
+);
+
+const PropertySectionTitle = ({ children }: { children: React.ReactNode }) => (
+  <div className="col-span-full pt-8 pb-2 first:pt-0">
+    <p className="text-[11px] font-semibold text-primary/70 uppercase tracking-wider">{children}</p>
+  </div>
+);
+
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -549,21 +569,8 @@ export default function ProdutoDetailPage() {
             const inlineTrigger = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus:ring-0 focus:ring-offset-0 [&>svg]:opacity-50";
             const inlineInput = "h-8 border-0 bg-transparent shadow-none px-2 -ml-2 hover:bg-muted/60 focus-visible:ring-0 focus-visible:ring-offset-0 focus:bg-muted/40 rounded-md";
 
-           const Row = ({ icon: Icon, label, children }: { icon: any; label: React.ReactNode; children: React.ReactNode }) => (
-              <div className="grid grid-cols-[150px_1fr] items-center py-1.5 border-b border-border/50">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground pr-3 mr-3 border-r border-border/50 self-stretch py-1">
-                  <Icon className="h-3.5 w-3.5" />
-                  <span>{label}</span>
-                </div>
-                <div className="min-w-0 text-sm">{children}</div>
-              </div>
-            );
-
-            const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-              <div className="col-span-full pt-8 pb-2 first:pt-0">
-                <p className="text-[11px] font-semibold text-primary/70 uppercase tracking-wider">{children}</p>
-              </div>
-            );
+            const Row = PropertyRow;
+            const SectionTitle = PropertySectionTitle;
 
             return (
               <div className="p-4 md:p-5">
