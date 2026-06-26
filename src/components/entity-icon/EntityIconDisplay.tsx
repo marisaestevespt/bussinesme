@@ -1,5 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
 import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import { parseIcon, type EntityIcon } from "./types";
 import lyreEmojiUrl from "@/assets/emoji-lyre.svg";
 
@@ -22,6 +24,38 @@ export function EntityIconDisplay({
   fallback,
 }: Props) {
   const parsed = parseIcon(icon);
+  const privateProductFilePath = useMemo(() => {
+    if (parsed?.type !== "image") return null;
+
+    try {
+      const url = new URL(parsed.value);
+      const marker = "/storage/v1/object/public/product-files/";
+      const index = url.pathname.indexOf(marker);
+      if (index === -1) return null;
+      return decodeURIComponent(url.pathname.slice(index + marker.length));
+    } catch {
+      return null;
+    }
+  }, [parsed]);
+  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSignedImageUrl(null);
+
+    if (!privateProductFilePath) return;
+
+    supabase.storage
+      .from("product-files")
+      .createSignedUrl(privateProductFilePath, 60 * 60)
+      .then(({ data }) => {
+        if (!cancelled) setSignedImageUrl(data?.signedUrl ?? null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [privateProductFilePath]);
   const radius =
     variant === "circle" ? "rounded-full" : variant === "square" ? "rounded-md" : "rounded-lg";
 
@@ -69,7 +103,7 @@ export function EntityIconDisplay({
         className,
       )}
     >
-      <img src={parsed.value} alt="" className="h-full w-full object-cover" />
+      <img src={signedImageUrl ?? parsed.value} alt="" className="h-full w-full object-cover" />
     </div>
   );
 }
