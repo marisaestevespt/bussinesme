@@ -462,7 +462,7 @@ export default function ProdutoDetailPage() {
                   // Keep logo_url in sync for legacy consumers
                   update('logo_url', next?.type === 'image' ? next.value : null);
                 }}
-                bucket="product-files"
+                bucket="entity-icons"
                 pathPrefix={`icons/${id || 'new'}`}
                 disabled={!isOwner}
               />
