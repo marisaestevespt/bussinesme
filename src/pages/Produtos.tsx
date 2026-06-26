@@ -8,6 +8,7 @@ import { Plus, ExternalLink, Package, TrendingUp, Lightbulb, XCircle, Sparkles, 
 import { useNavigate } from 'react-router-dom';
 import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS } from '@/hooks/useProducts';
 import { EntityIconDisplay } from '@/components/entity-icon';
+import { ProductCoverImage } from '@/components/ProductCoverImage';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   CollectionPage,
@@ -248,7 +249,7 @@ export default function ProdutosPage() {
                   status={getStatusBadge(p.status)}
                   cover={
                     p.cover_url ? (
-                      <img src={p.cover_url} alt={p.name} className="h-full w-full object-cover" />
+                      <ProductCoverImage url={p.cover_url} alt={p.name} className="h-full w-full object-cover" />
                     ) : (p as any).icon || p.logo_url ? (
                       <div className="flex h-full w-full items-center justify-center bg-muted/20">
                         <EntityIconDisplay
