@@ -66,6 +66,20 @@ const PropertySectionTitle = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+const getLegacyProductFilePath = (value?: string | null) => {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    const marker = '/storage/v1/object/public/product-files/';
+    const index = url.pathname.indexOf(marker);
+    if (index === -1) return null;
+    return decodeURIComponent(url.pathname.slice(index + marker.length));
+  } catch {
+    return null;
+  }
+};
+
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -124,6 +138,29 @@ export default function ProdutoDetailPage() {
     setForm({ name: '', status: 'em_ideia', description: '' });
     setInitialized(true);
   }
+
+  const legacyCoverPath = useMemo(() => getLegacyProductFilePath(form.cover_url), [form.cover_url]);
+  const [signedCoverUrl, setSignedCoverUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSignedCoverUrl(null);
+
+    if (!legacyCoverPath) return;
+
+    supabase.storage
+      .from('product-files')
+      .createSignedUrl(legacyCoverPath, 60 * 60)
+      .then(({ data }) => {
+        if (!cancelled) setSignedCoverUrl(data?.signedUrl ?? null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [legacyCoverPath]);
+
+  const coverUrl = legacyCoverPath ? signedCoverUrl : form.cover_url;
 
   const update = (field: string, value: unknown) => {
     setForm(prev => {
@@ -429,8 +466,8 @@ export default function ProdutoDetailPage() {
         <div className="relative -mx-2 md:-mx-4">
           {/* Cover */}
           <div className="relative w-full h-44 md:h-56 rounded-lg overflow-hidden bg-muted/40 group">
-            {form.cover_url ? (
-              <img src={form.cover_url} alt="Capa" className="w-full h-full object-cover" />
+            {coverUrl ? (
+              <img src={coverUrl} alt="Capa" className="w-full h-full object-cover" />
             ) : (
               <div className="h-full w-full bg-gradient-to-br from-primary/15 via-accent/10 to-muted/30" />
             )}
@@ -441,10 +478,10 @@ export default function ProdutoDetailPage() {
                 <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  const path = `covers/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
-                  const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
+                  const path = `product-covers/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
+                  const { error } = await supabase.storage.from('entity-icons').upload(path, file, { upsert: true });
                   if (error) { toast.error('Erro ao enviar imagem'); return; }
-                  const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
+                  const { data: urlData } = supabase.storage.from('entity-icons').getPublicUrl(path);
                   update('cover_url', urlData.publicUrl);
                 }} />
               </label>
