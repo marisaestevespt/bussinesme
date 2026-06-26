@@ -884,6 +884,9 @@ async function executeTool(
   switch (toolName) {
     case "list_tables": {
       if (args.table) {
+        if (BLOCKED_TABLES.has(args.table as string)) {
+          return { error: "Acesso a esta tabela não é permitido." };
+        }
         const { data: sample, error: sampleErr } = await supabaseAdmin
           .from(args.table as string)
           .select("*")
