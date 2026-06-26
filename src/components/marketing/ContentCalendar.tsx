@@ -69,7 +69,7 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
   );
 }
 
-function CalendarDayItem({ item, channels, links, profiles, attachments }: { item: ContentItem; channels: MarketingChannel[]; links: ContentChannelLink[]; profiles?: ProfileInfo[]; attachments?: AttachmentInfo[] }) {
+function CalendarDayItem({ item, channels, links, profiles, attachments, onDragStart, onDragEnd, isDragging }: { item: ContentItem; channels: MarketingChannel[]; links: ContentChannelLink[]; profiles?: ProfileInfo[]; attachments?: AttachmentInfo[]; onDragStart?: () => void; onDragEnd?: () => void; isDragging?: boolean }) {
   const status = STATUS_OPTIONS.find(s => s.value === item.status);
   const isPublished = item.status === 'publicado';
   const itemChannels = getItemChannels(item.id, channels, links);
@@ -82,8 +82,12 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
+      draggable
+      onDragStart={(e) => { e.stopPropagation(); onDragStart?.(); }}
+      onDragEnd={(e) => { e.stopPropagation(); onDragEnd?.(); }}
       className={cn(
-        "block rounded border transition-colors flex flex-col overflow-hidden",
+        "block rounded border transition-colors flex flex-col overflow-hidden cursor-grab active:cursor-grabbing",
+        isDragging && "opacity-40",
         isPublished
           ? "border-success/40 bg-success/10 hover:bg-success/20 dark:border-success/40 dark:bg-success/10 dark:hover:bg-success/20"
           : "border-border bg-muted/30 hover:bg-muted/60"
@@ -175,6 +179,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
   });
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -191,6 +196,21 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
     setDragOverStatus(null);
     const label = STATUS_OPTIONS.find(s => s.value === newStatus)?.label;
     toast.success(`Movido para "${label}"`);
+  }, [draggingId, items, queryClient]);
+
+  const handleDropOnDay = useCallback(async (day: Date) => {
+    if (!draggingId) return;
+    const item = items.find(i => i.id === draggingId);
+    setDraggingId(null);
+    setDragOverDay(null);
+    if (!item || !item.scheduled_at) return;
+    const current = new Date(item.scheduled_at);
+    if (isSameDay(current, day)) return;
+    const updated = new Date(day);
+    updated.setHours(current.getHours(), current.getMinutes(), 0, 0);
+    await supabase.from('content_items').update({ scheduled_at: updated.toISOString() } as any).eq('id', draggingId);
+    queryClient.invalidateQueries({ queryKey: ['content-items'] });
+    toast.success(`Movido para ${format(day, 'd MMM', { locale: pt })}`);
   }, [draggingId, items, queryClient]);
 
   const monthStart = startOfMonth(currentMonth);
@@ -225,7 +245,17 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
           return (
-            <div key={day.toISOString()} className={cn("group/day relative min-h-[130px] p-1.5 bg-card flex flex-col", !isCurrentMonth && "opacity-40")}>
+            <div
+              key={day.toISOString()}
+              onDragOver={(e) => { if (draggingId) { e.preventDefault(); setDragOverDay(day.toISOString()); } }}
+              onDragLeave={() => setDragOverDay(prev => prev === day.toISOString() ? null : prev)}
+              onDrop={(e) => { e.preventDefault(); handleDropOnDay(day); }}
+              className={cn(
+                "group/day relative min-h-[130px] p-1.5 bg-card flex flex-col",
+                !isCurrentMonth && "opacity-40",
+                dragOverDay === day.toISOString() && "ring-2 ring-primary ring-inset bg-primary/5"
+              )}
+            >
               <div className="flex items-center justify-between mb-1 shrink-0">
                 <p className={cn("text-xs font-medium", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
                 {onCreateForDate && (
@@ -241,7 +271,17 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
               </div>
               <div className="flex flex-col gap-1 flex-1">
                 {dayItems.slice(0, 4).map(item => (
-                  <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} profiles={profiles} attachments={attachments} />
+                  <CalendarDayItem
+                    key={item.id}
+                    item={item}
+                    channels={channels}
+                    links={contentChannelLinks}
+                    profiles={profiles}
+                    attachments={attachments}
+                    isDragging={draggingId === item.id}
+                    onDragStart={() => setDraggingId(item.id)}
+                    onDragEnd={() => { setDraggingId(null); setDragOverDay(null); }}
+                  />
                 ))}
               </div>
               {dayItems.length > 4 && <p className="text-[9px] text-muted-foreground pl-1 shrink-0">+{dayItems.length - 4}</p>}
