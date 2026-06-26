@@ -40,7 +40,7 @@ interface Props {
 export function EntityIconPicker({
   icon,
   onChange,
-  bucket = "product-files",
+  bucket = "entity-icons",
   pathPrefix = "icons",
   className = "h-20 w-20 md:h-24 md:w-24",
   emojiClassName = "text-5xl md:text-6xl",
