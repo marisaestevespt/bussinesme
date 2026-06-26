@@ -19,6 +19,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useSectorConfig } from '@/hooks/useSectorConfig';
 import { useImpersonation } from '@/contexts/ImpersonationContext';
+import sidebarSymbol from '@/assets/sidebar-symbol.png.asset.json';
 import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
@@ -169,15 +170,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 pb-3">
         <div className="flex items-center gap-3">
-          {settings?.logo_url ? (
-            <img src={settings.logo_url} alt="Logo" className="h-8 w-8 rounded-lg object-contain ring-1 ring-white/10" />
-          ) : (
-            <div className="h-8 w-8 rounded-lg bg-sidebar-primary/20 flex items-center justify-center ring-1 ring-sidebar-primary/30">
-              <span className="text-xs font-bold text-sidebar-primary">
-                {(settings?.business_name || 'L').charAt(0)}
-              </span>
-            </div>
-          )}
+          <img src={sidebarSymbol.url} alt="Logo" className="h-8 w-8 object-contain" />
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-semibold tracking-tight truncate text-sidebar-foreground/90">
