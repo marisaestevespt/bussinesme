@@ -169,7 +169,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       const period = `${year}-${String(month).padStart(2, '0')}`;
       const { data } = await supabase
         .from('planning_goals')
-        .select('*, executive_objectives!inner(area)')
+        .select('*, executive_objectives!inner(area, title, target_unit)')
         .eq('year', year)
         .eq('period', period)
         .eq('executive_objectives.area', 'marketing');
@@ -234,6 +234,65 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       return (data || []) as any[];
     },
   });
+
+  // ── Auto-computed current values for marketing goals (from real metrics) ──
+  const CHANNEL_METRIC_MAP: Record<string, (m: any) => number | null> = {
+    followers: (m) => m?.followers ?? null,
+    followers_growth: (m) => m?.followers_growth ?? null,
+    engagement_rate: (m) => m?.ig_engagement_rate ?? null,
+    impressions: (m) =>
+      m?.ig_total_impressions ?? m?.li_total_impressions ?? m?.pt_monthly_impressions ?? null,
+    clicks: (m) => m?.ig_bio_link_clicks ?? m?.pt_total_clicks ?? null,
+    subscribers: (m) => m?.yt_new_subscribers ?? m?.em_list_total ?? m?.followers ?? null,
+    views: (m) => m?.yt_total_views ?? m?.tt_total_views ?? null,
+  };
+  const CONTENT_METRIC_SUM: Record<string, string> = {
+    reach: 'reach',
+    impressions: 'impressions',
+    views: 'views',
+    clicks: 'story_link_clicks',
+  };
+
+  const getAutoCurrentValue = (g: any): number | null => {
+    // If linked to a channel, prefer channel_monthly_metrics
+    if (g.channel_id) {
+      const chMetric = (channelMetrics as any[]).find((m) => m.channel_id === g.channel_id);
+      const fn = CHANNEL_METRIC_MAP[g.metric_key];
+      if (fn) {
+        const v = fn(chMetric);
+        if (v != null) return Number(v);
+      }
+      // Fallback: sum content_metrics for content items on this channel this month
+      const chContentIds = contentLinks.filter((l) => l.channel_id === g.channel_id).map((l) => l.content_id);
+      const field = CONTENT_METRIC_SUM[g.metric_key];
+      if (field) {
+        const rows = (allMetrics as any[]).filter((m) => chContentIds.includes(m.content_id));
+        if (rows.length > 0) return rows.reduce((s, r) => s + (Number(r[field]) || 0), 0);
+      }
+      return null;
+    }
+    // No channel: aggregate content_metrics across all channels this month
+    const field = CONTENT_METRIC_SUM[g.metric_key];
+    if (field) {
+      const total = (allMetrics as any[]).reduce((s, r) => s + (Number(r[field]) || 0), 0);
+      return total > 0 ? total : null;
+    }
+    // Channel-wide followers etc. summed across all channels
+    const fn = CHANNEL_METRIC_MAP[g.metric_key];
+    if (fn) {
+      const values = (channelMetrics as any[])
+        .map((m) => fn(m))
+        .filter((v): v is number => v != null);
+      if (values.length > 0) {
+        // For rates, average; for counts, sum
+        if (g.metric_key === 'engagement_rate') {
+          return values.reduce((s, v) => s + Number(v), 0) / values.length;
+        }
+        return values.reduce((s, v) => s + Number(v), 0);
+      }
+    }
+    return null;
+  };
 
   const openNewGoal = () => {
     setEditingGoal(null);
@@ -313,15 +372,16 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {objectives.map((obj: any) => {
-              const target = obj.target_value || 0;
-              const current = obj.current_value || 0;
+            const target = Number(obj.target_value) || 0;
+            const current = Number(obj.actual_value) || 0;
+            const label = obj.executive_objectives?.title || obj.notes || 'Objetivo';
               const pct = target > 0 ? (current / target) * 100 : 0;
               const color = pct >= 100 ? 'text-success' : pct >= 70 ? 'text-warning' : 'text-destructive';
               const bgColor = pct >= 100 ? 'bg-success/15 dark:bg-success/20' : pct >= 70 ? 'bg-warning/15 dark:bg-warning/20' : 'bg-destructive/15 dark:bg-destructive/20';
               return (
                 <Card key={obj.id} className={bgColor}>
                   <CardContent className="p-4 space-y-1">
-                    <p className="text-sm font-medium text-foreground">{obj.meta}</p>
+                  <p className="text-sm font-medium text-foreground">{label}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Alvo: {target}</span>
                       <span className={cn("text-sm font-bold", color)}>{current} ({Math.round(pct)}%)</span>
@@ -355,7 +415,10 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {marketingGoals.map((g: any) => {
               const channelName = getChannelName(g.channel_id);
-              const pct = g.target_value > 0 ? Math.round((g.current_value / g.target_value) * 100) : 0;
+              const auto = getAutoCurrentValue(g);
+              const currentValue = auto != null ? auto : Number(g.current_value) || 0;
+              const isAuto = auto != null;
+              const pct = g.target_value > 0 ? Math.round((currentValue / g.target_value) * 100) : 0;
               const achieved = pct >= 100;
               const fromExecutive = g.metric_key === 'executive_target';
               return (
@@ -373,9 +436,18 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                           {fromExecutive && (
                             <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">Definido no Executive</Badge>
                           )}
+                          {isAuto && (
+                            <Badge variant="outline" className="text-[10px] border-success/40 text-success">Auto</Badge>
+                          )}
                         </div>
                       </div>
-                      {isOwner && !fromExecutive && (
+                      {isOwner && !fromExecutive && !isAuto && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                        </div>
+                      )}
+                      {isOwner && !fromExecutive && isAuto && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
                           <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
@@ -384,7 +456,9 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-baseline justify-between">
-                        <span className="text-2xl font-bold text-foreground">{g.current_value}</span>
+                        <span className="text-2xl font-bold text-foreground">
+                          {isAuto ? (Number.isInteger(currentValue) ? currentValue.toLocaleString('pt-PT') : currentValue.toFixed(1)) : g.current_value}
+                        </span>
                         <span className="text-sm text-muted-foreground">/ {g.target_value}</span>
                       </div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -395,11 +469,14 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                         {achieved && <Badge className="text-[10px] bg-success hover:bg-success">Atingida ✓</Badge>}
                       </div>
                     </div>
-                    {isOwner && !fromExecutive && (
+                    {isOwner && !fromExecutive && !isAuto && (
                       <div className="pt-1 border-t">
                         <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Valor atual</label>
                         <Input type="number" className="h-7 text-sm mt-1" defaultValue={g.current_value} onBlur={e => updateGoalCurrentValue(g.id, e.target.value)} />
                       </div>
+                    )}
+                    {isAuto && (
+                      <p className="text-[10px] text-muted-foreground italic">Valor calculado automaticamente a partir das métricas do mês.</p>
                     )}
                     {g.notes && <p className="text-xs text-muted-foreground">{g.notes}</p>}
                   </CardContent>
@@ -682,7 +759,7 @@ export default function MarketingAnalisePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from('planning_goals')
-        .select('*, executive_objectives!inner(area)')
+        .select('*, executive_objectives!inner(area, title, target_unit)')
         .eq('year', year)
         .eq('executive_objectives.area', 'marketing');
       return data || [];
@@ -788,9 +865,10 @@ export default function MarketingAnalisePage() {
     // Objectives classification
     const objectivesClassified = yearObjectives.map((o: any) => {
       const target = Number(o.target_value) || 0;
-      const current = Number(o.current_value);
+      const currentRaw = o.actual_value;
+      const current = Number(currentRaw);
       let classification: 'superado' | 'atingido' | 'proximo' | 'nao_atingido' | 'sem_dados';
-      if (o.current_value == null || o.current_value === '') {
+      if (currentRaw == null || currentRaw === '' || Number.isNaN(current)) {
         classification = 'sem_dados';
       } else if (target === 0) {
         classification = 'sem_dados';
@@ -803,7 +881,7 @@ export default function MarketingAnalisePage() {
       } else {
         classification = 'nao_atingido';
       }
-      return { ...o, classification, target, current };
+      return { ...o, classification, target, current, label: o.executive_objectives?.title || o.notes || 'Objetivo' };
     });
     const objectivesAchievedOrSurpassed = objectivesClassified.filter(o => o.classification === 'atingido' || o.classification === 'superado').length;
 
@@ -1013,9 +1091,9 @@ export default function MarketingAnalisePage() {
                           return (
                             <div key={o.id} className="flex items-center gap-3 py-1.5 border-b last:border-0">
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">{o.meta}</p>
+                                <p className="text-sm font-medium text-foreground truncate">{o.label}</p>
                                 <p className="text-[10px] text-muted-foreground">
-                                  Alvo: {o.target} · Real: {o.current_value != null && o.current_value !== '' ? o.current : '—'}
+                                  Alvo: {o.target} · Real: {o.actual_value != null && o.actual_value !== '' ? o.current : '—'}
                                 </p>
                               </div>
                               <Badge className={cn('text-[10px] shrink-0', b.cls)}>{b.label}</Badge>
