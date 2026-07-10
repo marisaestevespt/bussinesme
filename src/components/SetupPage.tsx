@@ -165,8 +165,8 @@ export function SetupPage() {
 
     setLoading(true);
     try {
-      // Assign owner role
-      await supabase.from('user_roles').insert({ user_id: user.id, role: 'owner' });
+      // Assign owner role via hardened SECURITY DEFINER RPC (only succeeds on first-run bootstrap)
+      await supabase.rpc('claim_first_owner');
 
       // Upload logo
       let logoUrl: string | null = null;

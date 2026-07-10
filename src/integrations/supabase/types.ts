@@ -12443,6 +12443,7 @@ export type Database = {
       can_edit_sop: { Args: { _sop_id: string }; Returns: boolean }
       can_edit_task: { Args: { _task_id: string }; Returns: boolean }
       cancel_scheduled_renewal: { Args: { _client_id: string }; Returns: Json }
+      claim_first_owner: { Args: never; Returns: undefined }
       cleanup_old_audit_logs: { Args: never; Returns: undefined }
       compute_phase_deadline: {
         Args: { p_content_id: string; p_status: string }
