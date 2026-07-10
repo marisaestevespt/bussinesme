@@ -158,7 +158,11 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={(m as any).photo_url || undefined} />
+                      <AvatarImage
+                        src={(m as any).photo_url || undefined}
+                        alt={m.full_name}
+                        referrerPolicy="no-referrer"
+                      />
                       <AvatarFallback className="text-xs font-semibold">{getInitials(m.full_name)}</AvatarFallback>
                     </Avatar>
                     <div>
