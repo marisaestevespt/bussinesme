@@ -80,7 +80,6 @@ export function ProductMarketingSection({
   });
 
   const initials = (n?: string) => (n || '?').trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() || '?';
-  const selectedMember = teamMembers.find(m => m.id === (editingId ? (pages.find(p => p.id === editingId)?.responsible_id) : undefined));
 
   // Migration: legacy single-page → array
   let pages: MarketingPage[] = Array.isArray((sp as any).pages) ? ((sp as any).pages as MarketingPage[]) : [];
@@ -105,6 +104,7 @@ export function ProductMarketingSection({
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const editing = pages.find(p => p.id === editingId) || null;
+  const selectedMember = teamMembers.find(m => m.id === editing?.responsible_id);
 
   const updateEditing = (patch: Partial<MarketingPage>) => {
     if (!editing) return;
