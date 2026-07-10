@@ -7,7 +7,6 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { pageTitleForPath } from '@/lib/routeTitles';
 import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
-import { AiInsightsButton } from '@/components/AiInsightsButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
@@ -54,7 +53,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 )}
               </div>
               <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-                <AiInsightsButton />
                 <NewTabButton />
                 <FavoriteButton />
                 <NotificationBell />
