@@ -5,28 +5,32 @@ import { getDept } from '@/lib/departments';
 export const currentYear = new Date().getFullYear();
 export const currentMonth = new Date().getMonth() + 1;
 
-// Department color mapping
-const DEPT_COLORS: Record<string, string> = {
-  administrativo: 'bg-muted text-white',
-  marketing: 'bg-accent-violet text-white',
-  comercial: 'bg-warning text-white',
-  clientes: 'bg-info text-white',
-  financeiro: 'bg-success text-white',
-  operacao: 'bg-accent-violet text-white',
-  produtos: 'bg-info text-white',
-  'customer-success': 'bg-success text-white',
-  'recursos-humanos': 'bg-destructive text-white',
+// Department → Badge variant mapping (uses statically-defined Tailwind classes via cva variants)
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'success' | 'warning' | 'info' | 'violet' | 'muted';
+const DEPT_VARIANTS: Record<string, BadgeVariant> = {
+  admin: 'warning',
+  administrativo: 'warning',
+  marketing: 'violet',
+  comercial: 'warning',
+  clientes: 'info',
+  financeiro: 'success',
+  operacao: 'violet',
+  produtos: 'info',
+  'customer-success': 'success',
+  'recursos-humanos': 'destructive',
 };
 
-export function DeptBadge({ dept }: { dept: string | string[] | null }) {
+export function DeptBadge({ dept }: { dept: string | string[] | null | undefined }) {
   if (!dept) return null;
-  const depts = Array.isArray(dept) ? dept : [dept];
+  const raw = Array.isArray(dept) ? dept : [dept];
+  const depts = raw.filter((d): d is string => typeof d === 'string' && d.length > 0);
+  if (depts.length === 0) return null;
   return (
     <>
       {depts.map(d => {
         const info = getDept(d);
-        const colorClass = DEPT_COLORS[d] || 'bg-muted text-muted-foreground';
-        return <Badge key={d} className={`${colorClass} text-[10px] border-0`}>{info?.label || d}</Badge>;
+        const variant = DEPT_VARIANTS[d] || 'muted';
+        return <Badge key={d} variant={variant} className="text-[10px]">{info?.label || d}</Badge>;
       })}
     </>
   );
