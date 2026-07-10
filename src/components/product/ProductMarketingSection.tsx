@@ -1,16 +1,17 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, ExternalLink, X, FileText, Pencil, Megaphone, Workflow, Zap, Target, Newspaper } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, X, FileText, Pencil, Megaphone, Workflow, Zap, Target, Newspaper, ArrowLeft, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RichTextEditor } from '@/components/RichTextEditor';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ProductTabHeader } from './_shared';
@@ -22,6 +23,8 @@ interface MarketingPage {
   type?: string;
   status?: string;
   url?: string;
+  responsible_id?: string;
+  // Legacy fields (still readable from old payloads, no longer surfaced in UI)
   headline?: string;
   subheadline?: string;
   cta?: string;
@@ -66,6 +69,15 @@ export function ProductMarketingSection({
   const navigate = useNavigate();
   const sp = salesPage || {};
 
+  // Team members (for "Responsável de fase")
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team-members-basic'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, full_name').order('full_name');
+      return (data || []) as { id: string; full_name: string }[];
+    },
+  });
+
   // Migration: legacy single-page → array
   let pages: MarketingPage[] = Array.isArray((sp as any).pages) ? ((sp as any).pages as MarketingPage[]) : [];
   if (pages.length === 0 && ((sp as any).copy || (sp as any).headline || (sp as any).cta)) {
@@ -109,8 +121,172 @@ export function ProductMarketingSection({
     return <Badge variant="outline" className="text-xs">{lbl}</Badge>;
   };
 
-  const editingSections = editing?.sections || [];
   const editingInspirations = editing?.inspirations || [];
+
+  // ── Full-page edit view (replaces the previous dialog) ──────────────
+  if (editing) {
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setEditingId(null)} className="gap-2 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" /> Voltar às páginas
+          </Button>
+          {isOwner && editing.id !== 'legacy' && (
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive"
+              onClick={() => { removePage(editing.id); setEditingId(null); }}>
+              <Trash2 className="h-3.5 w-3.5 mr-1" /> Eliminar página
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Pencil className="h-4 w-4 text-muted-foreground" />
+          <Input
+            value={editing.name || ''}
+            onChange={(e) => updateEditing({ name: e.target.value })}
+            placeholder="Nome da página"
+            className="h-10 text-lg font-semibold border-0 shadow-none focus-visible:ring-1 px-2"
+            readOnly={!isOwner}
+          />
+        </div>
+
+        {/* Campos principais */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Tipo</Label>
+            <Select value={editing.type || ''} onValueChange={(v) => updateEditing({ type: v })} disabled={!isOwner}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                {PAGE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Status</Label>
+            <Select value={editing.status || ''} onValueChange={(v) => updateEditing({ status: v })} disabled={!isOwner}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                {PAGE_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">URL final</Label>
+            <div className="flex items-center gap-1">
+              <Input
+                value={editing.url || ''}
+                onChange={(e) => updateEditing({ url: e.target.value })}
+                placeholder="https://..."
+                className="h-9"
+                readOnly={!isOwner}
+              />
+              {editing.url && (
+                <a href={editing.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                  <ExternalLink className="h-4 w-4 text-primary" />
+                </a>
+              )}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground flex items-center gap-1">
+              <User className="h-3 w-3" /> Responsável de fase
+            </Label>
+            <Select
+              value={editing.responsible_id || 'none'}
+              onValueChange={(v) => updateEditing({ responsible_id: v === 'none' ? undefined : v })}
+              disabled={!isOwner}
+            >
+              <SelectTrigger className="h-9"><SelectValue placeholder="Escolher membro" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem responsável</SelectItem>
+                {teamMembers.map(m => (
+                  <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Copy + secções unificadas (Notion-like) */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">Conteúdo da página</Label>
+          <p className="text-xs text-muted-foreground">
+            Escreve como no Notion: usa títulos para nomear cada secção e o separador horizontal (—) para dividir secções.
+          </p>
+          <RichTextEditor
+            content={editing.copy || ''}
+            onChange={(v) => updateEditing({ copy: v })}
+            editable={isOwner}
+            minHeight={420}
+            placeholder="Começa a escrever a página… usa Título 2 para cada secção e insere um separador entre elas."
+          />
+        </div>
+
+        {/* Inspirations */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">Inspirações / Referências</Label>
+          {editingInspirations.length === 0 && (
+            <EmptyHint>Sem inspirações adicionadas.</EmptyHint>
+          )}
+          {editingInspirations.map((item, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <Input
+                value={item.label}
+                onChange={(e) => {
+                  const next = [...editingInspirations];
+                  next[i] = { ...next[i], label: e.target.value };
+                  updateEditing({ inspirations: next });
+                }}
+                placeholder="Nome"
+                className="h-8 text-sm w-1/3"
+                readOnly={!isOwner}
+              />
+              <Input
+                value={item.url}
+                onChange={(e) => {
+                  const next = [...editingInspirations];
+                  next[i] = { ...next[i], url: e.target.value };
+                  updateEditing({ inspirations: next });
+                }}
+                placeholder="https://..."
+                className="h-8 text-sm flex-1"
+                readOnly={!isOwner}
+              />
+              {item.url && (
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                  <ExternalLink className="h-4 w-4 text-primary" />
+                </a>
+              )}
+              {isOwner && (
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"
+                  onClick={() => updateEditing({ inspirations: editingInspirations.filter((_, j) => j !== i) })}>
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          ))}
+          {isOwner && (
+            <Button variant="outline" size="sm"
+              onClick={() => updateEditing({ inspirations: [...editingInspirations, { label: '', url: '' }] })}>
+              <Plus className="h-3 w-3 mr-1" /> Adicionar inspiração
+            </Button>
+          )}
+        </div>
+
+        {/* Notas internas */}
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Notas internas</Label>
+          <Textarea
+            value={editing.notes || ''}
+            onChange={(e) => updateEditing({ notes: e.target.value })}
+            placeholder="Pendências, ideias, testes A/B..."
+            className="min-h-[100px] text-sm"
+            readOnly={!isOwner}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -180,240 +356,6 @@ export function ProductMarketingSection({
         </CardContent>
       </Card>
 
-      {/* Big editor dialog */}
-      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditingId(null); }}>
-        <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[90vw] h-[92vh] p-0 flex flex-col">
-          <DialogHeader className="px-6 pt-5 pb-3 border-b shrink-0">
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-4 w-4" />
-              <Input
-                value={editing?.name || ''}
-                onChange={(e) => updateEditing({ name: e.target.value })}
-                placeholder="Nome da página"
-                className="h-9 text-base font-semibold border-0 shadow-none focus-visible:ring-1 px-2"
-                readOnly={!isOwner}
-              />
-            </DialogTitle>
-          </DialogHeader>
-
-          {editing && (
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Tipo</Label>
-                  <Select value={editing.type || ''} onValueChange={(v) => updateEditing({ type: v })} disabled={!isOwner}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Tipo" /></SelectTrigger>
-                    <SelectContent>
-                      {PAGE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Status</Label>
-                  <Select value={editing.status || ''} onValueChange={(v) => updateEditing({ status: v })} disabled={!isOwner}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Status" /></SelectTrigger>
-                    <SelectContent>
-                      {PAGE_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">URL</Label>
-                  <div className="flex items-center gap-1">
-                    <Input
-                      value={editing.url || ''}
-                      onChange={(e) => updateEditing({ url: e.target.value })}
-                      placeholder="https://..."
-                      className="h-9"
-                      readOnly={!isOwner}
-                    />
-                    {editing.url && (
-                      <a href={editing.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                        <ExternalLink className="h-4 w-4 text-primary" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Headline</Label>
-                  <Input
-                    value={editing.headline || ''}
-                    onChange={(e) => updateEditing({ headline: e.target.value })}
-                    placeholder="Título principal"
-                    className="h-9"
-                    readOnly={!isOwner}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">CTA Principal</Label>
-                  <Input
-                    value={editing.cta || ''}
-                    onChange={(e) => updateEditing({ cta: e.target.value })}
-                    placeholder="Ex: Quero candidatar-me"
-                    className="h-9"
-                    readOnly={!isOwner}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Sub-headline</Label>
-                <Textarea
-                  value={editing.subheadline || ''}
-                  onChange={(e) => updateEditing({ subheadline: e.target.value })}
-                  placeholder="Frase de apoio"
-                  className="min-h-[60px] text-sm"
-                  readOnly={!isOwner}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Copy completo</Label>
-                <RichTextEditor
-                  content={editing.copy || ''}
-                  onChange={(v) => updateEditing({ copy: v })}
-                  editable={isOwner}
-                />
-              </div>
-
-              {/* Sections */}
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Secções da página</Label>
-                {editingSections.length === 0 && (
-                  <EmptyHint>Sem secções definidas.</EmptyHint>
-                )}
-                {editingSections.map((s, i) => (
-                  <div key={i} className="flex gap-2 items-start border rounded-md p-2">
-                    <input
-                      type="checkbox"
-                      checked={!!s.done}
-                      onChange={(e) => {
-                        const next = [...editingSections];
-                        next[i] = { ...next[i], done: e.target.checked };
-                        updateEditing({ sections: next });
-                      }}
-                      disabled={!isOwner}
-                      className="mt-2 shrink-0"
-                    />
-                    <div className="flex-1 space-y-1">
-                      <Input
-                        value={s.title}
-                        onChange={(e) => {
-                          const next = [...editingSections];
-                          next[i] = { ...next[i], title: e.target.value };
-                          updateEditing({ sections: next });
-                        }}
-                        placeholder="Nome da secção (Hero, Benefícios, FAQ...)"
-                        className="h-8 text-sm"
-                        readOnly={!isOwner}
-                      />
-                      <Textarea
-                        value={s.notes}
-                        onChange={(e) => {
-                          const next = [...editingSections];
-                          next[i] = { ...next[i], notes: e.target.value };
-                          updateEditing({ sections: next });
-                        }}
-                        placeholder="Notas / copy desta secção"
-                        className="min-h-[50px] text-xs"
-                        readOnly={!isOwner}
-                      />
-                    </div>
-                    {isOwner && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0"
-                        onClick={() => updateEditing({ sections: editingSections.filter((_, j) => j !== i) })}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                {isOwner && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateEditing({ sections: [...editingSections, { title: '', notes: '', done: false }] })}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar secção
-                  </Button>
-                )}
-              </div>
-
-              {/* Inspirations */}
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Inspirações / Referências</Label>
-                {editingInspirations.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <Input
-                      value={item.label}
-                      onChange={(e) => {
-                        const next = [...editingInspirations];
-                        next[i] = { ...next[i], label: e.target.value };
-                        updateEditing({ inspirations: next });
-                      }}
-                      placeholder="Nome"
-                      className="h-8 text-sm w-1/3"
-                      readOnly={!isOwner}
-                    />
-                    <Input
-                      value={item.url}
-                      onChange={(e) => {
-                        const next = [...editingInspirations];
-                        next[i] = { ...next[i], url: e.target.value };
-                        updateEditing({ inspirations: next });
-                      }}
-                      placeholder="https://..."
-                      className="h-8 text-sm flex-1"
-                      readOnly={!isOwner}
-                    />
-                    {item.url && (
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="shrink-0">
-                        <ExternalLink className="h-4 w-4 text-primary" />
-                      </a>
-                    )}
-                    {isOwner && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0"
-                        onClick={() => updateEditing({ inspirations: editingInspirations.filter((_, j) => j !== i) })}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                {isOwner && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateEditing({ inspirations: [...editingInspirations, { label: '', url: '' }] })}
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar inspiração
-                  </Button>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Notas internas</Label>
-                <Textarea
-                  value={editing.notes || ''}
-                  onChange={(e) => updateEditing({ notes: e.target.value })}
-                  placeholder="Pendências, ideias, testes A/B..."
-                  className="min-h-[80px] text-sm"
-                  readOnly={!isOwner}
-                />
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
         </EntityTabsContent>
 
         <EntityTabsContent value="conteudos" className="space-y-4 mt-4">

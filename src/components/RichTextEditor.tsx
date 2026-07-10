@@ -18,7 +18,7 @@ import {
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
   Heading1, Heading2, Heading3, Palette, Highlighter, Undo, Redo,
   ListChecks, Quote,
-  ImagePlus, Type,
+  ImagePlus, Type, Minus,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -241,6 +241,10 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
           </ToolBtn>
           <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Refazer">
             <Redo className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <div className="w-px h-5 bg-border mx-1" />
+          <ToolBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Separador horizontal">
+            <Minus className="h-3.5 w-3.5" />
           </ToolBtn>
           {enableImages && (
             <>
