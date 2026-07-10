@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { ProductTabHeader } from './_shared';
 import { EntityTabs, EntityTabsList, EntityTabsTrigger, EntityTabsContent } from '@/components/layout/entity/EntityTabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface MarketingPage {
   id: string;
@@ -73,10 +74,13 @@ export function ProductMarketingSection({
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team-members-basic'],
     queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('id, full_name').order('full_name');
-      return (data || []) as { id: string; full_name: string }[];
+      const { data } = await supabase.from('team_members').select('id, full_name, photo_url').order('full_name');
+      return (data || []) as { id: string; full_name: string; photo_url: string | null }[];
     },
   });
+
+  const initials = (n?: string) => (n || '?').trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() || '?';
+  const selectedMember = teamMembers.find(m => m.id === (editingId ? (pages.find(p => p.id === editingId)?.responsible_id) : undefined));
 
   // Migration: legacy single-page → array
   let pages: MarketingPage[] = Array.isArray((sp as any).pages) ? ((sp as any).pages as MarketingPage[]) : [];
@@ -196,11 +200,31 @@ export function ProductMarketingSection({
               onValueChange={(v) => updateEditing({ responsible_id: v === 'none' ? undefined : v })}
               disabled={!isOwner}
             >
-              <SelectTrigger className="h-9"><SelectValue placeholder="Escolher membro" /></SelectTrigger>
+              <SelectTrigger className="h-9">
+                {selectedMember ? (
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Avatar className="h-5 w-5 shrink-0">
+                      {selectedMember.photo_url && <AvatarImage src={selectedMember.photo_url} />}
+                      <AvatarFallback className="text-[9px]">{initials(selectedMember.full_name)}</AvatarFallback>
+                    </Avatar>
+                    <span className="truncate text-sm">{selectedMember.full_name}</span>
+                  </div>
+                ) : (
+                  <SelectValue placeholder="Escolher membro" />
+                )}
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sem responsável</SelectItem>
                 {teamMembers.map(m => (
-                  <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                  <SelectItem key={m.id} value={m.id}>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        {m.photo_url && <AvatarImage src={m.photo_url} />}
+                        <AvatarFallback className="text-[9px]">{initials(m.full_name)}</AvatarFallback>
+                      </Avatar>
+                      <span>{m.full_name}</span>
+                    </div>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
