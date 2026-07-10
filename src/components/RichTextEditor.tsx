@@ -18,7 +18,7 @@ import {
   List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
   Heading1, Heading2, Heading3, Palette, Highlighter, Undo, Redo,
   ListChecks, Quote,
-  ImagePlus, Type,
+  ImagePlus, Type, Minus,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
