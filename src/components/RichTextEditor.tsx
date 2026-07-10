@@ -242,6 +242,10 @@ export function RichTextEditor({ content, onChange, editable = true, placeholder
           <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Refazer">
             <Redo className="h-3.5 w-3.5" />
           </ToolBtn>
+          <div className="w-px h-5 bg-border mx-1" />
+          <ToolBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Separador horizontal">
+            <Minus className="h-3.5 w-3.5" />
+          </ToolBtn>
           {enableImages && (
             <>
               <div className="w-px h-5 bg-border mx-1" />
