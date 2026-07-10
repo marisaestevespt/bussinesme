@@ -759,7 +759,7 @@ export default function MarketingAnalisePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from('planning_goals')
-        .select('*, executive_objectives!inner(area)')
+        .select('*, executive_objectives!inner(area, title, target_unit)')
         .eq('year', year)
         .eq('executive_objectives.area', 'marketing');
       return data || [];
@@ -865,9 +865,10 @@ export default function MarketingAnalisePage() {
     // Objectives classification
     const objectivesClassified = yearObjectives.map((o: any) => {
       const target = Number(o.target_value) || 0;
-      const current = Number(o.current_value);
+      const currentRaw = o.actual_value;
+      const current = Number(currentRaw);
       let classification: 'superado' | 'atingido' | 'proximo' | 'nao_atingido' | 'sem_dados';
-      if (o.current_value == null || o.current_value === '') {
+      if (currentRaw == null || currentRaw === '' || Number.isNaN(current)) {
         classification = 'sem_dados';
       } else if (target === 0) {
         classification = 'sem_dados';
@@ -880,7 +881,7 @@ export default function MarketingAnalisePage() {
       } else {
         classification = 'nao_atingido';
       }
-      return { ...o, classification, target, current };
+      return { ...o, classification, target, current, label: o.executive_objectives?.title || o.notes || 'Objetivo' };
     });
     const objectivesAchievedOrSurpassed = objectivesClassified.filter(o => o.classification === 'atingido' || o.classification === 'superado').length;
 
