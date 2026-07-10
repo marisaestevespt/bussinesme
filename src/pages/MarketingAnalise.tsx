@@ -169,7 +169,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       const period = `${year}-${String(month).padStart(2, '0')}`;
       const { data } = await supabase
         .from('planning_goals')
-        .select('*, executive_objectives!inner(area)')
+        .select('*, executive_objectives!inner(area, title, target_unit)')
         .eq('year', year)
         .eq('period', period)
         .eq('executive_objectives.area', 'marketing');
@@ -234,6 +234,65 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       return (data || []) as any[];
     },
   });
+
+  // ── Auto-computed current values for marketing goals (from real metrics) ──
+  const CHANNEL_METRIC_MAP: Record<string, (m: any) => number | null> = {
+    followers: (m) => m?.followers ?? null,
+    followers_growth: (m) => m?.followers_growth ?? null,
+    engagement_rate: (m) => m?.ig_engagement_rate ?? null,
+    impressions: (m) =>
+      m?.ig_total_impressions ?? m?.li_total_impressions ?? m?.pt_monthly_impressions ?? null,
+    clicks: (m) => m?.ig_bio_link_clicks ?? m?.pt_total_clicks ?? null,
+    subscribers: (m) => m?.yt_new_subscribers ?? m?.em_list_total ?? m?.followers ?? null,
+    views: (m) => m?.yt_total_views ?? m?.tt_total_views ?? null,
+  };
+  const CONTENT_METRIC_SUM: Record<string, string> = {
+    reach: 'reach',
+    impressions: 'impressions',
+    views: 'views',
+    clicks: 'story_link_clicks',
+  };
+
+  const getAutoCurrentValue = (g: any): number | null => {
+    // If linked to a channel, prefer channel_monthly_metrics
+    if (g.channel_id) {
+      const chMetric = (channelMetrics as any[]).find((m) => m.channel_id === g.channel_id);
+      const fn = CHANNEL_METRIC_MAP[g.metric_key];
+      if (fn) {
+        const v = fn(chMetric);
+        if (v != null) return Number(v);
+      }
+      // Fallback: sum content_metrics for content items on this channel this month
+      const chContentIds = contentLinks.filter((l) => l.channel_id === g.channel_id).map((l) => l.content_id);
+      const field = CONTENT_METRIC_SUM[g.metric_key];
+      if (field) {
+        const rows = (allMetrics as any[]).filter((m) => chContentIds.includes(m.content_id));
+        if (rows.length > 0) return rows.reduce((s, r) => s + (Number(r[field]) || 0), 0);
+      }
+      return null;
+    }
+    // No channel: aggregate content_metrics across all channels this month
+    const field = CONTENT_METRIC_SUM[g.metric_key];
+    if (field) {
+      const total = (allMetrics as any[]).reduce((s, r) => s + (Number(r[field]) || 0), 0);
+      return total > 0 ? total : null;
+    }
+    // Channel-wide followers etc. summed across all channels
+    const fn = CHANNEL_METRIC_MAP[g.metric_key];
+    if (fn) {
+      const values = (channelMetrics as any[])
+        .map((m) => fn(m))
+        .filter((v): v is number => v != null);
+      if (values.length > 0) {
+        // For rates, average; for counts, sum
+        if (g.metric_key === 'engagement_rate') {
+          return values.reduce((s, v) => s + Number(v), 0) / values.length;
+        }
+        return values.reduce((s, v) => s + Number(v), 0);
+      }
+    }
+    return null;
+  };
 
   const openNewGoal = () => {
     setEditingGoal(null);
@@ -313,15 +372,16 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {objectives.map((obj: any) => {
-              const target = obj.target_value || 0;
-              const current = obj.current_value || 0;
+            const target = Number(obj.target_value) || 0;
+            const current = Number(obj.actual_value) || 0;
+            const label = obj.executive_objectives?.title || obj.notes || 'Objetivo';
               const pct = target > 0 ? (current / target) * 100 : 0;
               const color = pct >= 100 ? 'text-success' : pct >= 70 ? 'text-warning' : 'text-destructive';
               const bgColor = pct >= 100 ? 'bg-success/15 dark:bg-success/20' : pct >= 70 ? 'bg-warning/15 dark:bg-warning/20' : 'bg-destructive/15 dark:bg-destructive/20';
               return (
                 <Card key={obj.id} className={bgColor}>
                   <CardContent className="p-4 space-y-1">
-                    <p className="text-sm font-medium text-foreground">{obj.meta}</p>
+                  <p className="text-sm font-medium text-foreground">{label}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Alvo: {target}</span>
                       <span className={cn("text-sm font-bold", color)}>{current} ({Math.round(pct)}%)</span>
