@@ -1091,9 +1091,9 @@ export default function MarketingAnalisePage() {
                           return (
                             <div key={o.id} className="flex items-center gap-3 py-1.5 border-b last:border-0">
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">{o.meta}</p>
+                                <p className="text-sm font-medium text-foreground truncate">{o.label}</p>
                                 <p className="text-[10px] text-muted-foreground">
-                                  Alvo: {o.target} · Real: {o.current_value != null && o.current_value !== '' ? o.current : '—'}
+                                  Alvo: {o.target} · Real: {o.actual_value != null && o.actual_value !== '' ? o.current : '—'}
                                 </p>
                               </div>
                               <Badge className={cn('text-[10px] shrink-0', b.cls)}>{b.label}</Badge>
