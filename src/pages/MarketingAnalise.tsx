@@ -415,7 +415,10 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {marketingGoals.map((g: any) => {
               const channelName = getChannelName(g.channel_id);
-              const pct = g.target_value > 0 ? Math.round((g.current_value / g.target_value) * 100) : 0;
+              const auto = getAutoCurrentValue(g);
+              const currentValue = auto != null ? auto : Number(g.current_value) || 0;
+              const isAuto = auto != null;
+              const pct = g.target_value > 0 ? Math.round((currentValue / g.target_value) * 100) : 0;
               const achieved = pct >= 100;
               const fromExecutive = g.metric_key === 'executive_target';
               return (
@@ -433,9 +436,18 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                           {fromExecutive && (
                             <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">Definido no Executive</Badge>
                           )}
+                          {isAuto && (
+                            <Badge variant="outline" className="text-[10px] border-success/40 text-success">Auto</Badge>
+                          )}
                         </div>
                       </div>
-                      {isOwner && !fromExecutive && (
+                      {isOwner && !fromExecutive && !isAuto && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
+                          <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                        </div>
+                      )}
+                      {isOwner && !fromExecutive && isAuto && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button variant="ghost" aria-label="Editar" size="icon" className="h-7 w-7" onClick={() => openEditGoal(g)}><Pencil className="h-3 w-3" /></Button>
                           <Button variant="ghost" aria-label="Eliminar" size="icon" className="h-7 w-7" onClick={() => deleteGoal(g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
@@ -444,7 +456,9 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-baseline justify-between">
-                        <span className="text-2xl font-bold text-foreground">{g.current_value}</span>
+                        <span className="text-2xl font-bold text-foreground">
+                          {isAuto ? (Number.isInteger(currentValue) ? currentValue.toLocaleString('pt-PT') : currentValue.toFixed(1)) : g.current_value}
+                        </span>
                         <span className="text-sm text-muted-foreground">/ {g.target_value}</span>
                       </div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -455,11 +469,14 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
                         {achieved && <Badge className="text-[10px] bg-success hover:bg-success">Atingida ✓</Badge>}
                       </div>
                     </div>
-                    {isOwner && !fromExecutive && (
+                    {isOwner && !fromExecutive && !isAuto && (
                       <div className="pt-1 border-t">
                         <label className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Valor atual</label>
                         <Input type="number" className="h-7 text-sm mt-1" defaultValue={g.current_value} onBlur={e => updateGoalCurrentValue(g.id, e.target.value)} />
                       </div>
+                    )}
+                    {isAuto && (
+                      <p className="text-[10px] text-muted-foreground italic">Valor calculado automaticamente a partir das métricas do mês.</p>
                     )}
                     {g.notes && <p className="text-xs text-muted-foreground">{g.notes}</p>}
                   </CardContent>
