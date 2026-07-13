@@ -14,6 +14,7 @@ import { exportPdf } from '@/lib/exportPdf';
 import { ALL_SECTIONS_ROW1, ALL_SECTIONS_ROW2 } from '@/components/financial/finOverview/sections';
 import { NavRow } from '@/components/financial/finOverview/NavSections';
 import { useOverviewData } from '@/components/financial/finOverview/useOverviewData';
+import { useProjectedRecurringExpenses } from '@/components/financial/useProjectedRecurringExpenses';
 import { SummaryCards, BestWorstMonth } from '@/components/financial/finOverview/SummaryCards';
 import { MonthlyCharts } from '@/components/financial/finOverview/MonthlyCharts';
 import { PieDistributions } from '@/components/financial/finOverview/PieDistributions';
@@ -39,6 +40,8 @@ export default function FinanceiroPage() {
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
+  const projected = useProjectedRecurringExpenses(year, expenses);
+  const augmentedExpenses = useMemo(() => [...expenses, ...projected], [expenses, projected]);
 
   useQuery({
     queryKey: ['clients-fin-overview'],
@@ -48,7 +51,7 @@ export default function FinanceiroPage() {
     },
   });
 
-  const data = useOverviewData(sales, expenses, year);
+  const data = useOverviewData(sales, augmentedExpenses, year);
 
   return (
     <AppLayout>

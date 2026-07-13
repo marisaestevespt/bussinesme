@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import { useState, lazy, Suspense, useMemo } from 'react';
 import { useFinancialData, type FinancialDataOptions } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { useProjectedRecurringExpenses } from '@/components/financial/useProjectedRecurringExpenses';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -104,7 +105,7 @@ export default function FinanceiroSubPage() {
         return <FinMensal sales={sales} expenses={expenses} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={year} fin={fin} />;
       }
       case 'trimestral':
-        return <FinTrimestral sales={sales} expenses={expenses} currentYear={year} />;
+        return <TrimestralWithProjections sales={sales} expenses={expenses} year={year} />;
       case 'entradas':
         return <FinEntradas sales={sales} currentYear={year} />;
       case 'saidas':
@@ -145,4 +146,10 @@ export default function FinanceiroSubPage() {
       </div>
     </AppLayout>
   );
+}
+
+function TrimestralWithProjections({ sales, expenses, year }: { sales: Parameters<typeof FinTrimestral>[0]['sales']; expenses: Parameters<typeof FinTrimestral>[0]['expenses']; year: number }) {
+  const projected = useProjectedRecurringExpenses(year, expenses);
+  const augmented = useMemo(() => [...expenses, ...projected], [expenses, projected]);
+  return <FinTrimestral sales={sales} expenses={augmented} currentYear={year} />;
 }
