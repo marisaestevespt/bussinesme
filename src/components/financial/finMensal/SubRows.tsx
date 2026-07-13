@@ -31,7 +31,7 @@ export function SubRow({ sub, linkedExpense, month, currentYear, fin, onExpenseC
   const defaultStatus = isCurrentMonth ? 'pendente' : 'por_pagar';
   const currentStatus = linkedExpense?.status || defaultStatus;
   const subName = sub.expense_name || sub.description || '';
-  const expenseId = linkedExpense?.expense_id || 'A gerar';
+  const expenseId = linkedExpense?.expense_id || '—';
   const category = linkedExpense?.category || sub.category || 'outro';
   const expenseDate = linkedExpense?.expense_date || projectedExpenseDate;
 
@@ -111,7 +111,7 @@ export function ContractRow({ contract, linkedExpense, month, currentYear, fin, 
     setConfirming(false);
   };
 
-  const expenseId = linkedExpense?.expense_id || 'A gerar';
+  const expenseId = linkedExpense?.expense_id || '—';
   const description = linkedExpense?.description || `Pagamento — ${memberName} — ${String(month).padStart(2, '0')}/${currentYear}`;
   const categoryLabel = contractType === 'contrato_prestacao' || contractType === 'prestacao_servicos' ? 'Prestadores' : 'Ordenados';
   const location = linkedExpense ? locationLabel(linkedExpense.location || 'portugal') : 'Portugal';
