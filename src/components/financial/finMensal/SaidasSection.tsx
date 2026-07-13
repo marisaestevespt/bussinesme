@@ -30,6 +30,7 @@ import { VatPreview } from '../VatPreview';
 import { EmptyHint } from '@/components/ui/loading-skeletons';
 import { useBusinessSetupPaymentMethods } from '@/hooks/useBusinessSetup';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
+import type { ExpenseTotalsLike } from '@/lib/vatCalculations';
 
 const LOCATIONS = EXPENSE_LOCATIONS.map(l => l.value);
 
@@ -292,10 +293,11 @@ export function SaidasTable({
   );
 }
 
-export function IvaPagoDialog({ open, onOpenChange, monthExpenses, month, totalSaidas, totalBaseSaidas, ivaPago, ivaDeduzir, ivaBalanco }: {
+export function IvaPagoDialog({ open, onOpenChange, monthExpenses, projectedExpenses = [], month, totalSaidas, totalBaseSaidas, ivaPago, ivaDeduzir, ivaBalanco }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   monthExpenses: Expense[];
+  projectedExpenses?: ExpenseTotalsLike[];
   month: number;
   totalSaidas: number;
   totalBaseSaidas: number;
@@ -307,7 +309,7 @@ export function IvaPagoDialog({ open, onOpenChange, monthExpenses, month, totalS
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader><DialogTitle className="text-base">IVA Pago / Dedutível — {MONTHS[month - 1]}</DialogTitle></DialogHeader>
-        {monthExpenses.length === 0 ? (
+        {monthExpenses.length === 0 && projectedExpenses.length === 0 ? (
           <EmptyHint>Sem despesas registadas neste mês.</EmptyHint>
         ) : (
           <Table>
@@ -324,6 +326,18 @@ export function IvaPagoDialog({ open, onOpenChange, monthExpenses, month, totalS
                     <TableCell className="text-right text-sm" onClick={ev => ev.stopPropagation()}>
                       <VatDeductibleCell expense={e} />
                     </TableCell>
+                  </TableRow>
+                );
+              })}
+              {projectedExpenses.map((e, idx) => {
+                const iva = Math.round(((e.total_with_vat || 0) - (e.base_value || 0)) * 100) / 100;
+                return (
+                  <TableRow key={`projected-${idx}`}>
+                    <TableCell className="text-sm text-muted-foreground">Previsto por recorrência</TableCell>
+                    <TableCell className="text-right text-sm">{formatEuro(e.total_with_vat || 0)}</TableCell>
+                    <TableCell className="text-right text-sm">{formatEuro(e.base_value || 0)}</TableCell>
+                    <TableCell className="text-right text-sm font-medium">{formatEuro(iva)}</TableCell>
+                    <TableCell className="text-right text-sm text-muted-foreground">{formatEuro(Math.max(0, iva))}</TableCell>
                   </TableRow>
                 );
               })}

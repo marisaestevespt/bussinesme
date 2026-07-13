@@ -16,7 +16,7 @@ import { ExpenseDetailSheet } from './ExpenseDetailSheet';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { getAutoExpenseStatus, normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 import { ExportContabilistaButton } from './ExportContabilistaButton';
-import { computeVatForExpenses, computeVatForSales, computeVatBalance } from '@/lib/vatCalculations';
+import { computeVatForExpenses, computeVatForSales, computeVatBalance, type ExpenseTotalsLike } from '@/lib/vatCalculations';
 import { formatEuro } from '@/lib/formatting';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { MonthlyDocUpload, FiscalChecklistCard } from './finMensal/MonthlyDocs';
@@ -242,10 +242,33 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
   useEffect(() => { autoMaterialize(); }, [autoMaterialize]);
 
+  const projectedExpenses = useMemo<ExpenseTotalsLike[]>(() => {
+    const projectedSubscriptions = visibleDueSubscriptions
+      .filter(sub => !subExpenseMap.has(sub.id))
+      .map(sub => ({
+        base_value: Number(sub.base_value || 0),
+        total_with_vat: Number(sub.total_with_vat || 0),
+      }));
+
+    const projectedContracts = visibleActiveContracts
+      .filter(contract => !contractExpenseMap.has(contract.id))
+      .map(contract => ({
+        base_value: Number(contract.monthly_value || 0),
+        total_with_vat: Number(contract.monthly_value || 0),
+      }));
+
+    return [...projectedSubscriptions, ...projectedContracts];
+  }, [visibleDueSubscriptions, visibleActiveContracts, subExpenseMap, contractExpenseMap]);
+
+  const displayedExpensesForTotals = useMemo<ExpenseTotalsLike[]>(
+    () => [...monthExpenses, ...projectedExpenses],
+    [monthExpenses, projectedExpenses],
+  );
+
   // VAT calculations (centralised)
   const salesTotals = computeVatForSales(monthSales);
-  const expensesTotals = computeVatForExpenses(monthExpenses);
-  const vatBalance = computeVatBalance(monthSales, monthExpenses);
+  const expensesTotals = computeVatForExpenses(displayedExpensesForTotals);
+  const vatBalance = computeVatBalance(monthSales, displayedExpensesForTotals);
   const totalEntradas = salesTotals.totalEntradas;
   const totalBaseEntradas = salesTotals.totalBase;
   const ivaCobrado = salesTotals.ivaCobrado;
@@ -431,6 +454,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
           open={ivaPagoOpen}
           onOpenChange={setIvaPagoOpen}
           monthExpenses={monthExpenses}
+            projectedExpenses={projectedExpenses}
           month={m}
           totalSaidas={totalSaidas}
           totalBaseSaidas={totalBaseSaidas}

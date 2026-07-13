@@ -14,6 +14,8 @@ type ExpenseLike = Pick<Expense, 'total_with_vat' | 'base_value'> & {
   location?: string | null;
 };
 
+export type ExpenseTotalsLike = ExpenseLike;
+
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
@@ -43,10 +45,12 @@ export function computeVatForExpenses(expenses: ExpenseLike[]) {
   let ivaPago = 0;
   let ivaDeduzir = 0;
   for (const e of expenses) {
-    totalSaidas += e.total_with_vat || 0;
-    totalBase += e.base_value || 0;
+    const total = e.total_with_vat || 0;
+    const deduzir = ivaDeduzirOf(e);
+    totalSaidas += total;
+    totalBase += total - deduzir;
     ivaPago += ivaPagoOf(e);
-    ivaDeduzir += ivaDeduzirOf(e);
+    ivaDeduzir += deduzir;
   }
   return {
     totalSaidas: r2(totalSaidas),

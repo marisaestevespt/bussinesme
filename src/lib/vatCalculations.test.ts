@@ -62,6 +62,20 @@ describe('computeVatBalance', () => {
   });
 });
 
+describe('computeVatForExpenses aggregates', () => {
+  it('uses the net cost after deductible VAT for totalBase', () => {
+    const r = computeVatForExpenses([
+      { total_with_vat: 123, base_value: 100 },
+      { total_with_vat: 49.2, base_value: 40, vat_deductible_amount: 0 },
+    ] as ExpenseLike[] as never);
+
+    expect(r.totalSaidas).toBe(172.2);
+    expect(r.totalBase).toBe(149.2);
+    expect(r.ivaPago).toBe(32.2);
+    expect(r.ivaDeduzir).toBe(23);
+  });
+});
+
 describe('filterByMonth', () => {
   it('filters sales by year+month', () => {
     const sales: SaleLike[] = [
