@@ -7,6 +7,7 @@ import { useState, lazy, Suspense, useMemo } from 'react';
 import { useFinancialData, type FinancialDataOptions } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { useProjectedRecurringExpenses } from '@/components/financial/useProjectedRecurringExpenses';
+import type { TrimSale, TrimExpense } from '@/components/financial/finTrimestral/types';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -148,7 +149,7 @@ export default function FinanceiroSubPage() {
   );
 }
 
-function TrimestralWithProjections({ sales, expenses, year }: { sales: Parameters<typeof FinTrimestral>[0]['sales']; expenses: Parameters<typeof FinTrimestral>[0]['expenses']; year: number }) {
+function TrimestralWithProjections({ sales, expenses, year }: { sales: TrimSale[]; expenses: TrimExpense[]; year: number }) {
   const projected = useProjectedRecurringExpenses(year, expenses);
   const augmented = useMemo(() => [...expenses, ...projected], [expenses, projected]);
   return <FinTrimestral sales={sales} expenses={augmented} currentYear={year} />;
