@@ -14,6 +14,8 @@ type ExpenseLike = Pick<Expense, 'total_with_vat' | 'base_value'> & {
   location?: string | null;
 };
 
+export type ExpenseTotalsLike = ExpenseLike;
+
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /**

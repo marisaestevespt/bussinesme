@@ -57,8 +57,8 @@ export function ExpensesTable({ expenses, loading, filter, ivaExempt, getCategor
                 <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onEdit({
                   ...(e as unknown as ExpenseFormState),
                   expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined,
-                  base_value: e.total_with_vat.toString(),
-                  includes_vat: true,
+                  base_value: e.base_value.toString(),
+                  includes_vat: false,
                   periodicity: e.periodicity || 'mensal',
                 })}>
                   <TableCell>
@@ -94,8 +94,8 @@ export function ExpensesTable({ expenses, loading, filter, ivaExempt, getCategor
                           onEdit({
                             ...(rest as unknown as ExpenseFormState),
                             expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined,
-                            base_value: e.total_with_vat.toString(),
-                            includes_vat: true,
+                            base_value: e.base_value.toString(),
+                            includes_vat: false,
                             status: 'pendente',
                             periodicity: e.periodicity || 'mensal',
                           });
